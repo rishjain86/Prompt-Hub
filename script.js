@@ -37,17 +37,39 @@ const addPromptModal = document.getElementById('addPromptModal');
 const closeAddModal = document.getElementById('closeAddModal');
 const submitPromptBtn = document.getElementById('submitPromptBtn');
 
-// --- DYNAMIC CUSTOM ALERT INJECTION (No index.html edit needed) --- //
+// --- DYNAMIC INJECTIONS (CSS & Modals) --- //
+document.head.insertAdjacentHTML('beforeend', `
+    <style>
+        .upvote-btn {
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+            background: rgba(239, 68, 68, 0.1); color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3); padding: 0 16px;
+            border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: all 0.2s;
+        }
+        .upvote-btn:active { transform: scale(0.95); background: rgba(239, 68, 68, 0.2); }
+        .action-row { display: flex; gap: 10px; margin-top: 15px; }
+        .view-btn { flex: 1; padding: 10px; background: #1e293b; color: #f8fafc; border: 1px solid #334155; border-radius: 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .view-btn:active { background: #334155; }
+        .copy-card-btn { flex: 1; padding: 10px; background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .copy-card-btn:active { background: #38bdf8; color: #0f172a; }
+        .preview-text { color: #94a3b8; font-size: 0.95rem; line-height: 1.5; font-style: italic; margin-bottom: 5px; }
+    </style>
+`);
+
 document.body.insertAdjacentHTML('beforeend', `
-    <div id="themeAlertModal" class="modal" style="z-index: 9999;">
-        <div class="modal-content" style="margin: 40% auto; padding: 25px; border-top: 4px solid #38bdf8;">
-            <h3 style="color: #38bdf8; margin-bottom: 15px;">Message</h3>
-            <p id="themeAlertText" style="color: #f8fafc; margin-bottom: 25px; font-size: 1rem; line-height: 1.5;"></p>
-            <button id="themeAlertOkBtn" class="primary-btn" style="background: #1e293b; border: 1px solid #38bdf8; color: #38bdf8;">OK</button>
+    <div id="viewPromptModal" class="modal" style="z-index: 1000;">
+        <div class="modal-content" style="margin: 15% auto; padding: 25px; text-align:left; width:90%; max-width:450px;">
+            <span class="close-modal" id="closeViewModal">&times;</span>
+            <h3 id="viewModalTitle" style="color: #38bdf8; margin-bottom: 15px; padding-right:20px; font-size:1.2rem; line-height:1.3;"></h3>
+            <div style="background:#0f172a; padding:15px; border-radius:8px; border:1px solid #334155; max-height:45vh; overflow-y:auto;">
+                <p id="viewModalText" style="color: #e2e8f0; font-size:0.95rem; line-height:1.6; white-space: pre-wrap; margin:0;"></p>
+            </div>
+            <button id="copyFromViewBtn" class="primary-btn" style="margin-top:15px; width:100%;">Copy Full Prompt</button>
         </div>
     </div>
 `);
 
+// --- Custom Alert Logic --- //
 const themeAlertModal = document.getElementById('themeAlertModal');
 const themeAlertText = document.getElementById('themeAlertText');
 const themeAlertOkBtn = document.getElementById('themeAlertOkBtn');
@@ -56,11 +78,34 @@ function showCustomAlert(message) {
     themeAlertText.innerHTML = message;
     themeAlertModal.style.display = 'block';
 }
+if(themeAlertOkBtn) themeAlertOkBtn.addEventListener('click', () => themeAlertModal.style.display = 'none');
 
-themeAlertOkBtn.addEventListener('click', () => {
-    themeAlertModal.style.display = 'none';
+// --- View Prompt Modal Logic --- //
+const viewPromptModal = document.getElementById('viewPromptModal');
+const closeViewModal = document.getElementById('closeViewModal');
+const viewModalTitle = document.getElementById('viewModalTitle');
+const viewModalText = document.getElementById('viewModalText');
+const copyFromViewBtn = document.getElementById('copyFromViewBtn');
+
+let currentViewText = "";
+
+window.openViewModal = function(encTitle, encText) {
+    viewModalTitle.textContent = decodeURIComponent(encTitle);
+    currentViewText = decodeURIComponent(encText);
+    viewModalText.textContent = currentViewText;
+    viewPromptModal.style.display = 'block';
+}
+
+closeViewModal.addEventListener('click', () => viewPromptModal.style.display = 'none');
+
+copyFromViewBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(currentViewText).then(() => {
+        const toast = document.getElementById('toast');
+        toast.className = "toast show";
+        setTimeout(() => toast.className = toast.className.replace("show", ""), 3000);
+        viewPromptModal.style.display = 'none'; 
+    });
 });
-// ---------------------------------------------------------------- //
 
 let isLoginMode = true;
 let currentUser = null;
@@ -155,7 +200,7 @@ submitPromptBtn.addEventListener('click', async () => {
         document.getElementById('promptDesc').value = '';
         document.getElementById('promptText').value = '';
 
-        fetchCommunityPrompts(); 
+        if(tabCommunity.classList.contains('active')) fetchCommunityPrompts(); 
     } catch(err) {
         showCustomAlert('Database Error: ' + err.message);
     }
@@ -164,7 +209,23 @@ submitPromptBtn.addEventListener('click', async () => {
     submitPromptBtn.disabled = false;
 });
 
-// ---- 3. FETCH & RENDER LOGIC ---- //
+// ---- 3. UPVOTE LOGIC ---- //
+window.upvotePrompt = async function(docId) {
+    if (!currentUser) {
+        showCustomAlert("Please Login to upvote prompts! 🔒");
+        return;
+    }
+    try {
+        await db.collection('community_prompts').doc(docId).update({
+            upvotes: firebase.firestore.FieldValue.increment(1)
+        });
+        fetchCommunityPrompts();
+    } catch (error) {
+        showCustomAlert("Error upvoting: " + error.message);
+    }
+}
+
+// ---- 4. FETCH & RENDER LOGIC ---- //
 async function fetchOfficialPrompts() {
     try {
         const response = await fetch('prompts.json');
@@ -192,7 +253,10 @@ async function fetchCommunityPrompts() {
 
 function renderPrompts(promptsToRender, isCommunity) {
     promptContainer.innerHTML = '';
-    if(promptsToRender.length === 0) return;
+    if(promptsToRender.length === 0) {
+        promptContainer.innerHTML = '<p style="color:#94a3b8; text-align:center; margin-top:20px;">No prompts found.</p>';
+        return;
+    }
 
     promptsToRender.forEach(prompt => {
         const card = document.createElement('div');
@@ -204,16 +268,25 @@ function renderPrompts(promptsToRender, isCommunity) {
             authorBadge = `<span style="color:#94a3b8; font-size:0.8rem; font-weight:bold;">@${authorName}</span>`;
         }
 
+        // Generating a smart preview from the actual prompt text
+        const fullText = prompt.prompt_text || '';
+        const previewText = fullText.length > 75 ? fullText.substring(0, 75) + '...' : fullText;
+
+        const encodedTitle = encodeURIComponent(prompt.title);
+        const encodedText = encodeURIComponent(fullText);
+
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span class="category-badge">${prompt.category}</span>
                 ${authorBadge}
             </div>
-            <h3>${prompt.title}</h3>
-            <p>${prompt.description}</p>
-            <div style="display:flex; gap:10px;">
-                <button class="copy-btn" onclick="copyPrompt('${encodeURIComponent(prompt.prompt_text)}')">Copy</button>
-                ${isCommunity ? `<button class="auth-btn" style="width:auto; pointer-events:none;">❤️ ${prompt.upvotes || 0}</button>` : ''}
+            <h3 style="margin-bottom:8px;">${prompt.title}</h3>
+            <p class="preview-text">"${previewText}"</p>
+            
+            <div class="action-row">
+                <button class="view-btn" onclick="openViewModal('${encodedTitle}', '${encodedText}')">View</button>
+                <button class="copy-card-btn" onclick="copyPrompt('${encodedText}')">Copy</button>
+                ${isCommunity ? `<button class="upvote-btn" onclick="upvotePrompt('${prompt.id}')"><span>❤️</span> <span>${prompt.upvotes || 0}</span></button>` : ''}
             </div>
         `;
         promptContainer.appendChild(card);
@@ -232,7 +305,7 @@ window.copyPrompt = function(encodedText) {
 searchInput.addEventListener('input', (e) => {
     if(tabCommunity.classList.contains('active')) return; 
     const query = e.target.value.toLowerCase();
-    const filtered = allPrompts.filter(p => p.title.toLowerCase().includes(query) || p.description.toLowerCase().includes(query));
+    const filtered = allPrompts.filter(p => p.title.toLowerCase().includes(query) || p.prompt_text.toLowerCase().includes(query));
     renderPrompts(filtered, false);
 });
 
@@ -265,4 +338,5 @@ tabCommunity.addEventListener('click', () => {
     fetchCommunityPrompts();
 });
 
+// Initial Load
 fetchOfficialPrompts();
