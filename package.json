@@ -1,0 +1,22 @@
+{
+  "name": "prompt-hub",
+  "version": "1.0.0",
+  "description": "AI Prompt Engineering Hub",
+  "main": "script.js",
+  "scripts": {
+    "build": "npx cap sync android",
+    "sync": "npx cap copy android"
+  },
+  "dependencies": {
+    "@capacitor-community/admob": "^6.0.0",
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/splash-screen": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/assets": "^3.0.0"
+  },
+  "author": "Amazing Deals",
+  "license": "MIT"
+}
