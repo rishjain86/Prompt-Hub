@@ -1,0 +1,11 @@
+{
+  "appId": "com.prompthub.app",
+  "appName": "Prompt Hub",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "AdMob": {
+      "initializeForTesting": true
+    }
+  }
+}
