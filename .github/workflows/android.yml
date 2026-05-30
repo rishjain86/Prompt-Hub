@@ -1,0 +1,49 @@
+name: Android Debug Build
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Unsigned APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository Workspace
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install NPM Dependencies
+        run: npm install
+
+      - name: Add Capacitor Android Platform
+        run: npx cap add android
+
+      - name: Generate App Icons and Splash Screen
+        run: npx capacitor-assets generate --android
+
+      - name: Sync Capacitor Android Project
+        run: npx cap sync android
+
+      - name: Build Debug APK
+        working-directory: ./android
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK Asset
+        uses: actions/upload-artifact@v3
+        with:
+          name: prompt-hub-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
