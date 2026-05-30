@@ -1,163 +1,162 @@
-// --- Capacitor AdMob Plugin ---
-let AdMob = null;
-if (window.Capacitor) {
-    AdMob = window.Capacitor.Plugins.AdMob;
-}
+// Firebase Configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyDiZ_S-OPWyUaBdcYxCJLTIrROn16C_U2E",
+    authDomain: "prompt-hub-app-2fe0f.firebaseapp.com",
+    projectId: "prompt-hub-app-2fe0f",
+    storageBucket: "prompt-hub-app-2fe0f.firebasestorage.app",
+    messagingSenderId: "242493810474",
+    appId: "1:242493810474:web:d51af341a15f37897b2053"
+};
 
-// --- 1. Global State & DOM Elements ---
-let prompts = [];
-let activeCategory = "All";
-let searchQuery = "";
-let copyClickCounter = 0;
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-const container = document.getElementById("promptContainer");
-const searchInput = document.getElementById("searchInput");
-const filterBtns = document.querySelectorAll(".filter-btn");
-const toast = document.getElementById("toast");
+// DOM Elements
+const authBtn = document.getElementById('authBtn');
+const authModal = document.getElementById('authModal');
+const closeModal = document.getElementById('closeModal');
+const emailInput = document.getElementById('emailInput');
+const passwordInput = document.getElementById('passwordInput');
+const submitAuthBtn = document.getElementById('submitAuthBtn');
+const toggleAuthMode = document.getElementById('toggleAuthMode');
+const modalTitle = document.getElementById('modalTitle');
+const tabOfficial = document.getElementById('tabOfficial');
+const tabCommunity = document.getElementById('tabCommunity');
+const categoryFilter = document.getElementById('categoryFilter');
+const promptContainer = document.getElementById('promptContainer');
 
-// --- 2. Data Initialization (Fetch JSON) ---
-async function loadPrompts() {
+let isLoginMode = true;
+let currentUser = null;
+let allPrompts = [];
+
+// ---- AUTHENTICATION LOGIC ---- //
+auth.onAuthStateChanged(user => {
+    if (user) {
+        currentUser = user;
+        authBtn.textContent = "Logout";
+        authBtn.style.color = "#ef4444";
+        authBtn.style.borderColor = "#ef4444";
+    } else {
+        currentUser = null;
+        authBtn.textContent = "Login";
+        authBtn.style.color = "#38bdf8";
+        authBtn.style.borderColor = "#38bdf8";
+    }
+});
+
+authBtn.addEventListener('click', () => {
+    if (currentUser) {
+        auth.signOut();
+    } else {
+        authModal.style.display = 'block';
+    }
+});
+
+closeModal.addEventListener('click', () => authModal.style.display = 'none');
+
+toggleAuthMode.addEventListener('click', () => {
+    isLoginMode = !isLoginMode;
+    modalTitle.textContent = isLoginMode ? "Login" : "Create Account";
+    submitAuthBtn.textContent = isLoginMode ? "Login" : "Sign Up";
+    toggleAuthMode.innerHTML = isLoginMode ? "Don't have an account? <span>Sign Up</span>" : "Already have an account? <span>Login</span>";
+});
+
+submitAuthBtn.addEventListener('click', async () => {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    if (!email || !password) return alert("Please fill all fields.");
+
     try {
-        // Fetching local JSON. Baad mein isko live URL se replace kar sakte ho.
-        const response = await fetch('./prompts.json'); 
-        if (!response.ok) throw new Error("Network response was not ok");
-        
-        prompts = await response.json();
-        renderPrompts();
+        if (isLoginMode) {
+            await auth.signInWithEmailAndPassword(email, password);
+        } else {
+            await auth.createUserWithEmailAndPassword(email, password);
+        }
+        authModal.style.display = 'none';
+        emailInput.value = ''; passwordInput.value = '';
     } catch (error) {
-        console.error("Failed to load prompts:", error);
-        container.innerHTML = `<p style="text-align:center; color:var(--text-muted);">Error loading prompts. Please check your connection.</p>`;
+        alert(error.message);
+    }
+});
+
+// ---- UI & RENDERING LOGIC ---- //
+async function fetchPrompts() {
+    try {
+        const response = await fetch('prompts.json');
+        allPrompts = await response.json();
+        renderPrompts(allPrompts);
+    } catch (error) {
+        console.error('Error fetching prompts:', error);
     }
 }
 
-// --- 3. UI Rendering & Filtering ---
-function renderPrompts() {
-    container.innerHTML = "";
-    
-    const filteredPrompts = prompts.filter(p => {
-        const matchesCategory = activeCategory === "All" || p.category === activeCategory;
-        const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                              p.description.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesCategory && matchesSearch;
-    });
-
-    if (filteredPrompts.length === 0) {
-        container.innerHTML = `<p style="text-align:center; color:var(--text-muted);">No prompts found.</p>`;
+function renderPrompts(promptsToRender) {
+    promptContainer.innerHTML = '';
+    if(promptsToRender.length === 0) {
+        promptContainer.innerHTML = '<p style="color:#94a3b8; text-align:center; margin-top:20px;">No prompts found.</p>';
         return;
     }
-
-    filteredPrompts.forEach(p => {
-        const card = document.createElement("div");
-        card.className = "prompt-card";
+    promptsToRender.forEach(prompt => {
+        const card = document.createElement('div');
+        card.className = 'prompt-card';
         card.innerHTML = `
-            <div class="card-header">
-                <span class="badge">${p.category}</span>
-            </div>
-            <div class="title">${p.title}</div>
-            <div class="description">${p.description}</div>
-            <button class="copy-btn" onclick="executeCopyAction('${p.id}')">Copy Prompt</button>
+            <span class="category-badge">${prompt.category}</span>
+            <h3>${prompt.title}</h3>
+            <p>${prompt.description}</p>
+            <button class="copy-btn" onclick="copyPrompt('${prompt.prompt_text.replace(/'/g, "\\'")}')">Copy Prompt</button>
         `;
-        container.appendChild(card);
+        promptContainer.appendChild(card);
     });
 }
 
-// --- 4. Event Listeners ---
-if(searchInput) {
-    searchInput.addEventListener("input", (e) => {
-        searchQuery = e.target.value;
-        renderPrompts();
+// Copy functionality
+window.copyPrompt = function(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        const toast = document.getElementById('toast');
+        toast.className = "toast show";
+        setTimeout(() => toast.className = toast.className.replace("show", ""), 3000);
     });
 }
 
-filterBtns.forEach(btn => {
-    btn.addEventListener("click", (e) => {
-        filterBtns.forEach(b => b.classList.remove("active"));
-        e.target.classList.add("active");
-        activeCategory = e.target.dataset.category;
-        renderPrompts();
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase();
+    const filtered = allPrompts.filter(p => p.title.toLowerCase().includes(query) || p.description.toLowerCase().includes(query));
+    renderPrompts(filtered);
+});
+
+// Category filtering
+document.querySelectorAll('.filter-btn').forEach(button => {
+    button.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        const category = button.dataset.category;
+        const filtered = category === 'All' ? allPrompts : allPrompts.filter(p => p.category === category);
+        renderPrompts(filtered);
     });
 });
 
-// --- 5. Clipboard Action & Toast ---
-async function executeCopyAction(id) {
-    const promptObj = prompts.find(p => p.id === id);
-    if (!promptObj) return;
-
-    try {
-        await navigator.clipboard.writeText(promptObj.prompt_text);
-        showToast();
-        incrementClickCounter();
-    } catch (err) {
-        console.error("Failed to copy text: ", err);
-    }
-}
-
-function showToast() {
-    if(toast) {
-        toast.classList.add("show");
-        setTimeout(() => {
-            toast.classList.remove("show");
-        }, 2000);
-    }
-}
-
-// --- 6. Monetization Waterfall (AdMob -> InMobi Fallback) ---
-async function initializeAds() {
-    if (!AdMob) return;
-    try {
-        await AdMob.initialize({
-            requestTrackingAuthorization: true,
-            initializeForTesting: true
-        });
-        
-        await AdMob.showBanner({
-            adId: 'ca-app-pub-3940256099942544/6300978111', 
-            position: 'BOTTOM_CENTER',
-            margin: 0,
-            isTesting: true
-        });
-    } catch (error) {
-        console.error("AdMob Init Failed:", error);
-    }
-}
-
-function incrementClickCounter() {
-    copyClickCounter++;
-    if (copyClickCounter % 3 === 0) {
-        showHybridInterstitial();
-    }
-}
-
-async function showHybridInterstitial() {
-    console.log("Triggering Hybrid Interstitial Waterfall...");
-    let adMobSuccess = false;
-
-    if (AdMob) {
-        try {
-            await AdMob.prepareInterstitial({ adId: 'ca-app-pub-3940256099942544/1033173712', isTesting: true });
-            await AdMob.showInterstitial();
-            adMobSuccess = true;
-            console.log("AdMob Interstitial Displayed Successfully.");
-        } catch (error) {
-            console.error("AdMob Interstitial Failed to load. Triggering Waterfall Fallback.", error);
-            adMobSuccess = false;
-        }
-    }
-
-    if (!adMobSuccess) {
-        triggerInMobiSimulation();
-    }
-}
-
-function triggerInMobiSimulation() {
-    console.log("[INMOBI SDK SIMULATION]: Requesting Interstitial...");
-    setTimeout(() => {
-        console.log("[INMOBI SDK SIMULATION]: Ad Loaded and Displayed.");
-    }, 500);
-}
-
-// Initialize App Data & Ads
-document.addEventListener("DOMContentLoaded", () => {
-    loadPrompts();
-    initializeAds();
+// Tab Switching (Official vs Community)
+tabOfficial.addEventListener('click', () => {
+    tabOfficial.classList.add('active');
+    tabCommunity.classList.remove('active');
+    categoryFilter.style.display = 'flex'; // Show categories
+    renderPrompts(allPrompts); // Show static prompts
 });
+
+tabCommunity.addEventListener('click', () => {
+    tabCommunity.classList.add('active');
+    tabOfficial.classList.remove('active');
+    categoryFilter.style.display = 'none'; // Hide categories for community tab (for now)
+    promptContainer.innerHTML = `
+        <div style="text-align:center; padding: 40px 20px;">
+            <h2 style="color:#38bdf8; margin-bottom: 10px;">Community Expert Prompts</h2>
+            <p style="color:#94a3b8;">Loading prompts from Firebase Database...</p>
+        </div>
+    `;
+    // Phase 2 me yaha Firestore ka data fetch karenge
+});
+
+fetchPrompts();
