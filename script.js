@@ -13,6 +13,9 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// Google Auth Provider
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
 // DOM Elements
 const authBtn = document.getElementById('authBtn');
 const authModal = document.getElementById('authModal');
@@ -22,10 +25,13 @@ const passwordInput = document.getElementById('passwordInput');
 const submitAuthBtn = document.getElementById('submitAuthBtn');
 const toggleAuthMode = document.getElementById('toggleAuthMode');
 const modalTitle = document.getElementById('modalTitle');
+const googleAuthBtn = document.getElementById('googleAuthBtn');
+
 const tabOfficial = document.getElementById('tabOfficial');
 const tabCommunity = document.getElementById('tabCommunity');
 const categoryFilter = document.getElementById('categoryFilter');
 const promptContainer = document.getElementById('promptContainer');
+const searchInput = document.getElementById('searchInput');
 
 let isLoginMode = true;
 let currentUser = null;
@@ -63,6 +69,7 @@ toggleAuthMode.addEventListener('click', () => {
     toggleAuthMode.innerHTML = isLoginMode ? "Don't have an account? <span>Sign Up</span>" : "Already have an account? <span>Login</span>";
 });
 
+// Email & Password Auth
 submitAuthBtn.addEventListener('click', async () => {
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
@@ -81,7 +88,21 @@ submitAuthBtn.addEventListener('click', async () => {
     }
 });
 
+// Google Auth
+googleAuthBtn.addEventListener('click', async () => {
+    try {
+        await auth.signInWithPopup(googleProvider);
+        authModal.style.display = 'none';
+        console.log("Google Sign-In Successful!");
+    } catch (error) {
+        console.error("Google Login Error: ", error);
+        alert("Login failed: " + error.message);
+    }
+});
+
+
 // ---- UI & RENDERING LOGIC ---- //
+
 async function fetchPrompts() {
     try {
         const response = await fetch('prompts.json');
@@ -121,7 +142,7 @@ window.copyPrompt = function(text) {
 }
 
 // Search functionality
-document.getElementById('searchInput').addEventListener('input', (e) => {
+searchInput.addEventListener('input', (e) => {
     const query = e.target.value.toLowerCase();
     const filtered = allPrompts.filter(p => p.title.toLowerCase().includes(query) || p.description.toLowerCase().includes(query));
     renderPrompts(filtered);
@@ -143,20 +164,20 @@ tabOfficial.addEventListener('click', () => {
     tabOfficial.classList.add('active');
     tabCommunity.classList.remove('active');
     categoryFilter.style.display = 'flex'; // Show categories
-    renderPrompts(allPrompts); // Show static prompts
+    renderPrompts(allPrompts); 
 });
 
 tabCommunity.addEventListener('click', () => {
     tabCommunity.classList.add('active');
     tabOfficial.classList.remove('active');
-    categoryFilter.style.display = 'none'; // Hide categories for community tab (for now)
+    categoryFilter.style.display = 'none'; // Hide categories
     promptContainer.innerHTML = `
         <div style="text-align:center; padding: 40px 20px;">
             <h2 style="color:#38bdf8; margin-bottom: 10px;">Community Expert Prompts</h2>
-            <p style="color:#94a3b8;">Loading prompts from Firebase Database...</p>
+            <p style="color:#94a3b8;">Loading prompts from Firebase Database... (Phase 2)</p>
         </div>
     `;
-    // Phase 2 me yaha Firestore ka data fetch karenge
 });
 
+// Initialize
 fetchPrompts();
