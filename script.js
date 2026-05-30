@@ -37,16 +37,21 @@ const addPromptModal = document.getElementById('addPromptModal');
 const closeAddModal = document.getElementById('closeAddModal');
 const submitPromptBtn = document.getElementById('submitPromptBtn');
 
-// Custom Alert Elements
+// --- DYNAMIC CUSTOM ALERT INJECTION (No index.html edit needed) --- //
+document.body.insertAdjacentHTML('beforeend', `
+    <div id="themeAlertModal" class="modal" style="z-index: 9999;">
+        <div class="modal-content" style="margin: 40% auto; padding: 25px; border-top: 4px solid #38bdf8;">
+            <h3 style="color: #38bdf8; margin-bottom: 15px;">Message</h3>
+            <p id="themeAlertText" style="color: #f8fafc; margin-bottom: 25px; font-size: 1rem; line-height: 1.5;"></p>
+            <button id="themeAlertOkBtn" class="primary-btn" style="background: #1e293b; border: 1px solid #38bdf8; color: #38bdf8;">OK</button>
+        </div>
+    </div>
+`);
+
 const themeAlertModal = document.getElementById('themeAlertModal');
 const themeAlertText = document.getElementById('themeAlertText');
 const themeAlertOkBtn = document.getElementById('themeAlertOkBtn');
 
-let isLoginMode = true;
-let currentUser = null;
-let allPrompts = [];
-
-// --- Custom Alert Function ---
 function showCustomAlert(message) {
     themeAlertText.innerHTML = message;
     themeAlertModal.style.display = 'block';
@@ -55,6 +60,11 @@ function showCustomAlert(message) {
 themeAlertOkBtn.addEventListener('click', () => {
     themeAlertModal.style.display = 'none';
 });
+// ---------------------------------------------------------------- //
+
+let isLoginMode = true;
+let currentUser = null;
+let allPrompts = [];
 
 // ---- 1. AUTHENTICATION LOGIC ---- //
 auth.onAuthStateChanged(user => {
