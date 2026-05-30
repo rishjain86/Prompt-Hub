@@ -1,0 +1,282 @@
+[
+  {
+    "id": "tech_01",
+    "category": "Coding & Tech",
+    "title": "Build a Production-Ready App",
+    "description": "Generates a complete architecture and implementation plan for a scalable application.",
+    "prompt_text": "Act as a senior software architect. Design a production-ready [insert app type] using [insert language/framework]. Provide project structure, database schema, API endpoints, authentication flow, security practices, scalability considerations, deployment strategy, and sample code snippets. Explain every major component and recommend industry best practices."
+  },
+  {
+    "id": "tech_02",
+    "category": "Coding & Tech",
+    "title": "Code Review Expert",
+    "description": "Performs a professional code review with optimization suggestions.",
+    "prompt_text": "Act as a senior software engineer and perform a professional code review on the following code:\n\n[paste code]\n\nIdentify bugs, security vulnerabilities, performance issues, maintainability concerns, and code smells. Suggest optimized code with explanations and provide a severity rating for each issue."
+  },
+  {
+    "id": "tech_03",
+    "category": "Coding & Tech",
+    "title": "Bug Hunter & Fix Generator",
+    "description": "Finds root causes of errors and provides fixes.",
+    "prompt_text": "Act as an expert debugger. Analyze the following error message and code:\n\n[insert error]\n\n[insert code]\n\nDetermine the root cause, explain why it occurs, provide corrected code, suggest preventive measures, and list debugging steps for future troubleshooting."
+  },
+  {
+    "id": "tech_04",
+    "category": "Coding & Tech",
+    "title": "Full-Stack Feature Builder",
+    "description": "Creates complete implementation plans for app features.",
+    "prompt_text": "Act as a full-stack developer. Build a complete implementation plan for the feature: [insert feature]. Include frontend UI logic, backend API design, database tables, validation rules, security checks, edge cases, testing strategy, and deployment considerations."
+  },
+  {
+    "id": "tech_05",
+    "category": "Coding & Tech",
+    "title": "Database Schema Designer",
+    "description": "Designs optimized databases for applications.",
+    "prompt_text": "Act as a database architect. Design an optimized database schema for [insert application]. Include tables, relationships, indexes, constraints, normalization recommendations, scalability considerations, and SQL CREATE TABLE statements."
+  },
+  {
+    "id": "tech_06",
+    "category": "Coding & Tech",
+    "title": "API Documentation Generator",
+    "description": "Creates professional API documentation automatically.",
+    "prompt_text": "Act as a technical writer. Generate professional API documentation for the following endpoints:\n\n[insert endpoints]\n\nInclude request examples, response examples, authentication requirements, error handling, status codes, and implementation notes."
+  },
+  {
+    "id": "tech_07",
+    "category": "Coding & Tech",
+    "title": "Learning Roadmap Creator",
+    "description": "Builds a structured learning path for any technology.",
+    "prompt_text": "Act as a technology mentor. Create a 90-day learning roadmap for mastering [insert technology]. Break it into weekly milestones, projects, resources, practice exercises, interview questions, and portfolio-building activities."
+  },
+  {
+    "id": "tech_08",
+    "category": "Coding & Tech",
+    "title": "Algorithm Optimization Expert",
+    "description": "Improves algorithm efficiency and performance.",
+    "prompt_text": "Act as a competitive programming expert. Analyze the following algorithm:\n\n[paste code]\n\nEvaluate time complexity, space complexity, bottlenecks, and optimization opportunities. Provide an improved solution and explain the trade-offs."
+  },
+  {
+    "id": "tech_09",
+    "category": "Coding & Tech",
+    "title": "Capacitor Mobile App Generator",
+    "description": "Creates complete mobile app architecture using web technologies.",
+    "prompt_text": "Act as a senior hybrid mobile app developer. Design a production-ready Capacitor application for [insert app idea]. Include HTML/CSS/JS structure, offline support, push notifications, local storage, monetization options, security recommendations, and deployment instructions."
+  },
+  {
+    "id": "tech_10",
+    "category": "Coding & Tech",
+    "title": "Technical Interview Simulator",
+    "description": "Simulates real-world technical interviews.",
+    "prompt_text": "Act as a senior technical interviewer for a [insert role] position. Conduct a realistic interview with increasing difficulty. Ask coding, system design, behavioral, and problem-solving questions. Evaluate answers and provide detailed feedback after each response."
+  },
+  {
+    "id": "marketing_01",
+    "category": "Marketing & Social Media",
+    "title": "30-Day Content Calendar",
+    "description": "Creates a complete social media content plan.",
+    "prompt_text": "Act as a social media strategist. Create a 30-day content calendar for [insert niche]. Include post ideas, hooks, captions, content formats, hashtags, engagement tactics, posting schedule, and CTAs optimized for maximum reach."
+  },
+  {
+    "id": "marketing_02",
+    "category": "Marketing & Social Media",
+    "title": "Viral Instagram Reels Machine",
+    "description": "Generates high-performing Instagram Reels concepts.",
+    "prompt_text": "Act as an Instagram growth expert. Generate 20 viral Reels ideas for [insert niche]. For each idea, provide a hook, script outline, visual instructions, caption, CTA, and reason why it can go viral."
+  },
+  {
+    "id": "marketing_03",
+    "category": "Marketing & Social Media",
+    "title": "LinkedIn Authority Builder",
+    "description": "Creates professional LinkedIn content that attracts opportunities.",
+    "prompt_text": "Act as a LinkedIn personal branding expert. Create 10 high-engagement LinkedIn posts for [insert industry]. Use storytelling, authority-building techniques, strong hooks, value-driven insights, and engagement-focused CTAs."
+  },
+  {
+    "id": "marketing_04",
+    "category": "Marketing & Social Media",
+    "title": "Facebook Ads Campaign Architect",
+    "description": "Builds complete ad campaigns from scratch.",
+    "prompt_text": "Act as a performance marketing specialist. Create a Facebook Ads campaign for [insert product/service]. Include audience targeting, creatives, ad copy, headlines, budget allocation, funnel strategy, KPIs, and optimization recommendations."
+  },
+  {
+    "id": "marketing_05",
+    "category": "Marketing & Social Media",
+    "title": "High-Converting Lead Magnet",
+    "description": "Creates irresistible lead generation offers.",
+    "prompt_text": "Act as a lead generation expert. Design a lead magnet for [insert niche]. Include title, value proposition, content outline, landing page copy, email follow-up sequence, and conversion optimization tactics."
+  },
+  {
+    "id": "marketing_06",
+    "category": "Marketing & Social Media",
+    "title": "YouTube Growth Blueprint",
+    "description": "Builds a growth strategy for YouTube channels.",
+    "prompt_text": "Act as a YouTube strategist. Create a growth plan for a channel in [insert niche]. Include content pillars, video ideas, thumbnail concepts, title formulas, SEO recommendations, upload schedule, and monetization strategy."
+  },
+  {
+    "id": "marketing_07",
+    "category": "Marketing & Social Media",
+    "title": "Influencer Outreach Generator",
+    "description": "Creates effective influencer collaboration campaigns.",
+    "prompt_text": "Act as an influencer marketing manager. Create a complete influencer outreach campaign for [insert brand]. Include outreach messages, collaboration ideas, negotiation strategies, campaign structure, KPIs, and reporting templates."
+  },
+  {
+    "id": "marketing_08",
+    "category": "Marketing & Social Media",
+    "title": "Product Launch Planner",
+    "description": "Designs launch campaigns that maximize visibility.",
+    "prompt_text": "Act as a product launch strategist. Create a launch campaign for [insert product]. Include pre-launch, launch-day, and post-launch strategies, content ideas, email sequences, partnerships, ads, and engagement tactics."
+  },
+  {
+    "id": "marketing_09",
+    "category": "Marketing & Social Media",
+    "title": "Personal Brand Accelerator",
+    "description": "Builds a powerful personal branding strategy.",
+    "prompt_text": "Act as a personal branding expert. Create a complete personal branding roadmap for [insert profession]. Include positioning, content themes, authority-building tactics, networking strategy, and platform-specific growth recommendations."
+  },
+  {
+    "id": "marketing_10",
+    "category": "Marketing & Social Media",
+    "title": "TikTok Viral Content Creator",
+    "description": "Generates viral TikTok content ideas and scripts.",
+    "prompt_text": "Act as a TikTok growth consultant. Generate 25 viral TikTok content ideas for [insert niche]. Include hooks, scripts, visuals, trends to leverage, captions, hashtags, and audience engagement tactics."
+  },
+  {
+    "id": "copy_01",
+    "category": "Copywriting & Content",
+    "title": "Sales Page Conversion Master",
+    "description": "Writes persuasive sales pages that drive conversions.",
+    "prompt_text": "Act as a world-class direct response copywriter. Write a high-converting sales page for [insert product/service]. Include headline, subheadline, problem agitation, solution, benefits, social proof, objections handling, FAQs, and strong CTAs."
+  },
+  {
+    "id": "copy_02",
+    "category": "Copywriting & Content",
+    "title": "SEO Blog Writer",
+    "description": "Creates search-engine-optimized blog articles.",
+    "prompt_text": "Act as an SEO content strategist. Write a comprehensive blog article about [insert topic]. Include keyword optimization, engaging introduction, H2/H3 structure, examples, FAQs, and a compelling conclusion."
+  },
+  {
+    "id": "copy_03",
+    "category": "Copywriting & Content",
+    "title": "Cold Email Generator",
+    "description": "Creates personalized cold emails that get replies.",
+    "prompt_text": "Act as a B2B sales copywriter. Write a personalized cold email for [insert target audience] promoting [insert offer]. Focus on relevance, value, brevity, curiosity, and strong reply rates."
+  },
+  {
+    "id": "copy_04",
+    "category": "Copywriting & Content",
+    "title": "Email Sequence Builder",
+    "description": "Creates complete email marketing sequences.",
+    "prompt_text": "Act as an email marketing expert. Create a 7-email sequence for [insert product/service]. Include welcome email, trust-building emails, value-driven content, objection handling, urgency emails, and conversion-focused CTAs."
+  },
+  {
+    "id": "copy_05",
+    "category": "Copywriting & Content",
+    "title": "Storytelling Content Creator",
+    "description": "Transforms ideas into engaging stories.",
+    "prompt_text": "Act as a professional storyteller. Turn the following idea into a compelling story:\n\n[insert idea]\n\nUse emotional hooks, conflict, transformation, memorable lessons, and audience engagement techniques."
+  },
+  {
+    "id": "copy_06",
+    "category": "Copywriting & Content",
+    "title": "Landing Page Copy Expert",
+    "description": "Creates optimized landing page copy.",
+    "prompt_text": "Act as a conversion copywriter. Write landing page copy for [insert offer]. Include attention-grabbing headlines, benefits, trust elements, testimonials, FAQs, and persuasive CTAs."
+  },
+  {
+    "id": "copy_07",
+    "category": "Copywriting & Content",
+    "title": "Video Script Generator",
+    "description": "Creates professional scripts for video content.",
+    "prompt_text": "Act as a video content strategist. Write a complete script for a [insert platform] video about [insert topic]. Include opening hook, pacing instructions, storytelling elements, engagement triggers, and CTA."
+  },
+  {
+    "id": "copy_08",
+    "category": "Copywriting & Content",
+    "title": "Case Study Writer",
+    "description": "Generates compelling customer success stories.",
+    "prompt_text": "Act as a case study specialist. Write a professional case study for [insert business]. Include challenge, solution, implementation process, measurable results, testimonials, and business impact."
+  },
+  {
+    "id": "copy_09",
+    "category": "Copywriting & Content",
+    "title": "Product Description Optimizer",
+    "description": "Creates persuasive eCommerce product descriptions.",
+    "prompt_text": "Act as an eCommerce copywriter. Write a compelling product description for [insert product]. Highlight benefits, emotional triggers, unique selling points, objections handling, and conversion-focused messaging."
+  },
+  {
+    "id": "copy_10",
+    "category": "Copywriting & Content",
+    "title": "Authority Article Creator",
+    "description": "Builds thought leadership content.",
+    "prompt_text": "Act as an industry thought leader. Write a long-form authority article on [insert topic]. Include original insights, frameworks, examples, data-backed arguments, and actionable recommendations."
+  },
+  {
+    "id": "art_01",
+    "category": "AI Art / Midjourney",
+    "title": "Cinematic Hero Portrait",
+    "description": "Creates dramatic movie-quality character portraits.",
+    "prompt_text": "[insert subject], ultra-realistic cinematic portrait, dramatic rim lighting, shallow depth of field, photorealistic skin texture, movie poster quality, 8k detail, volumetric lighting, masterpiece composition, sharp focus, professional photography --ar 4:5 --stylize 750"
+  },
+  {
+    "id": "art_02",
+    "category": "AI Art / Midjourney",
+    "title": "Luxury Product Advertisement",
+    "description": "Generates premium commercial product shots.",
+    "prompt_text": "[insert product], luxury advertising photography, premium branding, glossy reflections, studio lighting, elegant composition, ultra-detailed textures, commercial quality, hyper-realistic render, luxury aesthetic --ar 1:1 --stylize 600"
+  },
+  {
+    "id": "art_03",
+    "category": "AI Art / Midjourney",
+    "title": "Futuristic Cyberpunk City",
+    "description": "Creates highly detailed cyberpunk cityscapes.",
+    "prompt_text": "massive futuristic cyberpunk city, neon lights, flying vehicles, holographic billboards, rainy streets, cinematic atmosphere, ultra-detailed architecture, vibrant colors, sci-fi masterpiece, concept art quality --ar 16:9 --stylize 900"
+  },
+  {
+    "id": "art_04",
+    "category": "AI Art / Midjourney",
+    "title": "Fantasy World Builder",
+    "description": "Generates breathtaking fantasy environments.",
+    "prompt_text": "epic fantasy kingdom, floating islands, magical waterfalls, ancient castles, mystical atmosphere, cinematic lighting, highly detailed environment, fantasy concept art, legendary world-building --ar 16:9 --stylize 850"
+  },
+  {
+    "id": "art_05",
+    "category": "AI Art / Midjourney",
+    "title": "Anime Character Designer",
+    "description": "Creates professional anime-style characters.",
+    "prompt_text": "[insert character description], anime masterpiece, highly detailed eyes, dynamic pose, cinematic lighting, vibrant colors, professional character design, trending anime style, clean line art --ar 2:3 --stylize 700"
+  },
+  {
+    "id": "art_06",
+    "category": "AI Art / Midjourney",
+    "title": "Architectural Visualization",
+    "description": "Produces realistic architectural renders.",
+    "prompt_text": "[insert building type], modern architecture visualization, realistic materials, natural lighting, premium design, photorealistic rendering, architectural digest quality, ultra-sharp details --ar 16:9 --stylize 500"
+  },
+  {
+    "id": "art_07",
+    "category": "AI Art / Midjourney",
+    "title": "YouTube Thumbnail Creator",
+    "description": "Designs attention-grabbing thumbnail visuals.",
+    "prompt_text": "[insert topic], viral YouTube thumbnail style, dramatic expression, bold composition, vibrant contrast, attention-grabbing visuals, high click-through design, clean focus, modern digital art --ar 16:9 --stylize 650"
+  },
+  {
+    "id": "art_08",
+    "category": "AI Art / Midjourney",
+    "title": "Epic Gaming Wallpaper",
+    "description": "Creates stunning gaming-inspired wallpapers.",
+    "prompt_text": "[insert gaming theme], epic action scene, cinematic atmosphere, dynamic motion, ultra-detailed environment, high-energy composition, next-gen graphics quality, gaming wallpaper masterpiece --ar 16:9 --stylize 800"
+  },
+  {
+    "id": "art_09",
+    "category": "AI Art / Midjourney",
+    "title": "Fashion Editorial Shoot",
+    "description": "Generates luxury fashion magazine visuals.",
+    "prompt_text": "[insert fashion concept], luxury editorial photography, Vogue magazine style, dramatic lighting, premium styling, elegant poses, high-fashion atmosphere, ultra-realistic detail --ar 4:5 --stylize 700"
+  },
+  {
+    "id": "art_10",
+    "category": "AI Art / Midjourney",
+    "title": "Dreamlike Surreal Artwork",
+    "description": "Creates imaginative surreal masterpieces.",
+    "prompt_text": "[insert surreal concept], dreamlike atmosphere, impossible geometry, symbolic storytelling, surrealist masterpiece, highly detailed artwork, cinematic color grading, imaginative visual narrative --ar 3:4 --stylize 1000"
+  }
+]
