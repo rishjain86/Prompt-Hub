@@ -7,281 +7,61 @@
     --border-color: #334155;
 }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 80px; }
 
-body {
-    background-color: var(--bg-color);
-    color: var(--text-main);
-    padding-bottom: 80px; /* Space for AdMob banner */
-}
+.header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); }
+.brand { display: flex; align-items: center; gap: 10px; }
+.logo { width: 32px; height: 32px; border-radius: 8px; }
+.header h1 { font-size: 1.5rem; color: var(--text-main); }
 
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-    background-color: var(--card-bg);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.logo {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-}
-
-.header h1 {
-    font-size: 1.5rem;
-    color: var(--text-main);
-}
-
-/* Auth Button */
-.auth-btn {
-    background: transparent;
-    color: var(--accent);
-    border: 1px solid var(--accent);
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-}
+.auth-btn { background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 6px 14px; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
 .auth-btn:hover { background: rgba(56, 189, 248, 0.1); }
 
-.search-container {
-    padding: 15px 20px;
-}
+.search-container { padding: 15px 20px; }
+#searchInput { width: 100%; padding: 12px 15px; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-main); font-size: 1rem; outline: none; }
+#searchInput:focus { border-color: var(--accent); }
 
-#searchInput {
-    width: 100%;
-    padding: 12px 15px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    background-color: var(--card-bg);
-    color: var(--text-main);
-    font-size: 1rem;
-    outline: none;
-}
+.app-tabs { display: flex; padding: 5px 15px; gap: 10px; border-bottom: 1px solid var(--border-color); }
+.tab-btn { flex: 1; padding: 10px; background: transparent; border: none; color: var(--text-muted); font-weight: 600; font-size: 1rem; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.3s; }
+.tab-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
 
-#searchInput:focus {
-    border-color: var(--accent);
-}
+.category-filter { display: flex; overflow-x: auto; padding: 10px 20px; gap: 10px; scrollbar-width: none; }
+.category-filter::-webkit-scrollbar { display: none; }
+.filter-btn { background-color: var(--card-bg); color: var(--text-muted); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; white-space: nowrap; cursor: pointer; transition: all 0.2s; }
+.filter-btn.active { background-color: var(--accent); color: #0f172a; border-color: var(--accent); font-weight: bold; }
 
-/* App Tabs */
-.app-tabs {
-    display: flex;
-    padding: 5px 15px;
-    gap: 10px;
-    border-bottom: 1px solid var(--border-color);
-}
-.tab-btn {
-    flex: 1;
-    padding: 10px;
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.3s;
-}
-.tab-btn.active {
-    color: var(--accent);
-    border-bottom: 2px solid var(--accent);
-}
+.prompt-container { padding: 10px 20px; display: flex; flex-direction: column; gap: 15px; }
+.prompt-card { background-color: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); }
+.category-badge { display: inline-block; background-color: rgba(56, 189, 248, 0.1); color: var(--accent); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
+.prompt-card h3 { margin-bottom: 8px; font-size: 1.1rem; }
+.prompt-card p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.4; margin-bottom: 15px; }
+.copy-btn { width: 100%; padding: 10px; background-color: transparent; color: var(--accent); border: 1px solid var(--accent); border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+.copy-btn:active { background-color: var(--accent); color: #0f172a; }
 
-/* Categories Filter */
-.category-filter {
-    display: flex;
-    overflow-x: auto;
-    padding: 10px 20px;
-    gap: 10px;
-    scrollbar-width: none;
-}
+.toast { visibility: hidden; min-width: 200px; background-color: #22c55e; color: white; text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 1; left: 50%; bottom: 30px; transform: translateX(-50%); font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+.toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
 
-.category-filter::-webkit-scrollbar {
-    display: none;
-}
-
-.filter-btn {
-    background-color: var(--card-bg);
-    color: var(--text-muted);
-    border: 1px solid var(--border-color);
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.filter-btn.active {
-    background-color: var(--accent);
-    color: #0f172a;
-    border-color: var(--accent);
-    font-weight: bold;
-}
-
-/* Prompt Cards */
-.prompt-container {
-    padding: 10px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.prompt-card {
-    background-color: var(--card-bg);
-    padding: 15px;
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
-}
-
-.category-badge {
-    display: inline-block;
-    background-color: rgba(56, 189, 248, 0.1);
-    color: var(--accent);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: bold;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-}
-
-.prompt-card h3 {
-    margin-bottom: 8px;
-    font-size: 1.1rem;
-}
-
-.prompt-card p {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    line-height: 1.4;
-    margin-bottom: 15px;
-}
-
-.copy-btn {
-    width: 100%;
-    padding: 10px;
-    background-color: transparent;
-    color: var(--accent);
-    border: 1px solid var(--accent);
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.copy-btn:active {
-    background-color: var(--accent);
-    color: #0f172a;
-}
-
-/* Toast */
-.toast {
-    visibility: hidden;
-    min-width: 200px;
-    background-color: #22c55e;
-    color: white;
-    text-align: center;
-    border-radius: 8px;
-    padding: 12px;
-    position: fixed;
-    z-index: 1;
-    left: 50%;
-    bottom: 30px;
-    transform: translateX(-50%);
-    font-weight: bold;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-
-.toast.show {
-    visibility: visible;
-    animation: fadein 0.5s, fadeout 0.5s 2.5s;
-}
-
-/* Modal Styles */
-.modal {
-    display: none; 
-    position: fixed; z-index: 1000; left: 0; top: 0;
-    width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.7);
-    backdrop-filter: blur(4px);
-}
-.modal-content {
-    background-color: var(--card-bg);
-    margin: 25% auto;
-    padding: 25px;
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    width: 85%;
-    max-width: 400px;
-    text-align: center;
-    position: relative;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-}
-.close-modal {
-    color: var(--text-muted);
-    position: absolute;
-    top: 10px; right: 15px;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-}
+/* Modals & Forms */
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(4px); }
+.modal-content { background-color: var(--card-bg); margin: 15% auto; padding: 25px; border: 1px solid var(--border-color); border-radius: 12px; width: 85%; max-width: 400px; text-align: center; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+.close-modal { color: var(--text-muted); position: absolute; top: 10px; right: 15px; font-size: 28px; font-weight: bold; cursor: pointer; }
 .modal-content h2 { color: var(--text-main); margin-bottom: 20px; }
-.modal-content input {
-    width: 100%; padding: 12px; margin-bottom: 15px;
-    background: var(--bg-color); border: 1px solid var(--border-color);
-    color: white; border-radius: 6px; box-sizing: border-box; outline: none;
-}
-.modal-content input:focus { border-color: var(--accent); }
-.modal-content .primary-btn {
-    width: 100%; background: #0ea5e9; color: white;
-    padding: 12px; border: none; border-radius: 6px;
-    font-weight: bold; font-size: 1rem; cursor: pointer;
-}
+.modal-content input, .modal-content select, .modal-content textarea { width: 100%; padding: 12px; margin-bottom: 15px; background: var(--bg-color); border: 1px solid var(--border-color); color: white; border-radius: 6px; box-sizing: border-box; outline: none; font-family: inherit; }
+.modal-content input:focus, .modal-content select:focus, .modal-content textarea:focus { border-color: var(--accent); }
+.modal-content textarea { resize: vertical; min-height: 100px; }
+.modal-content .primary-btn { width: 100%; background: #0ea5e9; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; }
 #toggleAuthMode { color: var(--text-muted); margin-top: 15px; font-size: 0.9rem; cursor: pointer;}
 #toggleAuthMode span { color: var(--accent); font-weight: bold; }
 
-/* Google Auth & Divider */
-.google-btn {
-    width: 100%; background: #ffffff; color: #334155;
-    padding: 10px; border: none; border-radius: 6px;
-    font-weight: bold; font-size: 1rem; cursor: pointer;
-    display: flex; justify-content: center; align-items: center; gap: 10px;
-    margin-bottom: 20px; transition: background 0.3s;
-}
-.google-btn:hover { background: #f1f5f9; }
-.google-btn img { width: 22px; }
+/* Add Prompt Specific */
+.add-prompt-btn { display: none; background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 15px auto 5px; width: calc(100% - 40px); box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2); }
+.add-prompt-btn:active { transform: scale(0.98); }
 
-.divider {
-    display: flex; align-items: center; text-align: center; margin-bottom: 20px; color: #64748b;
-}
-.divider::before, .divider::after {
-    content: ''; flex: 1; border-bottom: 1px solid var(--border-color);
-}
+.google-btn { width: 100%; background: #ffffff; color: #334155; padding: 10px; border: none; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 20px; }
+.divider { display: flex; align-items: center; text-align: center; margin-bottom: 20px; color: #64748b; }
+.divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-color); }
 .divider span { padding: 0 10px; font-size: 0.8rem; letter-spacing: 1px; }
 
-@keyframes fadein {
-    from {bottom: 0; opacity: 0;}
-    to {bottom: 30px; opacity: 1;}
-}
-@keyframes fadeout {
-    from {bottom: 30px; opacity: 1;}
-    to {bottom: 0; opacity: 0;}
-}
+@keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+@keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
