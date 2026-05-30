@@ -37,9 +37,24 @@ const addPromptModal = document.getElementById('addPromptModal');
 const closeAddModal = document.getElementById('closeAddModal');
 const submitPromptBtn = document.getElementById('submitPromptBtn');
 
+// Custom Alert Elements
+const themeAlertModal = document.getElementById('themeAlertModal');
+const themeAlertText = document.getElementById('themeAlertText');
+const themeAlertOkBtn = document.getElementById('themeAlertOkBtn');
+
 let isLoginMode = true;
 let currentUser = null;
 let allPrompts = [];
+
+// --- Custom Alert Function ---
+function showCustomAlert(message) {
+    themeAlertText.innerHTML = message;
+    themeAlertModal.style.display = 'block';
+}
+
+themeAlertOkBtn.addEventListener('click', () => {
+    themeAlertModal.style.display = 'none';
+});
 
 // ---- 1. AUTHENTICATION LOGIC ---- //
 auth.onAuthStateChanged(user => {
@@ -49,7 +64,6 @@ auth.onAuthStateChanged(user => {
         authBtn.style.color = "#ef4444";
         authBtn.style.borderColor = "#ef4444";
         
-        // Show '+ Add Prompt' only if Community tab is open
         if(tabCommunity.classList.contains('active')) {
             openAddPromptBtn.style.display = 'block';
         }
@@ -79,21 +93,21 @@ toggleAuthMode.addEventListener('click', () => {
 submitAuthBtn.addEventListener('click', async () => {
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
-    if (!email || !password) return alert("Please fill all fields.");
+    if (!email || !password) return showCustomAlert("Please fill all fields.");
 
     try {
         if (isLoginMode) await auth.signInWithEmailAndPassword(email, password);
         else await auth.createUserWithEmailAndPassword(email, password);
         authModal.style.display = 'none';
         emailInput.value = ''; passwordInput.value = '';
-    } catch (error) { alert(error.message); }
+    } catch (error) { showCustomAlert(error.message); }
 });
 
 googleAuthBtn.addEventListener('click', async () => {
     try {
         await auth.signInWithPopup(googleProvider);
         authModal.style.display = 'none';
-    } catch (error) { alert("Login failed: " + error.message); }
+    } catch (error) { showCustomAlert("Login failed: " + error.message); }
 });
 
 // ---- 2. ADD COMMUNITY PROMPT LOGIC ---- //
@@ -106,13 +120,12 @@ submitPromptBtn.addEventListener('click', async () => {
     const desc = document.getElementById('promptDesc').value.trim();
     const text = document.getElementById('promptText').value.trim();
 
-    if(!title || !category || !desc || !text) return alert('Please fill all fields!');
+    if(!title || !category || !desc || !text) return showCustomAlert('Please fill all fields!');
 
     submitPromptBtn.textContent = 'Publishing...';
     submitPromptBtn.disabled = true;
 
     try {
-        // Save to Firestore Database
         await db.collection('community_prompts').add({
             title: title,
             category: category,
@@ -124,18 +137,17 @@ submitPromptBtn.addEventListener('click', async () => {
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        alert('Expert Prompt Published Successfully! 🚀');
+        showCustomAlert('Expert Prompt Published Successfully! 🚀');
         addPromptModal.style.display = 'none';
         
-        // Clear fields
         document.getElementById('promptTitle').value = '';
         document.getElementById('promptCategory').value = '';
         document.getElementById('promptDesc').value = '';
         document.getElementById('promptText').value = '';
 
-        fetchCommunityPrompts(); // Refresh the feed
+        fetchCommunityPrompts(); 
     } catch(err) {
-        alert('Database Error: ' + err.message);
+        showCustomAlert('Database Error: ' + err.message);
     }
     
     submitPromptBtn.textContent = 'Publish Prompt';
@@ -198,7 +210,6 @@ function renderPrompts(promptsToRender, isCommunity) {
     });
 }
 
-// Copy functionality
 window.copyPrompt = function(encodedText) {
     const decodedText = decodeURIComponent(encodedText);
     navigator.clipboard.writeText(decodedText).then(() => {
@@ -208,9 +219,8 @@ window.copyPrompt = function(encodedText) {
     });
 }
 
-// Search & Filter (Only works on Official for now)
 searchInput.addEventListener('input', (e) => {
-    if(tabCommunity.classList.contains('active')) return; // Simple skip for community search
+    if(tabCommunity.classList.contains('active')) return; 
     const query = e.target.value.toLowerCase();
     const filtered = allPrompts.filter(p => p.title.toLowerCase().includes(query) || p.description.toLowerCase().includes(query));
     renderPrompts(filtered, false);
@@ -226,7 +236,6 @@ document.querySelectorAll('.filter-btn').forEach(button => {
     });
 });
 
-// Tab Switching
 tabOfficial.addEventListener('click', () => {
     tabOfficial.classList.add('active');
     tabCommunity.classList.remove('active');
@@ -246,5 +255,4 @@ tabCommunity.addEventListener('click', () => {
     fetchCommunityPrompts();
 });
 
-// Initial Load
 fetchOfficialPrompts();
