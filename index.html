@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Prompt Hub</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="brand">
+            <img src="assets/icon.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+            <h1>Prompt Hub</h1>
+        </div>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search prompts..." autocomplete="off">
+        </div>
+    </header>
+
+    <nav class="category-filter" id="categoryFilter">
+        <button class="filter-btn active" data-category="All">All</button>
+        <button class="filter-btn" data-category="Coding & Tech">Coding & Tech</button>
+        <button class="filter-btn" data-category="Marketing & Social Media">Marketing</button>
+        <button class="filter-btn" data-category="Copywriting & Content">Copywriting</button>
+        <button class="filter-btn" data-category="AI Art / Midjourney">AI Art</button>
+    </nav>
+
+    <main class="prompt-container" id="promptContainer">
+        </main>
+
+    <div id="toast" class="toast">Prompt Copied!</div>
+
+    <script src="capacitor.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
