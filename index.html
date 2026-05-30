@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Prompt Hub</title>
     <link rel="stylesheet" href="style.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <header class="header">
@@ -12,10 +16,17 @@
             <img src="assets/icon.png" alt="Logo" class="logo" onerror="this.style.display='none'">
             <h1>Prompt Hub</h1>
         </div>
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Search prompts..." autocomplete="off">
-        </div>
+        <button id="authBtn" class="auth-btn">Login</button>
     </header>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search prompts..." autocomplete="off">
+    </div>
+
+    <div class="app-tabs">
+        <button id="tabOfficial" class="tab-btn active">Official</button>
+        <button id="tabCommunity" class="tab-btn">Community</button>
+    </div>
 
     <nav class="category-filter" id="categoryFilter">
         <button class="filter-btn active" data-category="All">All</button>
@@ -46,6 +57,17 @@
         </main>
 
     <div id="toast" class="toast">Prompt Copied!</div>
+
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <h2 id="modalTitle">Login</h2>
+            <input type="email" id="emailInput" placeholder="Email Address" required>
+            <input type="password" id="passwordInput" placeholder="Password" required>
+            <button id="submitAuthBtn" class="primary-btn">Login</button>
+            <p id="toggleAuthMode">Don't have an account? <span>Sign Up</span></p>
+        </div>
+    </div>
 
     <script src="capacitor.js"></script>
     <script src="script.js"></script>
