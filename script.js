@@ -8,7 +8,6 @@ const firebaseConfig = {
     appId: "1:242493810474:web:d51af341a15f37897b2053"
 };
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
@@ -30,64 +29,34 @@ const tabCommunity = document.getElementById('tabCommunity');
 const categoryFilter = document.getElementById('categoryFilter');
 const promptContainer = document.getElementById('promptContainer');
 const searchInput = document.getElementById('searchInput');
-
-// Add Prompt Elements
 const openAddPromptBtn = document.getElementById('openAddPromptBtn');
 const addPromptModal = document.getElementById('addPromptModal');
 const closeAddModal = document.getElementById('closeAddModal');
 const submitPromptBtn = document.getElementById('submitPromptBtn');
 
-// --- DYNAMIC INJECTIONS (CSS & Modals) --- //
-document.head.insertAdjacentHTML('beforeend', `
-    <style>
-        .upvote-btn {
-            display: flex; justify-content: center; align-items: center; gap: 8px;
-            background: rgba(239, 68, 68, 0.1); color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.3); padding: 0 16px;
-            border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: all 0.2s;
-        }
-        .upvote-btn:active { transform: scale(0.95); background: rgba(239, 68, 68, 0.2); }
-        .action-row { display: flex; gap: 10px; margin-top: 15px; }
-        .view-btn { flex: 1; padding: 10px; background: #1e293b; color: #f8fafc; border: 1px solid #334155; border-radius: 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .view-btn:active { background: #334155; }
-        .copy-card-btn { flex: 1; padding: 10px; background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .copy-card-btn:active { background: #38bdf8; color: #0f172a; }
-        .preview-text { color: #94a3b8; font-size: 0.95rem; line-height: 1.5; font-style: italic; margin-bottom: 5px; }
-    </style>
-`);
-
-document.body.insertAdjacentHTML('beforeend', `
-    <div id="viewPromptModal" class="modal" style="z-index: 1000;">
-        <div class="modal-content" style="margin: 15% auto; padding: 25px; text-align:left; width:90%; max-width:450px;">
-            <span class="close-modal" id="closeViewModal">&times;</span>
-            <h3 id="viewModalTitle" style="color: #38bdf8; margin-bottom: 15px; padding-right:20px; font-size:1.2rem; line-height:1.3;"></h3>
-            <div style="background:#0f172a; padding:15px; border-radius:8px; border:1px solid #334155; max-height:45vh; overflow-y:auto;">
-                <p id="viewModalText" style="color: #e2e8f0; font-size:0.95rem; line-height:1.6; white-space: pre-wrap; margin:0;"></p>
-            </div>
-            <button id="copyFromViewBtn" class="primary-btn" style="margin-top:15px; width:100%;">Copy Full Prompt</button>
-        </div>
-    </div>
-`);
-
-// --- Custom Alert Logic --- //
+// Custom Alert Elements
 const themeAlertModal = document.getElementById('themeAlertModal');
 const themeAlertText = document.getElementById('themeAlertText');
 const themeAlertOkBtn = document.getElementById('themeAlertOkBtn');
 
-function showCustomAlert(message) {
-    themeAlertText.innerHTML = message;
-    themeAlertModal.style.display = 'block';
-}
-if(themeAlertOkBtn) themeAlertOkBtn.addEventListener('click', () => themeAlertModal.style.display = 'none');
-
-// --- View Prompt Modal Logic --- //
+// View Modal Elements
 const viewPromptModal = document.getElementById('viewPromptModal');
 const closeViewModal = document.getElementById('closeViewModal');
 const viewModalTitle = document.getElementById('viewModalTitle');
 const viewModalText = document.getElementById('viewModalText');
 const copyFromViewBtn = document.getElementById('copyFromViewBtn');
 
+let isLoginMode = true;
+let currentUser = null;
+let allPrompts = [];
 let currentViewText = "";
+
+function showCustomAlert(message) {
+    themeAlertText.innerHTML = message;
+    themeAlertModal.style.display = 'block';
+}
+
+themeAlertOkBtn.addEventListener('click', () => themeAlertModal.style.display = 'none');
 
 window.openViewModal = function(encTitle, encText) {
     viewModalTitle.textContent = decodeURIComponent(encTitle);
@@ -95,33 +64,22 @@ window.openViewModal = function(encTitle, encText) {
     viewModalText.textContent = currentViewText;
     viewPromptModal.style.display = 'block';
 }
-
 closeViewModal.addEventListener('click', () => viewPromptModal.style.display = 'none');
 
 copyFromViewBtn.addEventListener('click', () => {
     navigator.clipboard.writeText(currentViewText).then(() => {
-        const toast = document.getElementById('toast');
-        toast.className = "toast show";
-        setTimeout(() => toast.className = toast.className.replace("show", ""), 3000);
+        showCustomAlert("Prompt Copied to Clipboard!");
         viewPromptModal.style.display = 'none'; 
     });
 });
 
-let isLoginMode = true;
-let currentUser = null;
-let allPrompts = [];
-
-// ---- 1. AUTHENTICATION LOGIC ---- //
 auth.onAuthStateChanged(user => {
     if (user) {
         currentUser = user;
         authBtn.textContent = "Logout";
         authBtn.style.color = "#ef4444";
         authBtn.style.borderColor = "#ef4444";
-        
-        if(tabCommunity.classList.contains('active')) {
-            openAddPromptBtn.style.display = 'block';
-        }
+        if(tabCommunity.classList.contains('active')) openAddPromptBtn.style.display = 'block';
     } else {
         currentUser = null;
         authBtn.textContent = "Login";
@@ -135,7 +93,6 @@ authBtn.addEventListener('click', () => {
     if (currentUser) auth.signOut();
     else authModal.style.display = 'block';
 });
-
 closeModal.addEventListener('click', () => authModal.style.display = 'none');
 
 toggleAuthMode.addEventListener('click', () => {
@@ -149,12 +106,10 @@ submitAuthBtn.addEventListener('click', async () => {
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
     if (!email || !password) return showCustomAlert("Please fill all fields.");
-
     try {
         if (isLoginMode) await auth.signInWithEmailAndPassword(email, password);
         else await auth.createUserWithEmailAndPassword(email, password);
         authModal.style.display = 'none';
-        emailInput.value = ''; passwordInput.value = '';
     } catch (error) { showCustomAlert(error.message); }
 });
 
@@ -162,10 +117,9 @@ googleAuthBtn.addEventListener('click', async () => {
     try {
         await auth.signInWithPopup(googleProvider);
         authModal.style.display = 'none';
-    } catch (error) { showCustomAlert("Login failed: " + error.message); }
+    } catch (error) { showCustomAlert(error.message); }
 });
 
-// ---- 2. ADD COMMUNITY PROMPT LOGIC ---- //
 openAddPromptBtn.addEventListener('click', () => addPromptModal.style.display = 'block');
 closeAddModal.addEventListener('click', () => addPromptModal.style.display = 'none');
 
@@ -174,169 +128,88 @@ submitPromptBtn.addEventListener('click', async () => {
     const category = document.getElementById('promptCategory').value;
     const desc = document.getElementById('promptDesc').value.trim();
     const text = document.getElementById('promptText').value.trim();
-
     if(!title || !category || !desc || !text) return showCustomAlert('Please fill all fields!');
-
-    submitPromptBtn.textContent = 'Publishing...';
     submitPromptBtn.disabled = true;
-
     try {
         await db.collection('community_prompts').add({
-            title: title,
-            category: category,
-            description: desc,
-            prompt_text: text,
-            authorEmail: currentUser.email,
-            authorId: currentUser.uid,
-            upvotes: 0,
+            title, category, description: desc, prompt_text: text,
+            authorEmail: currentUser.email, upvotes: 0,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-        
-        showCustomAlert('Expert Prompt Published Successfully! 🚀');
+        showCustomAlert('Published Successfully! 🚀');
         addPromptModal.style.display = 'none';
-        
-        document.getElementById('promptTitle').value = '';
-        document.getElementById('promptCategory').value = '';
-        document.getElementById('promptDesc').value = '';
-        document.getElementById('promptText').value = '';
-
-        if(tabCommunity.classList.contains('active')) fetchCommunityPrompts(); 
-    } catch(err) {
-        showCustomAlert('Database Error: ' + err.message);
-    }
-    
-    submitPromptBtn.textContent = 'Publish Prompt';
+        fetchCommunityPrompts();
+    } catch(err) { showCustomAlert(err.message); }
     submitPromptBtn.disabled = false;
 });
 
-// ---- 3. UPVOTE LOGIC ---- //
 window.upvotePrompt = async function(docId) {
-    if (!currentUser) {
-        showCustomAlert("Please Login to upvote prompts! 🔒");
-        return;
-    }
+    if (!currentUser) return showCustomAlert("Please Login to upvote!");
     try {
-        await db.collection('community_prompts').doc(docId).update({
-            upvotes: firebase.firestore.FieldValue.increment(1)
-        });
+        await db.collection('community_prompts').doc(docId).update({ upvotes: firebase.firestore.FieldValue.increment(1) });
         fetchCommunityPrompts();
-    } catch (error) {
-        showCustomAlert("Error upvoting: " + error.message);
-    }
+    } catch (e) { showCustomAlert(e.message); }
 }
 
-// ---- 4. FETCH & RENDER LOGIC ---- //
 async function fetchOfficialPrompts() {
     try {
-        const response = await fetch('prompts.json');
+        const response = await fetch('prompts.json?t=' + new Date().getTime());
         allPrompts = await response.json();
         renderPrompts(allPrompts, false);
-    } catch (error) { console.error('Error fetching JSON:', error); }
+    } catch (e) { console.error(e); }
 }
 
 async function fetchCommunityPrompts() {
-    promptContainer.innerHTML = '<p style="color:#94a3b8; text-align:center; margin-top:20px;">Loading expert prompts...</p>';
+    promptContainer.innerHTML = '<p style="text-align:center;">Loading...</p>';
     try {
         const snapshot = await db.collection('community_prompts').orderBy('timestamp', 'desc').get();
-        if(snapshot.empty) {
-            promptContainer.innerHTML = '<p style="color:#94a3b8; text-align:center; margin-top:20px;">No expert prompts yet. Login to be the first! 🔥</p>';
-            return;
-        }
-        
-        const communityPromptsArray = [];
-        snapshot.forEach(doc => communityPromptsArray.push({ id: doc.id, ...doc.data() }));
-        renderPrompts(communityPromptsArray, true);
-    } catch(error) {
-        promptContainer.innerHTML = '<p style="color:#ef4444; text-align:center; margin-top:20px;">Failed to connect to Database.</p>';
-    }
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderPrompts(data, true);
+    } catch(e) { promptContainer.innerHTML = '<p>Database Error.</p>'; }
 }
 
 function renderPrompts(promptsToRender, isCommunity) {
     promptContainer.innerHTML = '';
-    if(promptsToRender.length === 0) {
-        promptContainer.innerHTML = '<p style="color:#94a3b8; text-align:center; margin-top:20px;">No prompts found.</p>';
-        return;
-    }
-
     promptsToRender.forEach(prompt => {
         const card = document.createElement('div');
         card.className = 'prompt-card';
-        
-        let authorBadge = '';
-        if(isCommunity) {
-            const authorName = prompt.authorEmail ? prompt.authorEmail.split('@')[0] : 'Expert';
-            authorBadge = `<span style="color:#94a3b8; font-size:0.8rem; font-weight:bold;">@${authorName}</span>`;
-        }
-
-        // Generating a smart preview from the actual prompt text
         const fullText = prompt.prompt_text || '';
-        const previewText = fullText.length > 75 ? fullText.substring(0, 75) + '...' : fullText;
-
-        const encodedTitle = encodeURIComponent(prompt.title);
-        const encodedText = encodeURIComponent(fullText);
+        const preview = fullText.length > 75 ? fullText.substring(0, 75) + '...' : fullText;
+        const encTitle = encodeURIComponent(prompt.title);
+        const encText = encodeURIComponent(fullText);
 
         card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="category-badge">${prompt.category}</span>
-                ${authorBadge}
-            </div>
-            <h3 style="margin-bottom:8px;">${prompt.title}</h3>
-            <p class="preview-text">"${previewText}"</p>
-            
+            <span class="category-badge">${prompt.category}</span>
+            <h3>${prompt.title}</h3>
+            <p class="preview-text">"${preview}"</p>
             <div class="action-row">
-                <button class="view-btn" onclick="openViewModal('${encodedTitle}', '${encodedText}')">View</button>
-                <button class="copy-card-btn" onclick="copyPrompt('${encodedText}')">Copy</button>
-                ${isCommunity ? `<button class="upvote-btn" onclick="upvotePrompt('${prompt.id}')"><span>❤️</span> <span>${prompt.upvotes || 0}</span></button>` : ''}
+                <button class="view-btn" onclick="openViewModal('${encTitle}', '${encText}')">View</button>
+                <button class="copy-card-btn" onclick="copyPrompt('${encText}')">Copy</button>
+                ${isCommunity ? `<button class="upvote-btn" onclick="upvotePrompt('${prompt.id}')">❤️ ${prompt.upvotes || 0}</button>` : ''}
             </div>
         `;
         promptContainer.appendChild(card);
     });
 }
 
-window.copyPrompt = function(encodedText) {
-    const decodedText = decodeURIComponent(encodedText);
-    navigator.clipboard.writeText(decodedText).then(() => {
-        const toast = document.getElementById('toast');
-        toast.className = "toast show";
-        setTimeout(() => toast.className = toast.className.replace("show", ""), 3000);
-    });
+window.copyPrompt = function(encText) {
+    navigator.clipboard.writeText(decodeURIComponent(encText)).then(() => showCustomAlert("Prompt Copied!"));
 }
-
-searchInput.addEventListener('input', (e) => {
-    if(tabCommunity.classList.contains('active')) return; 
-    const query = e.target.value.toLowerCase();
-    const filtered = allPrompts.filter(p => p.title.toLowerCase().includes(query) || p.prompt_text.toLowerCase().includes(query));
-    renderPrompts(filtered, false);
-});
-
-document.querySelectorAll('.filter-btn').forEach(button => {
-    button.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
-        const category = button.dataset.category;
-        const filtered = category === 'All' ? allPrompts : allPrompts.filter(p => p.category === category);
-        renderPrompts(filtered, false);
-    });
-});
 
 tabOfficial.addEventListener('click', () => {
     tabOfficial.classList.add('active');
     tabCommunity.classList.remove('active');
     categoryFilter.style.display = 'flex';
     openAddPromptBtn.style.display = 'none';
-    renderPrompts(allPrompts, false); 
+    renderPrompts(allPrompts, false);
 });
 
 tabCommunity.addEventListener('click', () => {
     tabCommunity.classList.add('active');
     tabOfficial.classList.remove('active');
     categoryFilter.style.display = 'none';
-    
-    if (currentUser) openAddPromptBtn.style.display = 'block';
-    else openAddPromptBtn.style.display = 'none';
-
+    if(currentUser) openAddPromptBtn.style.display = 'block';
     fetchCommunityPrompts();
 });
 
-// Initial Load
 fetchOfficialPrompts();
