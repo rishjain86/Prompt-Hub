@@ -5,22 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Prompt Hub</title>
     <link rel="stylesheet" href="style.css">
-    
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <header class="header">
-        <div class="brand">
-            <img src="assets/icon.png" alt="Logo" class="logo" onerror="this.style.display='none'">
-            <h1>Prompt Hub</h1>
-        </div>
+        <div class="brand"><h1>Prompt Hub</h1></div>
         <button id="authBtn" class="auth-btn">Login</button>
     </header>
 
     <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Search prompts..." autocomplete="off">
+        <input type="text" id="searchInput" placeholder="Search prompts...">
     </div>
 
     <div class="app-tabs">
@@ -28,87 +24,24 @@
         <button id="tabCommunity" class="tab-btn">Community</button>
     </div>
 
-    <button id="openAddPromptBtn" class="add-prompt-btn">+ Add Expert Prompt</button>
+    <button id="openAddPromptBtn" class="add-prompt-btn" style="display:none;">+ Add Expert Prompt</button>
 
     <nav class="category-filter" id="categoryFilter">
         <button class="filter-btn active" data-category="All">All</button>
         <button class="filter-btn" data-category="Coding & Tech">Coding & Tech</button>
         <button class="filter-btn" data-category="Marketing & Social Media">Marketing</button>
         <button class="filter-btn" data-category="Copywriting & Content">Copywriting</button>
-        <button class="filter-btn" data-category="AI Art & Image Gen">AI Art</button>
-        <button class="filter-btn" data-category="Video & Animation">Video</button>
-        <button class="filter-btn" data-category="Business & Finance">Business</button>
-        <button class="filter-btn" data-category="Lifestyle & Automation">Lifestyle</button>
-        <button class="filter-btn" data-category="SEO & Website Ranking">SEO</button>
-        <button class="filter-btn" data-category="E-Commerce & Dropshipping">E-Commerce</button>
-        <button class="filter-btn" data-category="Sales & Cold Outreach">Sales</button>
-        <button class="filter-btn" data-category="Productivity & Workflows">Productivity</button>
-        <button class="filter-btn" data-category="Education & Learning">Education</button>
-        <button class="filter-btn" data-category="HR & Recruitment">HR</button>
-        <button class="filter-btn" data-category="UI/UX & Product Design">UI/UX</button>
-        <button class="filter-btn" data-category="Customer Success & Support">Support</button>
-        <button class="filter-btn" data-category="Health, Fitness & Diet">Health</button>
-        <button class="filter-btn" data-category="Real Estate">Real Estate</button>
-        <button class="filter-btn" data-category="Creative Writing & Books">Writing</button>
-        <button class="filter-btn" data-category="Podcasting & Audio">Podcasting</button>
-        <button class="filter-btn" data-category="Event Planning">Events</button>
-        <button class="filter-btn" data-category="Gaming & World Building">Gaming</button>
     </nav>
 
-    <main class="prompt-container" id="promptContainer">
-        </main>
+    <main class="prompt-container" id="promptContainer"></main>
 
     <div id="toast" class="toast">Prompt Copied!</div>
 
-    <div id="authModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" id="closeModal">&times;</span>
-            <h2 id="modalTitle">Login</h2>
-            
-            <button id="googleAuthBtn" class="google-btn">
-                <svg width="22" height="22" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.7 17.74 9.5 24 9.5z"/>
-                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                    <path fill="none" d="M0 0h48v48H0z"/>
-                </svg>
-                Sign in with Google
-            </button>
-            
-            <div class="divider"><span>OR EMAIL</span></div>
-            <input type="email" id="emailInput" placeholder="Email Address" required>
-            <input type="password" id="passwordInput" placeholder="Password" required>
-            <button id="submitAuthBtn" class="primary-btn">Login</button>
-            <p id="toggleAuthMode">Don't have an account? <span>Sign Up</span></p>
-        </div>
-    </div>
+    <div id="authModal" class="modal"><div class="modal-content"><span class="close-modal" id="closeModal">&times;</span><h2 id="modalTitle">Login</h2><input type="email" id="emailInput" placeholder="Email"><input type="password" id="passwordInput" placeholder="Password"><button id="submitAuthBtn" class="primary-btn">Login</button><p id="toggleAuthMode">Sign Up</p></div></div>
+    <div id="addPromptModal" class="modal"><div class="modal-content"><span class="close-modal" id="closeAddModal">&times;</span><h2>Add Prompt</h2><input type="text" id="promptTitle" placeholder="Title"><select id="promptCategory"><option value="Coding & Tech">Coding & Tech</option></select><textarea id="promptText" placeholder="Prompt..."></textarea><button id="submitPromptBtn" class="primary-btn">Publish</button></div></div>
+    <div id="themeAlertModal" class="modal"><div class="modal-content"><h3 id="alertTitle">Message</h3><p id="themeAlertText"></p><button id="themeAlertOkBtn" class="primary-btn">OK</button></div></div>
+    <div id="viewPromptModal" class="modal"><div class="modal-content"><span class="close-modal" id="closeViewModal">&times;</span><h3 id="viewModalTitle"></h3><p id="viewModalText"></p><button id="copyFromViewBtn" class="primary-btn">Copy</button></div></div>
 
-    <div id="addPromptModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" id="closeAddModal">&times;</span>
-            <h2>Add Expert Prompt</h2>
-            <input type="text" id="promptTitle" placeholder="Prompt Title" required>
-            <select id="promptCategory" required>
-                <option value="" disabled selected>Select Category</option>
-                <option value="Coding & Tech">Coding & Tech</option>
-                <option value="Marketing & Social Media">Marketing & Social Media</option>
-                <option value="Copywriting & Content">Copywriting & Content</option>
-                <option value="AI Art & Image Gen">AI Art & Image Gen</option>
-                <option value="Video & Animation">Video & Animation</option>
-                <option value="Business & Finance">Business & Finance</option>
-                <option value="Lifestyle & Automation">Lifestyle & Automation</option>
-                <option value="SEO & Website Ranking">SEO & Website Ranking</option>
-                <option value="Sales & Cold Outreach">Sales & Cold Outreach</option>
-                <option value="Others">Others</option>
-            </select>
-            <input type="text" id="promptDesc" placeholder="Short Description (e.g. Generates a viral script)" required>
-            <textarea id="promptText" placeholder="Enter your detailed prompt here..." required></textarea>
-            <button id="submitPromptBtn" class="primary-btn" style="background:#10b981;">Publish Prompt</button>
-        </div>
-    </div>
-
-    <script src="capacitor.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
