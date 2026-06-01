@@ -14,7 +14,7 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
-/* NOTE: Added padding-bottom 70px so content doesn't hide behind Ad banner */
+/* NOTE: Added padding-bottom 60px so content doesn't hide behind Ad banner */
 body { background-color: var(--bg-dark); color: var(--text-main); overscroll-behavior-y: none; -webkit-font-smoothing: antialiased; line-height: 1.5; padding-bottom: 70px; overflow-x: hidden; }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -25,18 +25,6 @@ body { background-color: var(--bg-dark); color: var(--text-main); overscroll-beh
 .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 110; border-bottom: 1px solid var(--border-color); }
 .icon-btn { background: none; border: none; color: var(--text-main); font-size: 24px; cursor: pointer; padding: 5px; outline: none; }
 .brand h1 { font-size: 22px; font-weight: 700; background: linear-gradient(to right, var(--accent-blue), var(--accent-green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-/* SIDE MENU (RESTORED FIXED STYLING) */
-.menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 120; display: none; backdrop-filter: blur(3px); }
-.side-menu { position: fixed; top: 0; left: -300px; width: var(--menu-width); height: 100%; background-color: var(--card-bg); z-index: 130; overflow-y: auto; transition: 0.3s ease-in-out; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
-.side-menu.open { left: 0; }
-.menu-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border-color); }
-.close-menu { font-size: 28px; cursor: pointer; color: var(--text-muted); }
-.menu-list { list-style: none; padding: 10px 0; }
-.menu-list li { padding: 12px 20px; font-size: 15px; color: var(--text-muted); cursor: pointer; transition: 0.2s; border-bottom: 1px solid transparent; }
-.menu-list li:hover { background: rgba(56,189,248,0.1); color: var(--accent-blue); }
-.menu-divider { border: 0; height: 1px; background: var(--border-color); margin: 10px 0; }
-.footer-links li { font-size: 13px; color: var(--accent-green); cursor: pointer; }
 
 /* PROMO BANNER */
 .promo-banner-container { width: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); color: white; overflow: hidden; position: relative; height: 35px; display: flex; align-items: center; justify-content: center; z-index: 100;}
@@ -51,7 +39,6 @@ body { background-color: var(--bg-dark); color: var(--text-main); overscroll-beh
 #authBtn { background-color: transparent !important; border: 1px solid var(--accent-blue) !important; color: var(--accent-blue) !important; padding: 6px 18px !important; border-radius: 20px !important; font-size: 14px !important; font-weight: 600 !important; transition: all 0.2s ease !important; cursor: pointer !important; height: 34px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; }
 #authBtn:hover { background-color: rgba(56, 189, 248, 0.1) !important; }
 #authBtn.logout-state { border-color: #ef4444 !important; color: #ef4444 !important; }
-#authBtn.logout-state:hover { background-color: rgba(239, 68, 68, 0.1) !important; }
 
 /* TABS */
 .app-tabs { display: flex; justify-content: center; gap: 15px; margin: 15px 0; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; }
