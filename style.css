@@ -103,3 +103,82 @@ body { background-color: var(--bg-dark); color: var(--text-main); overscroll-beh
 .close-modal { color: var(--text-muted); float: right; font-size: 28px; cursor: pointer; }
 .ai-output-box { background: var(--bg-dark); padding: 15px; border-radius: 8px; font-size: 14px; margin-top: 10px; border: 1px solid var(--border-color); color: var(--text-main); line-height: 1.6; word-wrap: break-word; overflow-x: hidden; width: 100%;}
 .ai-output-box pre { background: rgba(0, 0, 0, 0.4); padding: 12px; border-radius: 6px; overflow-x: auto; border: 1px solid var(--border-color); max-width: 100%;}
+
+/* MODAL INPUTS & FORM STYLING (NEW FIX) */
+.modal-content input[type="email"],
+.modal-content input[type="password"],
+.modal-content input[type="text"],
+.modal-content select,
+.modal-content textarea {
+    width: 100%;
+    padding: 14px 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.modal-content input:focus,
+.modal-content textarea:focus,
+.modal-content select:focus {
+    border-color: var(--accent-blue);
+}
+
+.modal-content h2 {
+    margin-bottom: 20px;
+    color: var(--text-main);
+}
+
+/* FORGOT PASSWORD */
+.forgot-pwd {
+    color: var(--accent-blue);
+    font-size: 13px;
+    text-align: right;
+    margin-top: -5px;
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+
+/* GOOGLE LOGIN BUTTON */
+.google-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: transparent;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+    transition: background 0.2s ease;
+}
+
+.google-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* TOGGLE AUTH MODE (Sign Up / Login text) */
+#toggleAuthMode {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+#toggleAuthMode span {
+    color: var(--accent-blue);
+    cursor: pointer;
+    font-weight: 600;
+}
+#toggleAuthMode span:hover {
+    text-decoration: underline;
+}
