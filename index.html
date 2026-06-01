@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Prompt Hub | Professional AI Suite</title>
-    <link rel="stylesheet" href="style.css?v=17">
+    <!-- Cache buster updated to v=18 -->
+    <link rel="stylesheet" href="style.css?v=18">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -13,16 +14,19 @@
 </head>
 <body>
 
+    <!-- Header -->
     <header class="header">
         <button id="hamburgerBtn" class="icon-btn">☰</button>
         <div class="brand"><h1>Prompt Hub</h1></div>
         <button id="authBtn">Login</button>
     </header>
 
+    <!-- Cross-Promotion Banner -->
     <div class="promo-banner-container">
         <div id="promoSlider" class="promo-slider"></div>
     </div>
 
+    <!-- Side Menu -->
     <div id="sideMenuOverlay" class="menu-overlay"></div>
     <nav id="sideMenu" class="side-menu">
         <div class="menu-header">
@@ -59,12 +63,14 @@
         </ul>
     </nav>
 
+    <!-- Search Section -->
     <div class="search-section-wrapper">
         <div class="search-container">
             <input type="search" id="searchInput" name="searchQuery" placeholder="Search prompts (e.g. Gaming)..." autocomplete="nope" autocorrect="off" spellcheck="false">
         </div>
     </div>
 
+    <!-- App Tabs -->
     <div class="app-tabs">
         <button id="tabOfficial" class="tab-btn active">Official</button>
         <button id="tabCommunity" class="tab-btn">Community</button>
@@ -72,8 +78,10 @@
         <button id="tabLeaderboard" class="tab-btn">🏆 Top</button>
     </div>
 
+    <!-- Add Prompt Button -->
     <button id="openAddPromptBtn" class="add-prompt-btn" style="display:none;">+ Add Expert Prompt</button>
 
+    <!-- Category Filters -->
     <nav class="category-filter" id="categoryFilter">
         <button class="filter-btn active" data-category="All">All</button>
         <button class="filter-btn trending-btn" data-category="Trending">🔥 Trending</button>
@@ -82,14 +90,22 @@
         <button class="filter-btn" data-category="Gaming & World Building">Gaming</button>
     </nav>
 
+    <!-- Main Prompt Container -->
     <main class="prompt-container" id="promptContainer"></main>
 
+    <!-- Hidden Canvas Container for Image Export -->
     <div id="exportCanvasContainer" style="position: absolute; top: -9999px; left: -9999px;"></div>
 
+    <!-- Bottom Fixed AdMob Banner (Test) -->
     <div class="admob-banner-container">
         <div class="admob-banner">AdMob Test Banner (320x50)</div>
     </div>
 
+    <!-- ============================================== -->
+    <!-- MODALS SECTION -->
+    <!-- ============================================== -->
+
+    <!-- Welcome Popup Modal -->
     <div id="welcomeModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('welcomeModal').style.display='none'">&times;</span>
@@ -99,6 +115,7 @@
         </div>
     </div>
 
+    <!-- Auth / Login Modal -->
     <div id="authModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('authModal').style.display='none'">&times;</span>
@@ -115,6 +132,7 @@
         </div>
     </div>
 
+    <!-- Ad Prompt Modal -->
     <div id="adPromptModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('adPromptModal').style.display='none'">&times;</span>
@@ -125,6 +143,7 @@
         </div>
     </div>
 
+    <!-- Simulated Video Ad Modal -->
     <div id="simulatedAdModal" class="modal" style="background: black;">
         <div class="modal-content" style="text-align: center; background: #000; margin-top: 50%; border:none;">
             <h2 style="color: #fff;">Test Video Ad Playing...</h2>
@@ -133,6 +152,7 @@
         </div>
     </div>
 
+    <!-- AI Run & Output Modal -->
     <div id="aiRunModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('aiRunModal').style.display='none'">&times;</span>
@@ -156,16 +176,65 @@
         </div>
     </div>
 
+    <!-- EXPORT CHOICES MODAL (UPDATED WITH 3 OPTIONS) -->
     <div id="watermarkModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('watermarkModal').style.display='none'">&times;</span>
             <h2 style="color:var(--accent-blue);">Export Result 📸</h2>
-            <p style="color: var(--text-muted); margin: 15px 0;">Download your AI generated output to share with others.</p>
-            <button id="downloadFreeBtn" class="secondary-action-btn">⬇️ Download Free (With Watermark)</button>
-            <button id="downloadAdBtn" class="primary-btn" style="background-color: #f59e0b; margin-top: 10px;">🎬 Watch Ad (No Watermark)</button>
+            <p style="color: var(--text-muted); margin: 15px 0;">Choose how you want to download your AI generated poster.</p>
+            
+            <button id="downloadFreeBtn" class="secondary-action-btn" style="margin-bottom: 10px;">⬇️ Free (Prompt Hub Watermark)</button>
+            <button id="downloadAdBtn" class="primary-btn" style="background-color: #f59e0b; margin-bottom: 10px;">🎬 Watch Ad (No Watermark)</button>
+            <button id="openCustomWatermarkBtn" class="primary-btn" style="background: linear-gradient(to right, #10b981, #3b82f6);">👑 Add Your Own Brand (Watch Ad)</button>
         </div>
     </div>
 
+    <!-- NEW: CUSTOM BRAND EDITOR MODAL -->
+    <div id="customWatermarkModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="document.getElementById('customWatermarkModal').style.display='none'">&times;</span>
+            <h2 style="color:var(--accent-green); margin-bottom: 5px; text-align: center;">👑 Brand Editor</h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Watch a short ad to unlock this premium feature.</p>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Your Brand / Handle Name:</label>
+                <input type="text" id="customBrandText" placeholder="e.g. @YourName or Your Brand" class="ai-var-input" style="margin-bottom: 0;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Watermark Position:</label>
+                <select id="customBrandPosition" class="ai-var-input" style="margin-bottom: 0;">
+                    <option value="center">Center</option>
+                    <option value="bottom-right">Bottom Right</option>
+                    <option value="bottom-left">Bottom Left</option>
+                    <option value="top-right">Top Right</option>
+                    <option value="top-left">Top Left</option>
+                    <option value="bottom-center">Bottom Center</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <div style="flex: 1;">
+                    <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Text Size:</label>
+                    <input type="range" id="customBrandSize" min="20" max="150" value="60" style="width: 100%;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Opacity (Transparency):</label>
+                    <input type="range" id="customBrandOpacity" min="5" max="100" value="40" style="width: 100%;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Text Color:</label>
+                <!-- Color picker directly opens native OS color selector -->
+                <input type="color" id="customBrandColor" value="#ffffff" style="width: 100%; height: 45px; border: none; border-radius: 8px; background: transparent; cursor: pointer; outline: none;">
+            </div>
+
+            <button id="downloadCustomBrandBtn" class="primary-btn" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">🎬 Watch Ad & Download</button>
+        </div>
+    </div>
+
+    <!-- View Full Prompt Modal -->
     <div id="viewPromptModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('viewPromptModal').style.display='none'">&times;</span>
@@ -175,6 +244,7 @@
         </div>
     </div>
 
+    <!-- Add Prompt Modal (Community Submission) -->
     <div id="addPromptModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('addPromptModal').style.display='none'">&times;</span>
@@ -194,6 +264,7 @@
         </div>
     </div>
 
+    <!-- Theme Alert Modal -->
     <div id="themeAlertModal" class="modal">
         <div class="modal-content">
             <p id="themeAlertText" style="text-align: center; font-size: 16px; margin-bottom: 20px;"></p>
@@ -201,6 +272,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=17"></script>
+    <!-- Script version updated -->
+    <script src="script.js?v=18"></script>
 </body>
 </html>
