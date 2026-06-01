@@ -1,331 +1,276 @@
-// ==========================================
-// 1. FIREBASE CONFIGURATION
-// ==========================================
-const firebaseConfig = {
-    apiKey: "AIzaSyDiZ_S-OPWyUaBdcYxCJLTIrROn16C_U2E",
-    authDomain: "prompt-hub-app-2fe0f.firebaseapp.com",
-    projectId: "prompt-hub-app-2fe0f",
-    storageBucket: "prompt-hub-app-2fe0f.firebasestorage.app",
-    messagingSenderId: "242493810474",
-    appId: "1:242493810474:web:d51af341a15f37897b2053"
-};
+document.addEventListener('DOMContentLoaded', () => {
+    const firebaseConfig = {
+        apiKey: "AIzaSyDiZ_S-OPWyUaBdcYxCJLTIrROn16C_U2E",
+        authDomain: "prompt-hub-app-2fe0f.firebaseapp.com",
+        projectId: "prompt-hub-app-2fe0f",
+        storageBucket: "prompt-hub-app-2fe0f.firebasestorage.app",
+        messagingSenderId: "242493810474",
+        appId: "1:242493810474:web:d51af341a15f37897b2053"
+    };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-const googleProvider = new firebase.auth.GoogleAuthProvider();
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const googleProvider = new firebase.auth.GoogleAuthProvider();
 
-// ==========================================
-// 2. DOM ELEMENTS
-// ==========================================
-// Auth & User
-const authBtn = document.getElementById('authBtn');
-const authModal = document.getElementById('authModal');
-const closeModal = document.getElementById('closeModal');
-const emailInput = document.getElementById('emailInput');
-const passwordInput = document.getElementById('passwordInput');
-const submitAuthBtn = document.getElementById('submitAuthBtn');
-const googleAuthBtn = document.getElementById('googleAuthBtn');
-const toggleAuthMode = document.getElementById('toggleAuthMode');
-const modalTitle = document.getElementById('modalTitle');
+    const authBtn = document.getElementById('authBtn');
+    const authModal = document.getElementById('authModal');
+    const closeModal = document.getElementById('closeModal');
+    const emailInput = document.getElementById('emailInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const submitAuthBtn = document.getElementById('submitAuthBtn');
+    const googleAuthBtn = document.getElementById('googleAuthBtn');
+    const toggleAuthMode = document.getElementById('toggleAuthMode');
+    const modalTitle = document.getElementById('modalTitle');
 
-// Tabs & Filters
-const tabOfficial = document.getElementById('tabOfficial');
-const tabCommunity = document.getElementById('tabCommunity');
-const categoryFilter = document.getElementById('categoryFilter');
-const filterBtns = document.querySelectorAll('.filter-btn');
-const searchInput = document.getElementById('searchInput');
-const promptContainer = document.getElementById('promptContainer');
+    const tabOfficial = document.getElementById('tabOfficial');
+    const tabCommunity = document.getElementById('tabCommunity');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const searchInput = document.getElementById('searchInput');
+    const promptContainer = document.getElementById('promptContainer');
 
-// Add Prompt
-const openAddPromptBtn = document.getElementById('openAddPromptBtn');
-const addPromptModal = document.getElementById('addPromptModal');
-const closeAddModal = document.getElementById('closeAddModal');
-const submitPromptBtn = document.getElementById('submitPromptBtn');
+    const openAddPromptBtn = document.getElementById('openAddPromptBtn');
+    const addPromptModal = document.getElementById('addPromptModal');
+    const closeAddModal = document.getElementById('closeAddModal');
+    const submitPromptBtn = document.getElementById('submitPromptBtn');
 
-// Custom Alerts
-const themeAlertModal = document.getElementById('themeAlertModal');
-const themeAlertText = document.getElementById('themeAlertText');
-const themeAlertOkBtn = document.getElementById('themeAlertOkBtn');
+    const themeAlertModal = document.getElementById('themeAlertModal');
+    const themeAlertText = document.getElementById('themeAlertText');
+    const themeAlertOkBtn = document.getElementById('themeAlertOkBtn');
 
-// View Prompt Modal
-const viewPromptModal = document.getElementById('viewPromptModal');
-const closeViewModal = document.getElementById('closeViewModal');
-const viewModalTitle = document.getElementById('viewModalTitle');
-const viewModalText = document.getElementById('viewModalText');
-const copyFromViewBtn = document.getElementById('copyFromViewBtn');
+    const viewPromptModal = document.getElementById('viewPromptModal');
+    const closeViewModal = document.getElementById('closeViewModal');
+    const viewModalTitle = document.getElementById('viewModalTitle');
+    const viewModalText = document.getElementById('viewModalText');
+    const copyFromViewBtn = document.getElementById('copyFromViewBtn');
 
-// ==========================================
-// 3. GLOBAL VARIABLES
-// ==========================================
-let isLoginMode = true;
-let currentUser = null;
-let allOfficialPrompts = [];
-let allCommunityPrompts = [];
-let currentTab = 'official'; // 'official' or 'community'
-let currentCategory = 'All';
-let currentSearch = '';
-let textToCopy = '';
+    let isLoginMode = true;
+    let currentUser = null;
+    let allOfficialPrompts = [];
+    let allCommunityPrompts = [];
+    let currentTab = 'official'; 
+    let currentCategory = 'All';
+    let currentSearch = '';
+    let textToCopy = '';
 
-// ==========================================
-// 4. CUSTOM ALERT FUNCTION
-// ==========================================
-function showCustomAlert(message) {
-    themeAlertText.innerHTML = message;
-    themeAlertModal.style.display = 'block';
-}
-themeAlertOkBtn.addEventListener('click', () => themeAlertModal.style.display = 'none');
+    function showCustomAlert(message) {
+        themeAlertText.innerHTML = message;
+        themeAlertModal.style.display = 'block';
+    }
+    themeAlertOkBtn.addEventListener('click', () => themeAlertModal.style.display = 'none');
 
-// ==========================================
-// 5. AUTHENTICATION LOGIC
-// ==========================================
-auth.onAuthStateChanged(user => {
-    if (user) {
-        currentUser = user;
-        authBtn.textContent = "Logout";
-        authBtn.style.color = "#ef4444";
-        authBtn.style.borderColor = "#ef4444";
-        if (currentTab === 'community') openAddPromptBtn.style.display = 'block';
-    } else {
-        currentUser = null;
-        authBtn.textContent = "Login";
-        authBtn.style.color = "#38bdf8";
-        authBtn.style.borderColor = "#38bdf8";
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUser = user;
+            authBtn.textContent = "Logout";
+            authBtn.style.color = "#ef4444";
+            authBtn.style.borderColor = "#ef4444";
+            if (currentTab === 'community') openAddPromptBtn.style.display = 'block';
+        } else {
+            currentUser = null;
+            authBtn.textContent = "Login";
+            authBtn.style.color = "#38bdf8";
+            authBtn.style.borderColor = "#38bdf8";
+            openAddPromptBtn.style.display = 'none';
+        }
+    });
+
+    authBtn.addEventListener('click', () => {
+        if (currentUser) auth.signOut();
+        else authModal.style.display = 'block';
+    });
+    
+    closeModal.addEventListener('click', () => authModal.style.display = 'none');
+
+    toggleAuthMode.addEventListener('click', () => {
+        isLoginMode = !isLoginMode;
+        modalTitle.textContent = isLoginMode ? "Login" : "Create Account";
+        submitAuthBtn.textContent = isLoginMode ? "Login" : "Sign Up";
+        toggleAuthMode.innerHTML = isLoginMode ? "Don't have an account? <span>Sign Up</span>" : "Already have an account? <span>Login</span>";
+    });
+
+    submitAuthBtn.addEventListener('click', async () => {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+        if (!email || !password) return showCustomAlert("Please fill all fields.");
+        submitAuthBtn.disabled = true;
+        try {
+            if (isLoginMode) await auth.signInWithEmailAndPassword(email, password);
+            else await auth.createUserWithEmailAndPassword(email, password);
+            authModal.style.display = 'none';
+        } catch (error) { 
+            showCustomAlert(error.message); 
+        }
+        submitAuthBtn.disabled = false;
+    });
+
+    googleAuthBtn.addEventListener('click', async () => {
+        try {
+            await auth.signInWithPopup(googleProvider);
+            authModal.style.display = 'none';
+        } catch (error) { showCustomAlert(error.message); }
+    });
+
+    async function fetchOfficialPrompts() {
+        promptContainer.innerHTML = '<p style="text-align:center;">Loading Expert Prompts...</p>';
+        try {
+            const response = await fetch('prompts.json?t=' + Date.now());
+            if (!response.ok) throw new Error('File not found');
+            allOfficialPrompts = await response.json();
+            filterAndRender();
+        } catch (e) {
+            promptContainer.innerHTML = '<p style="text-align:center; color:#ef4444;">Error loading prompts.</p>';
+        }
+    }
+
+    async function fetchCommunityPrompts() {
+        promptContainer.innerHTML = '<p style="text-align:center;">Loading Community Prompts...</p>';
+        try {
+            const snapshot = await db.collection('community_prompts').orderBy('timestamp', 'desc').get();
+            allCommunityPrompts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            filterAndRender();
+        } catch(e) { 
+            promptContainer.innerHTML = '<p style="text-align:center; color:#ef4444;">Error loading database.</p>'; 
+        }
+    }
+
+    function filterAndRender() {
+        let dataset = currentTab === 'official' ? allOfficialPrompts : allCommunityPrompts;
+        if (currentCategory !== 'All') {
+            dataset = dataset.filter(p => p.category === currentCategory);
+        }
+        if (currentSearch) {
+            const query = currentSearch.toLowerCase();
+            dataset = dataset.filter(p => 
+                (p.title && p.title.toLowerCase().includes(query)) || 
+                (p.category && p.category.toLowerCase().includes(query)) ||
+                (p.description && p.description.toLowerCase().includes(query)) ||
+                (p.prompt_text && p.prompt_text.toLowerCase().includes(query))
+            );
+        }
+        renderPrompts(dataset, currentTab === 'community');
+    }
+
+    searchInput.addEventListener('input', (e) => {
+        currentSearch = e.target.value;
+        filterAndRender();
+    });
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            currentCategory = e.target.getAttribute('data-category');
+            filterAndRender();
+        });
+    });
+
+    tabOfficial.addEventListener('click', () => {
+        currentTab = 'official';
+        tabOfficial.classList.add('active');
+        tabCommunity.classList.remove('active');
+        categoryFilter.style.display = 'flex';
         openAddPromptBtn.style.display = 'none';
-    }
-});
-
-authBtn.addEventListener('click', () => {
-    if (currentUser) auth.signOut();
-    else authModal.style.display = 'block';
-});
-closeModal.addEventListener('click', () => authModal.style.display = 'none');
-
-toggleAuthMode.addEventListener('click', () => {
-    isLoginMode = !isLoginMode;
-    modalTitle.textContent = isLoginMode ? "Login" : "Create Account";
-    submitAuthBtn.textContent = isLoginMode ? "Login" : "Sign Up";
-    toggleAuthMode.innerHTML = isLoginMode ? "Don't have an account? <span>Sign Up</span>" : "Already have an account? <span>Login</span>";
-});
-
-submitAuthBtn.addEventListener('click', async () => {
-    const email = emailInput.value.trim();
-    const password = passwordInput.value.trim();
-    if (!email || !password) return showCustomAlert("Please fill all fields.");
-    try {
-        if (isLoginMode) await auth.signInWithEmailAndPassword(email, password);
-        else await auth.createUserWithEmailAndPassword(email, password);
-        authModal.style.display = 'none';
-    } catch (error) { showCustomAlert(error.message); }
-});
-
-googleAuthBtn.addEventListener('click', async () => {
-    try {
-        await auth.signInWithPopup(googleProvider);
-        authModal.style.display = 'none';
-    } catch (error) { showCustomAlert(error.message); }
-});
-
-// ==========================================
-// 6. FETCHING DATA
-// ==========================================
-async function fetchOfficialPrompts() {
-    promptContainer.innerHTML = '<p style="text-align:center;">Loading Expert Prompts...</p>';
-    try {
-        const response = await fetch('prompts.json?t=' + Date.now());
-        if (!response.ok) throw new Error('File not found');
-        allOfficialPrompts = await response.json();
         filterAndRender();
-    } catch (e) {
-        console.error("Fetch Error:", e);
-        promptContainer.innerHTML = '<p style="text-align:center; color:#ef4444;">Error loading prompts. Please check your JSON format.</p>';
-    }
-}
+    });
 
-async function fetchCommunityPrompts() {
-    promptContainer.innerHTML = '<p style="text-align:center;">Loading Community Prompts...</p>';
-    try {
-        const snapshot = await db.collection('community_prompts').orderBy('timestamp', 'desc').get();
-        allCommunityPrompts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        filterAndRender();
-    } catch(e) { 
-        promptContainer.innerHTML = '<p style="text-align:center; color:#ef4444;">Error loading community prompts.</p>'; 
-    }
-}
-
-// ==========================================
-// 7. FILTERING & SEARCHING
-// ==========================================
-function filterAndRender() {
-    let dataset = currentTab === 'official' ? allOfficialPrompts : allCommunityPrompts;
-    
-    // Apply Category Filter
-    if (currentCategory !== 'All') {
-        dataset = dataset.filter(p => p.category === currentCategory);
-    }
-
-    // Apply Search Filter
-    if (currentSearch) {
-        const query = currentSearch.toLowerCase();
-        dataset = dataset.filter(p => 
-            (p.title && p.title.toLowerCase().includes(query)) || 
-            (p.category && p.category.toLowerCase().includes(query)) ||
-            (p.description && p.description.toLowerCase().includes(query)) ||
-            (p.prompt_text && p.prompt_text.toLowerCase().includes(query))
-        );
-    }
-
-    renderPrompts(dataset, currentTab === 'community');
-}
-
-searchInput.addEventListener('input', (e) => {
-    currentSearch = e.target.value;
-    filterAndRender();
-});
-
-filterBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    tabCommunity.addEventListener('click', () => {
+        currentTab = 'community';
+        tabCommunity.classList.add('active');
+        tabOfficial.classList.remove('active');
+        categoryFilter.style.display = 'none';
+        currentCategory = 'All';
         filterBtns.forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        currentCategory = e.target.getAttribute('data-category');
-        filterAndRender();
-    });
-});
-
-tabOfficial.addEventListener('click', () => {
-    currentTab = 'official';
-    tabOfficial.classList.add('active');
-    tabCommunity.classList.remove('active');
-    categoryFilter.style.display = 'flex';
-    openAddPromptBtn.style.display = 'none';
-    filterAndRender();
-});
-
-tabCommunity.addEventListener('click', () => {
-    currentTab = 'community';
-    tabCommunity.classList.add('active');
-    tabOfficial.classList.remove('active');
-    categoryFilter.style.display = 'none';
-    currentCategory = 'All'; // Reset filter for community
-    filterBtns.forEach(b => b.classList.remove('active'));
-    filterBtns[0].classList.add('active');
-    
-    if(currentUser) openAddPromptBtn.style.display = 'block';
-    fetchCommunityPrompts();
-});
-
-// ==========================================
-// 8. RENDERING CARDS
-// ==========================================
-function renderPrompts(promptsToRender, isCommunity) {
-    promptContainer.innerHTML = '';
-    
-    if(promptsToRender.length === 0){
-        promptContainer.innerHTML = '<p style="text-align:center;">No prompts found.</p>';
-        return;
-    }
-
-    promptsToRender.forEach(prompt => {
-        const card = document.createElement('div');
-        card.className = 'prompt-card';
-        
-        const fullText = prompt.prompt_text || '';
-        const preview = fullText.length > 75 ? fullText.substring(0, 75) + '...' : fullText;
-        
-        // Use encodeURIComponent to safely pass string data into inline handlers
-        const encTitle = encodeURIComponent(prompt.title || 'Untitled');
-        const encText = encodeURIComponent(fullText);
-
-        card.innerHTML = `
-            <span class="category-badge">${prompt.category || 'General'}</span>
-            <h3>${prompt.title || 'Untitled'}</h3>
-            <p class="preview-text">"${preview}"</p>
-            <div class="action-row">
-                <button class="view-btn" onclick="openViewModal('${encTitle}', '${encText}')">View</button>
-                <button class="copy-card-btn" onclick="copyPrompt('${encText}')">Copy</button>
-                ${isCommunity ? `<button class="upvote-btn" onclick="upvotePrompt('${prompt.id}')">❤️ ${prompt.upvotes || 0}</button>` : ''}
-            </div>
-        `;
-        promptContainer.appendChild(card);
-    });
-}
-
-// ==========================================
-// 9. VIEW & COPY ACTIONS
-// ==========================================
-window.openViewModal = function(encTitle, encText) {
-    viewModalTitle.textContent = decodeURIComponent(encTitle);
-    textToCopy = decodeURIComponent(encText);
-    viewModalText.textContent = textToCopy;
-    viewPromptModal.style.display = 'block';
-}
-
-closeViewModal.addEventListener('click', () => {
-    viewPromptModal.style.display = 'none';
-});
-
-window.copyPrompt = function(encText) {
-    navigator.clipboard.writeText(decodeURIComponent(encText)).then(() => showCustomAlert("Prompt Copied to Clipboard! 🚀"));
-}
-
-copyFromViewBtn.addEventListener('click', () => {
-    navigator.clipboard.writeText(textToCopy).then(() => {
-        showCustomAlert("Prompt Copied to Clipboard! 🚀");
-        viewPromptModal.style.display = 'none';
-    });
-});
-
-// ==========================================
-// 10. ADD & UPVOTE COMMUNITY PROMPTS
-// ==========================================
-openAddPromptBtn.addEventListener('click', () => addPromptModal.style.display = 'block');
-closeAddModal.addEventListener('click', () => addPromptModal.style.display = 'none');
-
-submitPromptBtn.addEventListener('click', async () => {
-    const title = document.getElementById('promptTitle').value.trim();
-    const category = document.getElementById('promptCategory').value;
-    const desc = document.getElementById('promptDesc').value.trim();
-    const text = document.getElementById('promptText').value.trim();
-    
-    if(!title || !category || !desc || !text) return showCustomAlert('Please fill all fields!');
-    submitPromptBtn.disabled = true;
-    
-    try {
-        await db.collection('community_prompts').add({
-            title, category, description: desc, prompt_text: text,
-            authorEmail: currentUser.email, upvotes: 0,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        showCustomAlert('Published Successfully! 🚀');
-        addPromptModal.style.display = 'none';
-        
-        // Reset form
-        document.getElementById('promptTitle').value = '';
-        document.getElementById('promptDesc').value = '';
-        document.getElementById('promptText').value = '';
-        
+        filterBtns[0].classList.add('active');
+        if(currentUser) openAddPromptBtn.style.display = 'block';
         fetchCommunityPrompts();
-    } catch(err) { 
-        showCustomAlert(err.message); 
-    }
-    submitPromptBtn.disabled = false;
-});
+    });
 
-window.upvotePrompt = async function(docId) {
-    if (!currentUser) return showCustomAlert("Please Login to upvote!");
-    try {
-        await db.collection('community_prompts').doc(docId).update({ 
-            upvotes: firebase.firestore.FieldValue.increment(1) 
+    function renderPrompts(promptsToRender, isCommunity) {
+        promptContainer.innerHTML = '';
+        if(promptsToRender.length === 0){
+            promptContainer.innerHTML = '<p style="text-align:center;">No prompts found.</p>';
+            return;
+        }
+        promptsToRender.forEach(prompt => {
+            const card = document.createElement('div');
+            card.className = 'prompt-card';
+            const fullText = prompt.prompt_text || '';
+            const preview = fullText.length > 75 ? fullText.substring(0, 75) + '...' : fullText;
+            const encTitle = encodeURIComponent(prompt.title || 'Untitled');
+            const encText = encodeURIComponent(fullText);
+
+            card.innerHTML = `
+                <span class="category-badge">${prompt.category || 'General'}</span>
+                <h3>${prompt.title || 'Untitled'}</h3>
+                <p class="preview-text">"${preview}"</p>
+                <div class="action-row">
+                    <button class="view-btn" onclick="openViewModal('${encTitle}', '${encText}')">View</button>
+                    <button class="copy-card-btn" onclick="copyPrompt('${encText}')">Copy</button>
+                    ${isCommunity ? `<button class="upvote-btn" onclick="upvotePrompt('${prompt.id}')">❤️ ${prompt.upvotes || 0}</button>` : ''}
+                </div>
+            `;
+            promptContainer.appendChild(card);
         });
-        fetchCommunityPrompts(); // Refresh to show new vote count
-    } catch (e) { 
-        showCustomAlert(e.message); 
     }
-}
 
-// ==========================================
-// 11. INITIALIZATION
-// ==========================================
-// Start the app by fetching official prompts
-fetchOfficialPrompts();
+    window.openViewModal = function(encTitle, encText) {
+        viewModalTitle.textContent = decodeURIComponent(encTitle);
+        textToCopy = decodeURIComponent(encText);
+        viewModalText.textContent = textToCopy;
+        viewPromptModal.style.display = 'block';
+    }
+
+    closeViewModal.addEventListener('click', () => viewPromptModal.style.display = 'none');
+
+    window.copyPrompt = function(encText) {
+        navigator.clipboard.writeText(decodeURIComponent(encText)).then(() => showCustomAlert("Prompt Copied to Clipboard! 🚀"));
+    }
+
+    copyFromViewBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            showCustomAlert("Prompt Copied to Clipboard! 🚀");
+            viewPromptModal.style.display = 'none';
+        });
+    });
+
+    openAddPromptBtn.addEventListener('click', () => addPromptModal.style.display = 'block');
+    closeAddModal.addEventListener('click', () => addPromptModal.style.display = 'none');
+
+    submitPromptBtn.addEventListener('click', async () => {
+        const title = document.getElementById('promptTitle').value.trim();
+        const category = document.getElementById('promptCategory').value;
+        const desc = document.getElementById('promptDesc').value.trim();
+        const text = document.getElementById('promptText').value.trim();
+        if(!title || !category || !desc || !text) return showCustomAlert('Please fill all fields!');
+        submitPromptBtn.disabled = true;
+        try {
+            await db.collection('community_prompts').add({
+                title, category, description: desc, prompt_text: text,
+                authorEmail: currentUser.email, upvotes: 0,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            showCustomAlert('Published Successfully! 🚀');
+            addPromptModal.style.display = 'none';
+            document.getElementById('promptTitle').value = '';
+            document.getElementById('promptDesc').value = '';
+            document.getElementById('promptText').value = '';
+            fetchCommunityPrompts();
+        } catch(err) { showCustomAlert(err.message); }
+        submitPromptBtn.disabled = false;
+    });
+
+    window.upvotePrompt = async function(docId) {
+        if (!currentUser) return showCustomAlert("Please Login to upvote!");
+        try {
+            await db.collection('community_prompts').doc(docId).update({ upvotes: firebase.firestore.FieldValue.increment(1) });
+            fetchCommunityPrompts();
+        } catch (e) { showCustomAlert(e.message); }
+    }
+
+    fetchOfficialPrompts();
+});
