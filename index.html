@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Prompt Hub | Professional AI Suite</title>
-    <!-- Cache buster updated to v=12 -->
     <link rel="stylesheet" href="style.css?v=12">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- HTML to Canvas for Export Image Feature -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
@@ -20,6 +18,11 @@
         <div class="brand"><h1>Prompt Hub</h1></div>
         <button id="authBtn">Login</button>
     </header>
+
+    <div class="promo-banner-container">
+        <div id="promoSlider" class="promo-slider">
+            </div>
+    </div>
 
     <div id="sideMenuOverlay" class="menu-overlay"></div>
     <nav id="sideMenu" class="side-menu">
@@ -39,40 +42,32 @@
             <li data-category="Sales & Cold Outreach">Sales & Cold Outreach</li>
             <li data-category="Productivity & Workflows">Productivity & Workflows</li>
             <li data-category="Education & Learning">Education & Learning</li>
+            <li data-category="HR & Recruitment">HR & Recruitment</li>
+            <li data-category="UI/UX & Product Design">UI/UX & Product Design</li>
+            <li data-category="Customer Success & Support">Customer Success & Support</li>
+            <li data-category="Health, Fitness & Diet">Health, Fitness & Diet</li>
+            <li data-category="Real Estate">Real Estate</li>
+            <li data-category="Creative Writing & Books">Creative Writing & Books</li>
+            <li data-category="Podcasting & Audio">Podcasting & Audio</li>
+            <li data-category="Event Planning">Event Planning</li>
             <li data-category="Gaming & World Building">Gaming & World Building</li>
-        </ul>
-        <hr class="menu-divider">
-        <ul class="menu-list footer-links">
-            <li onclick="showCustomAlert('Terms and Conditions coming soon!')">Terms and Conditions</li>
-            <li onclick="showCustomAlert('Privacy Policy coming soon!')">Privacy Policy</li>
-            <li onclick="showCustomAlert('Contact Us: support@prompthub.com')">Contact Us</li>
         </ul>
     </nav>
 
     <div class="search-section-wrapper">
         <div class="search-container">
-            <input type="search" id="searchInput" name="searchQuery" placeholder="Search prompts (e.g. Gaming, Coding)..." autocomplete="nope" autocorrect="off" spellcheck="false">
+            <input type="search" id="searchInput" name="searchQuery" placeholder="Search prompts (e.g. Gaming)..." autocomplete="nope" autocorrect="off" spellcheck="false">
         </div>
-    </div>
-
-    <!-- CROSS PROMOTION BANNER -->
-    <div class="cross-promo-container" id="crossPromoContainer" onclick="showCustomAlert('Redirecting to Central App Store...')">
-        <div class="promo-slide active">🚀 Try <b>Amazing AI Promo Generator</b>!</div>
-        <div class="promo-slide">📿 Track Daily Jaap with <b>Radha Jaap Counter</b></div>
-        <div class="promo-slide">🍦 <b>Omni Ice Cream</b> - 100% Pure Milk!</div>
-        <div class="promo-slide">💰 Earn Daily with <b>EarnX App</b></div>
     </div>
 
     <div class="app-tabs">
         <button id="tabOfficial" class="tab-btn active">Official</button>
         <button id="tabCommunity" class="tab-btn">Community</button>
         <button id="tabSaved" class="tab-btn">Saved</button>
+        <button id="tabLeaderboard" class="tab-btn">🏆 Top</button>
     </div>
 
-    <div style="display:flex; gap:10px; max-width: 1200px; margin: 0 auto; padding: 0 20px;">
-        <button id="openAddPromptBtn" class="add-prompt-btn" style="display:none; flex:2;">+ Add Expert Prompt</button>
-        <button id="openLeaderboardBtn" class="leaderboard-btn" style="flex:1;">🏆 Top Creators</button>
-    </div>
+    <button id="openAddPromptBtn" class="add-prompt-btn" style="display:none;">+ Add Expert Prompt</button>
 
     <nav class="category-filter" id="categoryFilter">
         <button class="filter-btn active" data-category="All">All</button>
@@ -84,22 +79,42 @@
 
     <main class="prompt-container" id="promptContainer"></main>
 
-    <!-- ADMOB BANNER CONTAINER -->
-    <div class="admob-banner-container" id="admobBanner">
-        <span>AdMob Test Banner - 320x50</span>
+    <div id="exportCanvasContainer" style="position: absolute; top: -9999px; left: -9999px;"></div>
+
+    <div class="admob-banner-container">
+        <div class="admob-banner">AdMob Test Banner (320x50)</div>
     </div>
 
-    <!-- Modals -->
-    <!-- (Auth, Welcome, Add, View, History, Theme Alerts - Same as before) -->
+    <div id="adPromptModal" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <span class="close-modal" onclick="document.getElementById('adPromptModal').style.display='none'">&times;</span>
+            <h2 style="color:var(--accent-blue);">Unlock AI Power ⚡</h2>
+            <p style="color: var(--text-muted); margin: 15px 0;">To use the Gemini AI generator for this prompt, please watch a short video ad to support us!</p>
+            <button id="watchAdBtn" class="primary-btn" style="background-color: #f59e0b;">🎬 Watch Ad to Unlock</button>
+            <button class="btn-icon" style="margin-top:10px; border:none; width:100%;" onclick="document.getElementById('adPromptModal').style.display='none'">Maybe Later</button>
+        </div>
+    </div>
+
+    <div id="simulatedAdModal" class="modal" style="background: black;">
+        <div class="modal-content" style="text-align: center; background: #000; margin-top: 50%;">
+            <h2 style="color: #fff;">Test Video Ad Playing...</h2>
+            <p id="adTimer" style="color: #f59e0b; font-size: 24px; font-weight: bold; margin: 20px 0;">3</p>
+            <p style="color: #666; font-size: 12px;">(In production, real Rewarded Video will play here)</p>
+        </div>
+    </div>
+
     <div id="authModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('authModal').style.display='none'">&times;</span>
             <h2 id="modalTitle">Login</h2>
-            <input type="email" id="emailInput" placeholder="Email Address">
-            <input type="password" id="passwordInput" placeholder="Password">
+            <input type="email" id="emailInput" placeholder="Email Address" autocomplete="email">
+            <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password">
             <p id="forgotPasswordBtn" class="forgot-pwd">Forgot Password?</p>
             <button id="submitAuthBtn" class="primary-btn">Login</button>
-            <button id="googleAuthBtn" class="google-btn">Sign in with Google</button>
+            <button id="googleAuthBtn" class="google-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                Sign in with Google
+            </button>
             <p id="toggleAuthMode">Don't have an account? <span>Sign Up</span></p>
         </div>
     </div>
@@ -108,12 +123,14 @@
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('addPromptModal').style.display='none'">&times;</span>
             <h2 id="addModalTitle">Submit for Approval</h2>
+            <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">Community prompts require admin approval.</p>
             <input type="text" id="promptTitle" placeholder="Title">
             <select id="promptCategory">
                 <option value="Coding & Tech">Coding & Tech</option>
+                <option value="Gaming & World Building">Gaming & World Building</option>
                 <option value="Marketing & Social Media">Marketing & Social Media</option>
                 <option value="Copywriting & Content">Copywriting & Content</option>
-                <option value="Gaming & World Building">Gaming & World Building</option>
+                <option value="SEO & Website Ranking">SEO & Website Ranking</option>
             </select>
             <textarea id="promptDesc" placeholder="Description"></textarea>
             <textarea id="promptText" placeholder="Prompt Text..." rows="5"></textarea>
@@ -121,28 +138,14 @@
         </div>
     </div>
 
-    <!-- LEADERBOARD MODAL -->
-    <div id="leaderboardModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="document.getElementById('leaderboardModal').style.display='none'">&times;</span>
-            <h2 style="color: #f59e0b; margin-bottom: 15px;">🏆 Top Contributors</h2>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Users with the most approved community prompts.</p>
-            <div id="leaderboardContent"></div>
-        </div>
-    </div>
-
-    <!-- AI Run Modal -->
     <div id="aiRunModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('aiRunModal').style.display='none'">&times;</span>
             <h3>✨ Run with AI</h3>
             <p id="aiPromptTitle" style="color: var(--accent-blue); margin-bottom: 15px; font-weight: bold;"></p>
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Fill in the variables below to customize the prompt before generating.</p>
-            
             <div id="dynamicInputsContainer"></div>
-            
             <button id="generateAiBtn" class="primary-btn" style="background: linear-gradient(to right, #38bdf8, #8b5cf6);">Generate Output</button>
-            
             <div id="aiOutputContainer" style="display:none; margin-top: 20px;">
                 <h4 style="margin-bottom: 10px;">AI Result:</h4>
                 <div id="aiOutputText" class="ai-output-box"></div>
@@ -160,8 +163,12 @@
         </div>
     </div>
 
-    <div id="historyModal" class="modal"><div class="modal-content"><span class="close-modal" onclick="document.getElementById('historyModal').style.display='none'">&times;</span><h3>Edit History</h3><div id="historyContent" class="history-container"></div></div></div>
-    <div id="themeAlertModal" class="modal"><div class="modal-content"><p id="themeAlertText"></p><button class="primary-btn" onclick="document.getElementById('themeAlertModal').style.display='none'">OK</button></div></div>
+    <div id="themeAlertModal" class="modal">
+        <div class="modal-content">
+            <p id="themeAlertText"></p>
+            <button class="primary-btn" onclick="document.getElementById('themeAlertModal').style.display='none'">OK</button>
+        </div>
+    </div>
 
     <script src="script.js?v=12"></script>
 </body>
