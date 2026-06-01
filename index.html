@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Prompt Hub | Professional AI Suite</title>
-    <!-- Versioning added to prevent browser caching old files -->
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=4">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -54,8 +53,10 @@
         </ul>
     </nav>
 
-    <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Search prompts (e.g. Gaming, Coding)...">
+    <div class="search-section-wrapper">
+        <div class="search-container">
+            <input type="search" id="searchInput" name="searchQuery" placeholder="Search prompts (e.g. Gaming, Coding)..." autocomplete="nope" autocorrect="off" spellcheck="false">
+        </div>
     </div>
 
     <div class="app-tabs">
@@ -74,13 +75,13 @@
     </nav>
 
     <main class="prompt-container" id="promptContainer"></main>
-    
+
     <div id="authModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" id="closeModal">&times;</span>
             <h2 id="modalTitle">Login</h2>
-            <input type="email" id="emailInput" placeholder="Email Address" autocomplete="off">
-            <input type="password" id="passwordInput" placeholder="Password">
+            <input type="email" id="emailInput" placeholder="Email Address" autocomplete="email">
+            <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password">
             <p id="forgotPasswordBtn" class="forgot-pwd">Forgot Password?</p>
             <button id="submitAuthBtn" class="primary-btn">Login</button>
             <button id="googleAuthBtn" class="google-btn">
@@ -131,8 +132,7 @@
         <div class="modal-content">
             <span class="close-modal" id="closeHistoryModal">&times;</span>
             <h3>Edit History</h3>
-            <div id="historyContent" class="history-container">
-            </div>
+            <div id="historyContent" class="history-container"></div>
         </div>
     </div>
 
@@ -143,7 +143,6 @@
         </div>
     </div>
 
-    <!-- Versioning added to script as well -->
-    <script src="script.js?v=2"></script>
+    <script src="script.js?v=4"></script>
 </body>
 </html>
