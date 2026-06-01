@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Prompt Hub | Professional AI Suite</title>
-    <link rel="stylesheet" href="style.css?v=20">
+    <link rel="stylesheet" href="style.css?v=21">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -16,7 +16,12 @@
     <header class="header">
         <button id="hamburgerBtn" class="icon-btn">☰</button>
         <div class="brand"><h1>Prompt Hub</h1></div>
-        <button id="authBtn">Login</button>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div id="coinWallet" class="coin-wallet" style="display: none;" onclick="showCoinModal()">
+                🪙 <span id="coinCount">0</span>
+            </div>
+            <button id="authBtn">Login</button>
+        </div>
     </header>
 
     <div class="promo-banner-container">
@@ -115,6 +120,15 @@
         </div>
     </div>
 
+    <div id="coinModal" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <span class="close-modal" onclick="document.getElementById('coinModal').style.display='none'">&times;</span>
+            <h2 style="color:#fbbf24;">Out of Coins! 🪙</h2>
+            <p style="color: var(--text-muted); margin: 15px 0;">You need coins to generate AI outputs and custom watermarks. Watch a short ad to get 15 free coins!</p>
+            <button id="watchAdForCoinsBtn" class="primary-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🎬 Watch Ad (+15 Coins)</button>
+        </div>
+    </div>
+
     <div id="adPromptModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('adPromptModal').style.display='none'">&times;</span>
@@ -138,11 +152,11 @@
             <span class="close-modal" onclick="document.getElementById('aiRunModal').style.display='none'">&times;</span>
             <h3>✨ Run with AI</h3>
             <p id="aiPromptTitle" style="color: var(--accent-blue); margin-bottom: 15px; font-weight: bold;"></p>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Fill in the variables below to customize the prompt before generating.</p>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Fill in the variables below to customize the prompt before generating. <span style="color:#fbbf24; font-weight:bold;">(-5 Coins)</span></p>
             
             <div id="dynamicInputsContainer"></div>
             
-            <button id="generateAiBtn" class="primary-btn" style="background: linear-gradient(to right, #38bdf8, #8b5cf6);">Generate Output</button>
+            <button id="generateAiBtn" class="primary-btn" style="background: linear-gradient(to right, #38bdf8, #8b5cf6);">Generate Output (Cost: 5 🪙)</button>
             
             <div id="aiOutputContainer" style="display:none; margin-top: 20px;">
                 <h4 style="margin-bottom: 10px;">AI Result:</h4>
@@ -164,7 +178,7 @@
             
             <button id="downloadFreeBtn" class="secondary-action-btn" style="margin-bottom: 10px;">⬇️ Free (Prompt Hub Watermark)</button>
             <button id="downloadAdBtn" class="primary-btn" style="background-color: #f59e0b; margin-bottom: 10px;">🎬 Watch Ad (No Watermark)</button>
-            <button id="openCustomWatermarkBtn" class="primary-btn" style="background: linear-gradient(to right, #10b981, #3b82f6);">👑 Add Your Own Brand (Watch Ad)</button>
+            <button id="openCustomWatermarkBtn" class="primary-btn" style="background: linear-gradient(to right, #10b981, #3b82f6);">👑 Add Your Own Brand (-10 🪙)</button>
         </div>
     </div>
 
@@ -172,7 +186,7 @@
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('customWatermarkModal').style.display='none'">&times;</span>
             <h2 style="color:var(--accent-green); margin-bottom: 5px; text-align: center;">👑 Brand Editor</h2>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Watch a short ad to unlock this premium feature.</p>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">This premium feature costs <span style="color:#fbbf24; font-weight:bold;">10 Coins</span>.</p>
             
             <div style="margin-bottom: 15px;">
                 <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Your Brand / Handle Name:</label>
@@ -207,7 +221,7 @@
                 <input type="color" id="customBrandColor" value="#ffffff" style="width: 100%; height: 45px; border: none; border-radius: 8px; background: transparent; cursor: pointer; outline: none;">
             </div>
 
-            <button id="downloadCustomBrandBtn" class="primary-btn" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">🎬 Watch Ad & Download</button>
+            <button id="downloadCustomBrandBtn" class="primary-btn" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">⬇️ Export Poster (Cost: 10 🪙)</button>
         </div>
     </div>
 
@@ -246,6 +260,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=20"></script>
+    <script src="script.js?v=21"></script>
 </body>
 </html>
