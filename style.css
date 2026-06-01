@@ -1,278 +1,222 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Prompt Hub | Professional AI Suite</title>
-    <!-- Cache buster updated to v=18 -->
-    <link rel="stylesheet" href="style.css?v=18">
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-</head>
-<body>
+:root {
+    --bg-dark: #0f172a;       
+    --card-bg: #1e293b;       
+    --text-main: #f8fafc;     
+    --text-muted: #94a3b8;    
+    --accent-blue: #38bdf8;   
+    --accent-green: #10b981;  
+    --border-color: #334155;
+    --hover-glow: rgba(56, 189, 248, 0.2);
+    --menu-width: 280px;
+    --badge-pending: #f59e0b;
+    --badge-edited: #8b5cf6;
+}
 
-    <!-- Header -->
-    <header class="header">
-        <button id="hamburgerBtn" class="icon-btn">☰</button>
-        <div class="brand"><h1>Prompt Hub</h1></div>
-        <button id="authBtn">Login</button>
-    </header>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
-    <!-- Cross-Promotion Banner -->
-    <div class="promo-banner-container">
-        <div id="promoSlider" class="promo-slider"></div>
-    </div>
+body { background-color: var(--bg-dark); color: var(--text-main); overscroll-behavior-y: none; -webkit-font-smoothing: antialiased; line-height: 1.5; padding-bottom: 70px; overflow-x: hidden; }
 
-    <!-- Side Menu -->
-    <div id="sideMenuOverlay" class="menu-overlay"></div>
-    <nav id="sideMenu" class="side-menu">
-        <div class="menu-header">
-            <h2>Categories</h2>
-            <span class="close-menu" onclick="document.getElementById('sideMenu').classList.remove('open'); document.getElementById('sideMenuOverlay').style.display='none';">&times;</span>
-        </div>
-        <ul id="menuCategories" class="menu-list">
-            <li data-category="Coding & Tech">Coding & Tech</li>
-            <li data-category="Marketing & Social Media">Marketing & Social Media</li>
-            <li data-category="Copywriting & Content">Copywriting & Content</li>
-            <li data-category="AI Art & Image Gen">AI Art & Image Gen</li>
-            <li data-category="Video & Animation">Video & Animation</li>
-            <li data-category="Business & Finance">Business & Finance</li>
-            <li data-category="SEO & Website Ranking">SEO & Website Ranking</li>
-            <li data-category="E-Commerce & Dropshipping">E-Commerce & Dropshipping</li>
-            <li data-category="Sales & Cold Outreach">Sales & Cold Outreach</li>
-            <li data-category="Productivity & Workflows">Productivity & Workflows</li>
-            <li data-category="Education & Learning">Education & Learning</li>
-            <li data-category="HR & Recruitment">HR & Recruitment</li>
-            <li data-category="UI/UX & Product Design">UI/UX & Product Design</li>
-            <li data-category="Customer Success & Support">Customer Success & Support</li>
-            <li data-category="Health, Fitness & Diet">Health, Fitness & Diet</li>
-            <li data-category="Real Estate">Real Estate</li>
-            <li data-category="Creative Writing & Books">Creative Writing & Books</li>
-            <li data-category="Podcasting & Audio">Podcasting & Audio</li>
-            <li data-category="Event Planning">Event Planning</li>
-            <li data-category="Gaming & World Building">Gaming & World Building</li>
-        </ul>
-        <hr class="menu-divider">
-        <ul class="menu-list footer-links">
-            <li onclick="showCustomAlert('Terms and Conditions coming soon!')">Terms and Conditions</li>
-            <li onclick="showCustomAlert('Privacy Policy coming soon!')">Privacy Policy</li>
-            <li onclick="showCustomAlert('Contact Us: support@prompthub.com')">Contact Us</li>
-        </ul>
-    </nav>
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
 
-    <!-- Search Section -->
-    <div class="search-section-wrapper">
-        <div class="search-container">
-            <input type="search" id="searchInput" name="searchQuery" placeholder="Search prompts (e.g. Gaming)..." autocomplete="nope" autocorrect="off" spellcheck="false">
-        </div>
-    </div>
+/* HEADER */
+.header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 110; border-bottom: 1px solid var(--border-color); }
+.icon-btn { background: none; border: none; color: var(--text-main); font-size: 24px; cursor: pointer; padding: 5px; outline: none; }
+.brand h1 { font-size: 22px; font-weight: 700; background: linear-gradient(to right, var(--accent-blue), var(--accent-green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-    <!-- App Tabs -->
-    <div class="app-tabs">
-        <button id="tabOfficial" class="tab-btn active">Official</button>
-        <button id="tabCommunity" class="tab-btn">Community</button>
-        <button id="tabSaved" class="tab-btn">Saved</button>
-        <button id="tabLeaderboard" class="tab-btn">🏆 Top</button>
-    </div>
+/* AUTH BUTTON STYLING */
+#authBtn { 
+    background-color: transparent !important; 
+    border: 1px solid var(--accent-blue) !important; 
+    color: var(--accent-blue) !important; 
+    padding: 6px 18px !important; 
+    border-radius: 20px !important; 
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important; 
+    cursor: pointer !important;
+    outline: none !important;
+    height: 34px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+#authBtn:hover { background-color: rgba(56, 189, 248, 0.1) !important; }
 
-    <!-- Add Prompt Button -->
-    <button id="openAddPromptBtn" class="add-prompt-btn" style="display:none;">+ Add Expert Prompt</button>
+#authBtn.logout-state { border-color: #ef4444 !important; color: #ef4444 !important; }
+#authBtn.logout-state:hover { background-color: rgba(239, 68, 68, 0.1) !important; }
 
-    <!-- Category Filters -->
-    <nav class="category-filter" id="categoryFilter">
-        <button class="filter-btn active" data-category="All">All</button>
-        <button class="filter-btn trending-btn" data-category="Trending">🔥 Trending</button>
-        <button class="filter-btn" data-category="Coding & Tech">Tech</button>
-        <button class="filter-btn" data-category="Marketing & Social Media">Marketing</button>
-        <button class="filter-btn" data-category="Gaming & World Building">Gaming</button>
-    </nav>
+/* PROMO BANNER */
+.promo-banner-container { width: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); color: white; overflow: hidden; position: relative; height: 35px; display: flex; align-items: center; justify-content: center; z-index: 100;}
+.promo-slider { text-align: center; font-size: 13px; font-weight: bold; cursor: pointer; width: 100%; }
+.promo-slider span { text-decoration: underline; margin-left: 5px; color: #fbbf24;}
 
-    <!-- Main Prompt Container -->
-    <main class="prompt-container" id="promptContainer"></main>
+/* ADMOB TEST BANNER */
+.admob-banner-container { position: fixed; bottom: 0; left: 0; width: 100%; height: 50px; background-color: #0f172a; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; z-index: 9999; box-shadow: 0 -4px 10px rgba(0,0,0,0.5); }
+.admob-banner { background-color: #334155; color: #94a3b8; width: 320px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; border-radius: 4px;}
 
-    <!-- Hidden Canvas Container for Image Export -->
-    <div id="exportCanvasContainer" style="position: absolute; top: -9999px; left: -9999px;"></div>
+/* SIDE MENU */
+.menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 120; display: none; backdrop-filter: blur(3px); }
+.side-menu { position: fixed; top: 0; left: -300px; width: var(--menu-width); height: 100%; background-color: var(--card-bg); z-index: 130; overflow-y: auto; transition: 0.3s ease-in-out; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
+.side-menu.open { left: 0; }
+.menu-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border-color); }
+.close-menu { font-size: 28px; cursor: pointer; color: var(--text-muted); }
+.menu-list { list-style: none; padding: 10px 0; }
+.menu-list li { padding: 12px 20px; font-size: 15px; color: var(--text-muted); cursor: pointer; transition: 0.2s; border-bottom: 1px solid transparent; }
+.menu-list li:hover { background: rgba(56,189,248,0.1); color: var(--accent-blue); }
+.menu-divider { border: 0; height: 1px; background: var(--border-color); margin: 10px 0; }
+.footer-links li { font-size: 13px; color: var(--accent-green); cursor: pointer; }
 
-    <!-- Bottom Fixed AdMob Banner (Test) -->
-    <div class="admob-banner-container">
-        <div class="admob-banner">AdMob Test Banner (320x50)</div>
-    </div>
+/* SEARCH & TABS */
+.search-section-wrapper { position: relative; width: 100%; padding: 15px 20px 5px 20px; z-index: 100; }
+.search-container { max-width: 800px; margin: 0 auto; }
+#searchInput { width: 100%; padding: 14px 20px; border-radius: 30px; border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-main); font-size: 16px; outline: none; transition: all 0.3s ease; -webkit-appearance: none; }
+#searchInput::-webkit-search-cancel-button { display: none; }
+#searchInput:focus { border-color: var(--accent-blue); box-shadow: 0 0 15px var(--hover-glow); }
 
-    <!-- ============================================== -->
-    <!-- MODALS SECTION -->
-    <!-- ============================================== -->
+.app-tabs { display: flex; justify-content: center; gap: 15px; margin: 15px 0; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; }
+.tab-btn { background: none; border: none; color: var(--text-muted); font-size: 15px; font-weight: 600; padding: 10px 15px; cursor: pointer; position: relative; outline: none; }
+.tab-btn.active { color: var(--accent-blue); }
+.tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background-color: var(--accent-blue); border-radius: 3px 3px 0 0; }
 
-    <!-- Welcome Popup Modal -->
-    <div id="welcomeModal" class="modal">
-        <div class="modal-content" style="text-align: center;">
-            <span class="close-modal" onclick="document.getElementById('welcomeModal').style.display='none'">&times;</span>
-            <h2 id="welcomeTitle" style="color:var(--accent-blue);">Welcome! 🚀</h2>
-            <p id="welcomeMessage" style="color: var(--text-muted); margin: 15px 0; line-height: 1.6;"></p>
-            <button id="welcomeOkBtn" class="primary-btn" onclick="document.getElementById('welcomeModal').style.display='none'">Let's Go!</button>
-        </div>
-    </div>
+.category-filter { display: flex; gap: 10px; padding: 5px 20px 15px 20px; overflow-x: auto; white-space: nowrap; -ms-overflow-style: none; scrollbar-width: none; }
+.category-filter::-webkit-scrollbar { display: none; }
+.filter-btn { background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; font-size: 14px; cursor: pointer; outline: none; }
+.filter-btn.active { background-color: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+.trending-btn { border-color: #f59e0b; color: #f59e0b; }
+.trending-btn.active { background-color: #f59e0b; border-color: #f59e0b; color: #fff; }
 
-    <!-- Auth / Login Modal -->
-    <div id="authModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="document.getElementById('authModal').style.display='none'">&times;</span>
-            <h2 id="modalTitle">Login</h2>
-            <input type="email" id="emailInput" placeholder="Email Address" autocomplete="email">
-            <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password">
-            <p id="forgotPasswordBtn" class="forgot-pwd">Forgot Password?</p>
-            <button id="submitAuthBtn" class="primary-btn">Login</button>
-            <button id="googleAuthBtn" class="google-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                Sign in with Google
-            </button>
-            <p id="toggleAuthMode">Don't have an account? <span>Sign Up</span></p>
-        </div>
-    </div>
+/* PROMPT CARDS */
+.prompt-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding: 20px; max-width: 1200px; margin: 0 auto; }
+.prompt-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; position: relative; }
 
-    <!-- Ad Prompt Modal -->
-    <div id="adPromptModal" class="modal">
-        <div class="modal-content" style="text-align: center;">
-            <span class="close-modal" onclick="document.getElementById('adPromptModal').style.display='none'">&times;</span>
-            <h2 style="color:var(--accent-blue);">Unlock AI Power ⚡</h2>
-            <p style="color: var(--text-muted); margin: 15px 0;">To use the Gemini AI generator for this prompt, please watch a short video ad to support us!</p>
-            <button id="watchAdBtn" class="primary-btn" style="background-color: #f59e0b;">🎬 Watch Ad to Unlock</button>
-            <button class="maybe-later-btn" onclick="document.getElementById('adPromptModal').style.display='none'">Maybe Later</button>
-        </div>
-    </div>
+.card-header-row { display: flex; justify-content: space-between; align-items: flex-start; }
+.badges-container { display: flex; gap: 5px; flex-wrap: wrap; }
+.category-badge { background-color: rgba(16, 185, 129, 0.1); color: var(--accent-green); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 12px; }
+.pending-badge { background-color: rgba(245, 158, 11, 0.1); color: var(--badge-pending); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.3); }
+.edited-badge { background-color: rgba(139, 92, 246, 0.1); color: var(--badge-edited); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.3); }
 
-    <!-- Simulated Video Ad Modal -->
-    <div id="simulatedAdModal" class="modal" style="background: black;">
-        <div class="modal-content" style="text-align: center; background: #000; margin-top: 50%; border:none;">
-            <h2 style="color: #fff;">Test Video Ad Playing...</h2>
-            <p id="adTimer" style="color: #f59e0b; font-size: 24px; font-weight: bold; margin: 20px 0;">3</p>
-            <p style="color: #666; font-size: 12px;">(In production, real Rewarded Video will play here)</p>
-        </div>
-    </div>
+/* Bookmark & History Icons */
+.icon-group { display: flex; gap: 10px; }
+.card-icon-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px; padding: 0; outline: none; transition: transform 0.2s, color 0.2s; }
+.card-icon-btn:hover { transform: scale(1.1); color: var(--accent-blue); }
+.card-icon-btn.saved { color: #fbbf24; }
 
-    <!-- AI Run & Output Modal -->
-    <div id="aiRunModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="document.getElementById('aiRunModal').style.display='none'">&times;</span>
-            <h3>✨ Run with AI</h3>
-            <p id="aiPromptTitle" style="color: var(--accent-blue); margin-bottom: 15px; font-weight: bold;"></p>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Fill in the variables below to customize the prompt before generating.</p>
-            
-            <div id="dynamicInputsContainer"></div>
-            
-            <button id="generateAiBtn" class="primary-btn" style="background: linear-gradient(to right, #38bdf8, #8b5cf6);">Generate Output</button>
-            
-            <div id="aiOutputContainer" style="display:none; margin-top: 20px;">
-                <h4 style="margin-bottom: 10px;">AI Result:</h4>
-                <div id="aiOutputText" class="ai-output-box"></div>
-                
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button id="copyAiOutputBtn" class="primary-btn" style="flex: 1; font-size: 14px;">📋 Copy</button>
-                    <button id="exportAiOutputBtn" class="primary-btn" style="flex: 1; background-color: #f59e0b; font-size: 14px;">🖼️ Export</button>
-                </div>
-            </div>
-        </div>
-    </div>
+.prompt-card h3 { font-size: 18px; color: var(--text-main); }
+.preview-text { color: var(--text-muted); font-size: 14px; flex-grow: 1; cursor: pointer; }
 
-    <!-- EXPORT CHOICES MODAL (UPDATED WITH 3 OPTIONS) -->
-    <div id="watermarkModal" class="modal">
-        <div class="modal-content" style="text-align: center;">
-            <span class="close-modal" onclick="document.getElementById('watermarkModal').style.display='none'">&times;</span>
-            <h2 style="color:var(--accent-blue);">Export Result 📸</h2>
-            <p style="color: var(--text-muted); margin: 15px 0;">Choose how you want to download your AI generated poster.</p>
-            
-            <button id="downloadFreeBtn" class="secondary-action-btn" style="margin-bottom: 10px;">⬇️ Free (Prompt Hub Watermark)</button>
-            <button id="downloadAdBtn" class="primary-btn" style="background-color: #f59e0b; margin-bottom: 10px;">🎬 Watch Ad (No Watermark)</button>
-            <button id="openCustomWatermarkBtn" class="primary-btn" style="background: linear-gradient(to right, #10b981, #3b82f6);">👑 Add Your Own Brand (Watch Ad)</button>
-        </div>
-    </div>
+/* ACTION ROW (Run AI, Copy, Share) */
+.action-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.action-btn { flex: 1; padding: 10px 5px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; text-align: center; cursor: pointer; outline: none; display: flex; justify-content: center; align-items: center; gap: 5px; transition: all 0.2s; }
+.run-ai-btn { background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(139, 92, 246, 0.1)); color: var(--accent-blue); border: 1px solid rgba(56, 189, 248, 0.3); }
+.run-ai-btn:hover { background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(139, 92, 246, 0.2)); }
+.copy-card-btn { background-color: var(--border-color); color: var(--text-main); }
+.share-btn { background-color: rgba(16, 185, 129, 0.1); color: var(--accent-green); }
+.edit-btn { background-color: transparent; border: 1px solid var(--accent-green); color: var(--accent-green); flex-basis: 100%; margin-top: 5px; }
 
-    <!-- NEW: CUSTOM BRAND EDITOR MODAL -->
-    <div id="customWatermarkModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="document.getElementById('customWatermarkModal').style.display='none'">&times;</span>
-            <h2 style="color:var(--accent-green); margin-bottom: 5px; text-align: center;">👑 Brand Editor</h2>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Watch a short ad to unlock this premium feature.</p>
-            
-            <div style="margin-bottom: 15px;">
-                <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Your Brand / Handle Name:</label>
-                <input type="text" id="customBrandText" placeholder="e.g. @YourName or Your Brand" class="ai-var-input" style="margin-bottom: 0;">
-            </div>
+/* BUTTONS */
+.add-prompt-btn { display: block; width: calc(100% - 40px); max-width: 400px; margin: 10px auto 20px auto; padding: 12px; background: linear-gradient(135deg, var(--accent-blue), #2563eb); color: white; border: none; border-radius: 25px; font-size: 16px; }
+.primary-btn { width: 100%; padding: 12px; background-color: var(--accent-blue); color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;}
+.secondary-action-btn { width: 100%; padding: 12px; background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer;}
+.maybe-later-btn { background: transparent; color: var(--text-muted); border: none; font-size: 14px; margin-top: 15px; cursor: pointer; text-decoration: underline; width: 100%; outline: none; }
+.maybe-later-btn:hover { color: var(--text-main); }
 
-            <div style="margin-bottom: 15px;">
-                <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Watermark Position:</label>
-                <select id="customBrandPosition" class="ai-var-input" style="margin-bottom: 0;">
-                    <option value="center">Center</option>
-                    <option value="bottom-right">Bottom Right</option>
-                    <option value="bottom-left">Bottom Left</option>
-                    <option value="top-right">Top Right</option>
-                    <option value="top-left">Top Left</option>
-                    <option value="bottom-center">Bottom Center</option>
-                </select>
-            </div>
+/* MODALS */
+.modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); }
+.modal-content { background-color: var(--card-bg); margin: 15% auto; padding: 25px; border: 1px solid var(--border-color); border-radius: 16px; width: 90%; max-width: 500px; max-height: 85vh; overflow-y: auto; overflow-x: hidden; position:relative;}
+.close-modal { color: var(--text-muted); float: right; font-size: 28px; cursor: pointer; line-height: 1; }
 
-            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-                <div style="flex: 1;">
-                    <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Text Size:</label>
-                    <input type="range" id="customBrandSize" min="20" max="150" value="60" style="width: 100%;">
-                </div>
-                <div style="flex: 1;">
-                    <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Opacity (Transparency):</label>
-                    <input type="range" id="customBrandOpacity" min="5" max="100" value="40" style="width: 100%;">
-                </div>
-            </div>
+.modal-content input[type="text"], 
+.modal-content input[type="email"], 
+.modal-content input[type="password"], 
+.modal-content select, 
+.modal-content textarea { 
+    width: 100%; padding: 14px; margin-bottom: 15px; background-color: var(--bg-dark) !important; border: 1px solid var(--border-color) !important; border-radius: 8px; color: var(--text-main) !important; font-size: 15px; outline: none; -webkit-appearance: none; 
+}
+.modal-content input:focus, .modal-content select:focus, .modal-content textarea:focus { border-color: var(--accent-blue) !important; }
 
-            <div style="margin-bottom: 25px;">
-                <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Text Color:</label>
-                <!-- Color picker directly opens native OS color selector -->
-                <input type="color" id="customBrandColor" value="#ffffff" style="width: 100%; height: 45px; border: none; border-radius: 8px; background: transparent; cursor: pointer; outline: none;">
-            </div>
+/* RANGE SLIDER STYLING (For Watermark Editor) */
+input[type="range"] {
+    -webkit-appearance: none;
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    height: 8px;
+    border-radius: 4px;
+    outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent-blue);
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(56, 189, 248, 0.5);
+}
 
-            <button id="downloadCustomBrandBtn" class="primary-btn" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">🎬 Watch Ad & Download</button>
-        </div>
-    </div>
+/* COLOR PICKER STYLING */
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+input[type="color"]::-webkit-color-swatch {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
 
-    <!-- View Full Prompt Modal -->
-    <div id="viewPromptModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="document.getElementById('viewPromptModal').style.display='none'">&times;</span>
-            <h3 id="viewModalTitle"></h3>
-            <p id="viewModalText"></p>
-            <button class="primary-btn" onclick="copyFromView()">Copy Prompt</button>
-        </div>
-    </div>
+/* LOGIN MODAL FIXES */
+#authModal .modal-content { display: flex; flex-direction: column; gap: 15px; padding: 30px; }
+#authModal input { margin-bottom: 0px !important; }
+#submitAuthBtn { margin-top: 10px; height: 45px; font-size: 16px; }
+.google-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px; background-color: white; color: black; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; font-size: 15px; }
+#toggleAuthMode { margin-top: 10px; font-size: 14px; text-align: center; color: var(--text-muted); }
+#toggleAuthMode span { color: var(--accent-blue); text-decoration: underline; cursor: pointer; font-weight: bold; }
+.forgot-pwd { font-size: 13px; color: var(--accent-blue); cursor: pointer; text-align: right; margin-bottom: 5px; margin-top: -5px; }
 
-    <!-- Add Prompt Modal (Community Submission) -->
-    <div id="addPromptModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="document.getElementById('addPromptModal').style.display='none'">&times;</span>
-            <h2 id="addModalTitle">Submit for Approval</h2>
-            <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">Community prompts require admin approval.</p>
-            <input type="text" id="promptTitle" placeholder="Title">
-            <select id="promptCategory">
-                <option value="Coding & Tech">Coding & Tech</option>
-                <option value="Gaming & World Building">Gaming & World Building</option>
-                <option value="Marketing & Social Media">Marketing & Social Media</option>
-                <option value="Copywriting & Content">Copywriting & Content</option>
-                <option value="SEO & Website Ranking">SEO & Website Ranking</option>
-            </select>
-            <textarea id="promptDesc" placeholder="Description"></textarea>
-            <textarea id="promptText" placeholder="Prompt Text..." rows="5"></textarea>
-            <button id="submitPromptBtn" class="primary-btn">Submit Prompt</button>
-        </div>
-    </div>
+/* AI VARIABLE INPUT BOX */
+.ai-var-input { background-color: var(--bg-dark) !important; border: 1px solid var(--border-color) !important; color: var(--text-main) !important; padding: 14px !important; border-radius: 8px !important; width: 100% !important; outline: none; margin-bottom: 15px !important; font-size: 15px; }
+.ai-var-input:focus { border-color: var(--accent-blue) !important; }
 
-    <!-- Theme Alert Modal -->
-    <div id="themeAlertModal" class="modal">
-        <div class="modal-content">
-            <p id="themeAlertText" style="text-align: center; font-size: 16px; margin-bottom: 20px;"></p>
-            <button class="primary-btn" onclick="document.getElementById('themeAlertModal').style.display='none'">OK</button>
-        </div>
-    </div>
+/* VIEW PROMPT TEXT FIX */
+#viewModalText { margin-bottom: 20px; color: var(--text-muted); white-space: pre-wrap; background: var(--bg-dark); padding: 15px; border-radius: 8px; max-height: 300px; overflow-y: auto; overflow-x: hidden; word-wrap: break-word; overflow-wrap: break-word; border: 1px solid var(--border-color); }
 
-    <!-- Script version updated -->
-    <script src="script.js?v=18"></script>
-</body>
-</html>
+/* AI OUTPUT BOX (MARKDOWN FIXES) */
+.ai-output-box { background: var(--bg-dark); padding: 15px; border-radius: 8px; font-size: 14px; margin-top: 10px; border: 1px solid var(--border-color); color: var(--text-main); line-height: 1.6; word-wrap: break-word; overflow-wrap: break-word; overflow-x: hidden; width: 100%; }
+.ai-output-box h1, .ai-output-box h2, .ai-output-box h3 { margin: 15px 0 10px 0; color: var(--accent-blue); }
+.ai-output-box p { margin-bottom: 10px; }
+.ai-output-box ul, .ai-output-box ol { padding-left: 20px; margin-bottom: 10px; }
+.ai-output-box strong { color: #fbbf24; }
+
+/* Code Blocks Scroll Fix */
+.ai-output-box pre { background: rgba(0, 0, 0, 0.4); padding: 12px; border-radius: 6px; overflow-x: auto; border: 1px solid var(--border-color); margin-bottom: 10px; max-width: 100%; }
+.ai-output-box code { font-family: monospace; font-size: 13px; color: #38bdf8; background: rgba(255, 255, 255, 0.05); padding: 2px 4px; border-radius: 4px; }
+.ai-output-box pre code { background: transparent; padding: 0; color: var(--text-main); white-space: pre; }
+
+/* EXPORT TEMPLATE (WATERMARK & POSTER) */
+.export-poster { width: 800px; min-height: 800px; height: auto; background: var(--bg-dark); padding: 60px; display: flex; flex-direction: column; border: 4px solid var(--border-color); box-sizing: border-box; font-family: 'Segoe UI', sans-serif; position: relative; overflow: hidden; }
+.export-brand { font-size: 32px; font-weight: bold; color: #10b981; margin-bottom: 20px; text-align: center; z-index: 2;}
+.export-title { font-size: 36px; color: var(--accent-blue); margin-bottom: 30px; line-height: 1.3; text-align: center; border-bottom: 2px solid var(--border-color); padding-bottom: 20px; z-index: 2;}
+.export-text { font-size: 24px; color: var(--text-main); line-height: 1.6; z-index: 2;}
+.export-text h1, .export-text h2 { color: var(--accent-blue); margin-top: 20px;}
+.export-text pre { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; white-space: pre-wrap; font-size: 20px;}
+.export-footer { margin-top: 40px; text-align: center; font-size: 24px; color: var(--text-muted); z-index: 2; border-top: 1px solid var(--border-color); padding-top: 20px;}
+
+/* Free Default Watermark */
+.watermark-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-35deg); font-size: 140px; font-weight: 900; color: rgba(255, 255, 255, 0.06); white-space: nowrap; pointer-events: none; z-index: 1; letter-spacing: 15px; }
+
+/* NEW: Custom Brand Watermark Base */
+.custom-brand-overlay { position: absolute; font-weight: 900; white-space: nowrap; pointer-events: none; z-index: 1; }
+
+/* LEADERBOARD LIST */
+.leaderboard-list { display: flex; flex-direction: column; gap: 15px; }
+.lb-item { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px 20px; border-radius: 12px; }
+.lb-rank { font-size: 24px; font-weight: bold; color: #fbbf24; width: 40px;}
+.lb-name { flex-grow: 1; font-size: 16px; color: var(--text-main); }
+.lb-score { font-size: 16px; font-weight: bold; color: var(--accent-green); background: rgba(16, 185, 129, 0.1); padding: 5px 15px; border-radius: 20px;}
+
+/* HISTORY MODAL */
+.history-container { max-height: 300px; overflow-y: auto; margin-top: 15px; padding-right: 5px; }
+.history-item { border-left: 2px solid var(--border-color); padding-left: 15px; margin-bottom: 20px; position: relative; }
+.history-item::before { content: ''; position: absolute; left: -6px; top: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--badge-edited); }
+.history-date { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
+.history-text { font-size: 14px; color: var(--text-main); background: var(--bg-dark); padding: 10px; border-radius: 8px; white-space: pre-wrap; word-wrap: break-word; }
