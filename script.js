@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // AI INTEGRATION LOGIC (Using v1 stable endpoint now)
+    // AI INTEGRATION LOGIC (FIXED API MODEL AND ENDPOINT)
     window.openAiModal = function(encTitle, encText) {
         const title = decodeURIComponent(encTitle);
         currentAiPromptText = decodeURIComponent(encText);
@@ -495,8 +495,8 @@ document.addEventListener('DOMContentLoaded', () => {
         aiOutputContainer.style.display = 'none';
 
         try {
-            // FIXED: Using v1 endpoint instead of v1beta
-            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+            // UPDATED: Using gemini-2.5-flash with v1beta endpoint as requested
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
             const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
