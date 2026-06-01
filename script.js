@@ -16,28 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const db = firebase.firestore();
     const googleProvider = new firebase.auth.GoogleAuthProvider();
 
-    // ==========================================
-    // 2. API KEYS (Split to bypass GitHub Scanner)
-    // ==========================================
-    const gKey1 = "AQ.Ab8RN6LrzfYa_";
-    const gKey2 = "TPgPxzSEq_IUZMaYm";
-    const gKey3 = "X0GkLB59CVC8FD525Ghw";
-    const GEMINI_API_KEY = gKey1 + gKey2 + gKey3;
-
-    const groq1 = "gsk_QmkP7T27IWf";
-    const groq2 = "zIiHQXxpxWGdyb3F";
-    const groq3 = "YArnRh3va9aWkyB6MNQ7Fvc5t";
-    const GROQ_API_KEY = groq1 + groq2 + groq3;
-
-    const or1 = "sk-or-v1-6ca1c7fc1f";
-    const or2 = "71053aeb70feb311322e7d";
-    const or3 = "795f8a5af7c04308878f02afcc2b454a";
-    const OPENROUTER_API_KEY = or1 + or2 + or3;
-
     const ADMIN_EMAILS = ['lootocashnow@gmail.com', 'shjain86@gmail.com']; 
 
     // ==========================================
-    // 3. CROSS-PROMOTION SLIDER
+    // 2. CROSS-PROMOTION SLIDER
     // ==========================================
     const promoApps = [
         { name: "Amazing AI Promo", link: "https://raashanmart.in/download" },
@@ -56,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     promoSlider.addEventListener('click', () => window.open(promoApps[currentPromoIdx].link, '_blank'));
 
     // ==========================================
-    // 4. GLOBALS & DOM ELEMENTS
+    // 3. GLOBALS & DOM ELEMENTS
     // ==========================================
     let currentUser = null;
     let isAdmin = false;
@@ -91,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 5. AUTHENTICATION & WELCOME POPUP
+    // 4. AUTHENTICATION
     // ==========================================
     auth.onAuthStateChanged(user => {
         if (user) {
@@ -174,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 6. DATA FETCHING
+    // 5. DATA FETCHING & FILTERING
     // ==========================================
     async function fetchOfficialPrompts() {
         try {
@@ -192,9 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) { console.log(e); }
     }
 
-    // ==========================================
-    // 7. BOOKMARKS (SAVED TAB) LOGIC
-    // ==========================================
     function getBookmarksKey() { return currentUser ? `bookmarks_${currentUser.uid}` : `bookmarks_guest`; }
     function getBookmarks() { return JSON.parse(localStorage.getItem(getBookmarksKey())) || []; }
     window.toggleBookmark = function(pId) {
@@ -210,19 +189,14 @@ document.addEventListener('DOMContentLoaded', () => {
         filterAndRender();
     }
 
-    // ==========================================
-    // 8. TABS & FILTERING
-    // ==========================================
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
-            
             if (e.target.id === 'tabOfficial') currentTab = 'official';
             if (e.target.id === 'tabCommunity') currentTab = 'community';
             if (e.target.id === 'tabSaved') currentTab = 'saved';
             if (e.target.id === 'tabLeaderboard') currentTab = 'leaderboard';
-            
             updateTabsUI();
             if(currentTab === 'community' || currentTab === 'leaderboard') fetchCommunityPrompts(); 
             else filterAndRender();
@@ -243,14 +217,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    document.getElementById('searchInput').addEventListener('input', (e) => { 
-        currentSearch = e.target.value; 
-        filterAndRender(); 
-    });
+    document.getElementById('searchInput').addEventListener('input', (e) => { currentSearch = e.target.value; filterAndRender(); });
 
-    // ==========================================
-    // 9. RENDER LOGIC (CARDS & LEADERBOARD)
-    // ==========================================
     function filterAndRender() {
         if (currentTab === 'leaderboard') {
             const userScores = {};
@@ -258,9 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(p.status === 'approved' && p.authorEmail) userScores[p.authorEmail] = (userScores[p.authorEmail] || 0) + (p.upvotes || 0);
             });
             const sortedUsers = Object.keys(userScores).map(email => ({email: email.split('@')[0], score: userScores[email]})).sort((a,b) => b.score - a.score).slice(0,10);
-            
             if(sortedUsers.length === 0) return promptContainer.innerHTML = `<p style="text-align:center; color:var(--text-muted); margin-top:20px;">No data available yet.</p>`;
-            
             let html = `<div class="leaderboard-list"><h2 style="text-align:center; margin-bottom:10px; color:var(--accent-blue);">🏆 Top Creators</h2>`;
             sortedUsers.forEach((u, idx) => {
                 let rank = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx+1}`;
@@ -271,19 +237,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let dataset = currentTab === 'official' ? [...allOfficialPrompts] : [...allCommunityPrompts];
         
-        if (currentTab === 'community') {
-            dataset = dataset.filter(p => p.status === 'approved' || isAdmin || (currentUser && p.authorEmail === currentUser.email));
-        } else if (currentTab === 'saved') {
-            const bookmarks = getBookmarks();
-            dataset = [...allOfficialPrompts, ...allCommunityPrompts].filter(p => bookmarks.includes(p.id));
-        }
+        if (currentTab === 'community') dataset = dataset.filter(p => p.status === 'approved' || isAdmin || (currentUser && p.authorEmail === currentUser.email));
+        else if (currentTab === 'saved') dataset = [...allOfficialPrompts, ...allCommunityPrompts].filter(p => getBookmarks().includes(p.id));
 
         if (currentCategory === 'Trending' && currentTab !== 'saved') {
-            dataset.sort((a, b) => {
-                const viewsA = parseInt(localStorage.getItem(`views_${a.id}`)) || 0;
-                const viewsB = parseInt(localStorage.getItem(`views_${b.id}`)) || 0;
-                return viewsB - viewsA;
-            });
+            dataset.sort((a, b) => { return (parseInt(localStorage.getItem(`views_${b.id}`)) || 0) - (parseInt(localStorage.getItem(`views_${a.id}`)) || 0); });
             dataset = dataset.slice(0, 5); 
         } else if (currentCategory !== 'All' && currentCategory !== 'Trending') {
             dataset = dataset.filter(p => p.category === currentCategory);
@@ -291,18 +249,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (currentSearch) {
             const query = currentSearch.toLowerCase();
-            dataset = dataset.filter(p => 
-                (p.title && p.title.toLowerCase().includes(query)) || 
-                (p.category && p.category.toLowerCase().includes(query)) ||
-                (p.prompt_text && p.prompt_text.toLowerCase().includes(query))
-            );
+            dataset = dataset.filter(p => (p.title && p.title.toLowerCase().includes(query)) || (p.category && p.category.toLowerCase().includes(query)) || (p.prompt_text && p.prompt_text.toLowerCase().includes(query)));
         }
 
         promptContainer.innerHTML = '';
-        if(dataset.length === 0) {
-            promptContainer.innerHTML = `<p style="text-align:center; color:var(--text-muted); margin-top:20px;">No prompts found.</p>`;
-            return;
-        }
+        if(dataset.length === 0) return promptContainer.innerHTML = `<p style="text-align:center; color:var(--text-muted); margin-top:20px;">No prompts found.</p>`;
 
         dataset.forEach(prompt => {
             const encTitle = encodeURIComponent(prompt.title || 'Untitled');
@@ -315,11 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let adminControls = '';
             if (isAdmin && prompt.status === 'pending') {
-                adminControls = `
-                    <div style="display:flex; gap:10px; width:100%; margin-top:5px;">
-                        <button class="action-btn edit-btn" style="color:#10b981; border-color:#10b981;" onclick="adminAction('${pId}', 'approve')">Approve</button>
-                        <button class="action-btn edit-btn" style="color:#ef4444; border-color:#ef4444;" onclick="adminAction('${pId}', 'reject')">Reject</button>
-                    </div>`;
+                adminControls = `<div style="display:flex; gap:10px; width:100%; margin-top:5px;"><button class="action-btn edit-btn" style="color:#10b981; border-color:#10b981;" onclick="adminAction('${pId}', 'approve')">Approve</button><button class="action-btn edit-btn" style="color:#ef4444; border-color:#ef4444;" onclick="adminAction('${pId}', 'reject')">Reject</button></div>`;
             }
 
             const card = document.createElement('div');
@@ -327,9 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.innerHTML = `
                 <div class="card-header-row">
                     <div class="badges-container">${badgesHtml}</div>
-                    <div class="icon-group">
-                        <button class="card-icon-btn ${isSaved ? 'saved' : ''}" onclick="toggleBookmark('${pId}')" title="Save Prompt">${isSaved ? '★' : '☆'}</button>
-                    </div>
+                    <div class="icon-group"><button class="card-icon-btn ${isSaved ? 'saved' : ''}" onclick="toggleBookmark('${pId}')" title="Save Prompt">${isSaved ? '★' : '☆'}</button></div>
                 </div>
                 <h3 onclick="trackAndView('${pId}', '${encTitle}', '${encText}')" style="cursor:pointer;">${prompt.title || 'Untitled'}</h3>
                 <p class="preview-text" onclick="trackAndView('${pId}', '${encTitle}', '${encText}')">"${(prompt.prompt_text||'').substring(0, 60)}..."</p>
@@ -344,33 +289,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ==========================================
-    // 10. BASIC CARD ACTIONS
-    // ==========================================
     window.trackAndView = function(pId, encTitle, encText) {
-        let currentViews = parseInt(localStorage.getItem(`views_${pId}`)) || 0;
-        localStorage.setItem(`views_${pId}`, currentViews + 1);
-        window.openViewModal(encTitle, encText);
-    }
-
-    window.openViewModal = function(encTitle, encText) {
+        localStorage.setItem(`views_${pId}`, (parseInt(localStorage.getItem(`views_${pId}`)) || 0) + 1);
         document.getElementById('viewModalTitle').textContent = decodeURIComponent(encTitle);
         textToCopy = decodeURIComponent(encText);
         document.getElementById('viewModalText').textContent = textToCopy;
         document.getElementById('viewPromptModal').style.display = 'block';
     }
 
-    window.copyFromView = function() {
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            showCustomAlert("Prompt Copied to Clipboard! 🚀");
-            document.getElementById('viewPromptModal').style.display = 'none';
-        });
-    }
-
-    window.copyPrompt = function(encText) {
-        navigator.clipboard.writeText(decodeURIComponent(encText)).then(() => showCustomAlert("Copied to Clipboard! 🚀"));
-    }
-
+    window.copyFromView = function() { navigator.clipboard.writeText(textToCopy).then(() => { showCustomAlert("Prompt Copied to Clipboard! 🚀"); document.getElementById('viewPromptModal').style.display = 'none'; }); }
+    window.copyPrompt = function(encText) { navigator.clipboard.writeText(decodeURIComponent(encText)).then(() => showCustomAlert("Copied to Clipboard! 🚀")); }
     window.sharePrompt = function(encTitle, encText) {
         const shareData = { title: 'Prompt Hub', text: `*${decodeURIComponent(encTitle)}*\n"${decodeURIComponent(encText)}"\n`, url: window.location.href.split('?')[0] };
         if (navigator.share) navigator.share(shareData).catch(()=>{});
@@ -378,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 11. AI RUN FLOW
+    // 6. AI RUN FLOW & TEST MODE (BYPASSED API)
     // ==========================================
     window.initiateAiRun = function(encTitle, encText) {
         pendingAiRunData = { title: encTitle, text: encText };
@@ -387,155 +315,87 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('watchAdBtn').addEventListener('click', () => {
         document.getElementById('adPromptModal').style.display = 'none';
-        const adModal = document.getElementById('simulatedAdModal');
-        adModal.style.display = 'block';
-        
+        document.getElementById('simulatedAdModal').style.display = 'block';
         let time = 3;
         document.getElementById('adTimer').innerText = time;
         const interval = setInterval(() => {
-            time--;
-            document.getElementById('adTimer').innerText = time;
+            time--; document.getElementById('adTimer').innerText = time;
             if (time <= 0) {
                 clearInterval(interval);
-                adModal.style.display = 'none';
-                if(pendingAiRunData) openAiModal(pendingAiRunData.title, pendingAiRunData.text);
+                document.getElementById('simulatedAdModal').style.display = 'none';
+                if(pendingAiRunData) {
+                    currentGeneratedOutputTitle = decodeURIComponent(pendingAiRunData.title);
+                    document.getElementById('aiPromptTitle').textContent = currentGeneratedOutputTitle;
+                    const container = document.getElementById('dynamicInputsContainer');
+                    container.innerHTML = ''; document.getElementById('aiOutputContainer').style.display = 'none';
+                    const matches = [...decodeURIComponent(pendingAiRunData.text).matchAll(/\[(.*?)\]/g)];
+                    const uniqueVars = [...new Set(matches.map(m => m[1]))]; 
+                    if (uniqueVars.length === 0) container.innerHTML = '<p style="color:var(--accent-green); margin-bottom:15px;">No variables detected. Run directly!</p>';
+                    else uniqueVars.forEach(vName => { container.insertAdjacentHTML('beforeend', `<div><label style="font-size:13px; color:var(--text-muted); display:block; text-transform:capitalize; margin-bottom:5px;">${vName}:</label><input type="text" class="ai-var-input" data-var="${vName}" placeholder="Enter ${vName}..."></div>`); });
+                    document.getElementById('aiRunModal').style.display = 'block';
+                }
             }
         }, 1000);
     });
 
-    function openAiModal(encTitle, encText) {
-        currentGeneratedOutputTitle = decodeURIComponent(encTitle);
-        let baseText = decodeURIComponent(encText);
-        
-        document.getElementById('aiPromptTitle').textContent = currentGeneratedOutputTitle;
-        const container = document.getElementById('dynamicInputsContainer');
-        container.innerHTML = '';
-        document.getElementById('aiOutputContainer').style.display = 'none';
-        
-        const matches = [...baseText.matchAll(/\[(.*?)\]/g)];
-        const uniqueVars = [...new Set(matches.map(m => m[1]))]; 
-        
-        if (uniqueVars.length === 0) {
-            container.innerHTML = '<p style="color:var(--accent-green); margin-bottom:15px;">No variables detected. Run directly!</p>';
-        } else {
-            uniqueVars.forEach(vName => {
-                container.insertAdjacentHTML('beforeend', `
-                    <div>
-                        <label style="font-size:13px; color:var(--text-muted); display:block; text-transform:capitalize; margin-bottom:5px;">${vName}:</label>
-                        <input type="text" class="ai-var-input" data-var="${vName}" placeholder="Enter ${vName}...">
-                    </div>
-                `);
-            });
-        }
-        document.getElementById('generateAiBtn').setAttribute('data-base', encodeURIComponent(baseText));
-        document.getElementById('aiRunModal').style.display = 'block';
-    }
+    document.getElementById('generateAiBtn').addEventListener('click', async (e) => {
+        const btn = e.target;
+        btn.innerHTML = "✨ Generating...";
+        btn.disabled = true;
 
-                // 4-Layer Fallback with EXACT Error Tracking
-            const resultText = await callWithRetry(async () => {
-                try { 
-                    return await callGemini("gemini-2.5-flash"); 
-                } catch (e1) { 
-                    console.log("Gemini 2.5 Failed:", e1.message);
-                    try { 
-                        return await callGemini("gemini-1.5-flash"); 
-                    } catch (e2) { 
-                        console.log("Gemini 1.5 Failed:", e2.message);
-                        try { 
-                            return await callGroq(); 
-                        } catch (e3) { 
-                            console.log("Groq Failed:", e3.message);
-                            try { 
-                                return await callOpenRouter(); 
-                            } catch (e4) { 
-                                console.log("OpenRouter Failed:", e4.message);
-                                // Ye actual error ko throw karega taaki hume pata chale
-                                throw new Error(`All APIs failed! Last Error: ${e4.message}`); 
-                            }
-                        }
-                    }
-                }
-            });
-
-            currentGeneratedOutputHtml = marked.parse(resultText);
+        // TEST MODE: 1 Second Delay instead of API call
+        setTimeout(() => {
+            currentGeneratedOutputHtml = "<h3>🚀 UI Testing Mode Active!</h3><p>Bhai, API ko bypass kar diya hai. Abhi niche <b>🖼️ Export</b> button dabao aur <b>👑 Add Your Own Brand</b> select karke custom watermark (Size, Color, Position) check karo!</p>";
+            
             document.getElementById('aiOutputText').innerHTML = currentGeneratedOutputHtml;
             document.getElementById('aiOutputContainer').style.display = 'block';
-
-            document.getElementById('copyAiOutputBtn').onclick = () => {
-                navigator.clipboard.writeText(resultText).then(()=>showCustomAlert("Output Copied! 🚀"));
-            };
-        } catch (err) {
-            // Yahan ab generic message ki jagah asli error popup mein aayega
-            showCustomAlert("⚠️ Debug Info: " + err.message);
-        } finally {
+            
             btn.innerHTML = "Generate Output";
             btn.disabled = false;
-        }
+        }, 1000);
+    });
 
     // ==========================================
-    // 13. EXPORT MODULE (FREE, AD-WALL & CUSTOM BRAND)
+    // 7. EXPORT MODULE (CUSTOM BRAND)
     // ==========================================
     document.getElementById('exportAiOutputBtn').addEventListener('click', () => {
         document.getElementById('aiRunModal').style.display = 'none';
         document.getElementById('watermarkModal').style.display = 'block';
     });
 
-    // Option 1: Free (Default Watermark)
-    document.getElementById('downloadFreeBtn').addEventListener('click', () => {
-        document.getElementById('watermarkModal').style.display = 'none';
-        executeExport('free'); 
-    });
+    document.getElementById('downloadFreeBtn').addEventListener('click', () => { document.getElementById('watermarkModal').style.display = 'none'; executeExport('free'); });
+    document.getElementById('downloadAdBtn').addEventListener('click', () => { document.getElementById('watermarkModal').style.display = 'none'; runSimulatedAdAndExport('ad'); });
 
-    // Option 2: No Watermark (Watch Ad)
-    document.getElementById('downloadAdBtn').addEventListener('click', () => {
-        document.getElementById('watermarkModal').style.display = 'none';
-        runSimulatedAdAndExport('ad');
-    });
-
-    // Option 3: Custom Brand Editor
     document.getElementById('openCustomWatermarkBtn').addEventListener('click', () => {
         document.getElementById('watermarkModal').style.display = 'none';
-        // Pre-fill username if logged in
-        if(currentUser && currentUser.displayName) {
-            document.getElementById('customBrandText').value = '@' + currentUser.displayName.replace(/\s+/g, '');
-        }
+        if(currentUser && currentUser.displayName) document.getElementById('customBrandText').value = '@' + currentUser.displayName.replace(/\s+/g, '');
         document.getElementById('customWatermarkModal').style.display = 'block';
     });
 
     document.getElementById('downloadCustomBrandBtn').addEventListener('click', () => {
-        const text = document.getElementById('customBrandText').value.trim() || 'Your Brand';
-        const position = document.getElementById('customBrandPosition').value;
-        const size = document.getElementById('customBrandSize').value + 'px';
-        const opacity = document.getElementById('customBrandOpacity').value / 100;
-        const color = document.getElementById('customBrandColor').value;
-        
-        const customConfig = { text, position, size, opacity, color };
-
+        const customConfig = { 
+            text: document.getElementById('customBrandText').value.trim() || 'Your Brand',
+            position: document.getElementById('customBrandPosition').value,
+            size: document.getElementById('customBrandSize').value + 'px',
+            opacity: document.getElementById('customBrandOpacity').value / 100,
+            color: document.getElementById('customBrandColor').value 
+        };
         document.getElementById('customWatermarkModal').style.display = 'none';
         runSimulatedAdAndExport('custom', customConfig);
     });
 
     function runSimulatedAdAndExport(mode, config = null) {
-        const adModal = document.getElementById('simulatedAdModal');
-        adModal.style.display = 'block';
-        
-        let time = 3;
-        document.getElementById('adTimer').innerText = time;
+        document.getElementById('simulatedAdModal').style.display = 'block';
+        let time = 3; document.getElementById('adTimer').innerText = time;
         const interval = setInterval(() => {
-            time--;
-            document.getElementById('adTimer').innerText = time;
-            if (time <= 0) {
-                clearInterval(interval);
-                adModal.style.display = 'none';
-                executeExport(mode, config); 
-            }
+            time--; document.getElementById('adTimer').innerText = time;
+            if (time <= 0) { clearInterval(interval); document.getElementById('simulatedAdModal').style.display = 'none'; executeExport(mode, config); }
         }, 1000);
     }
 
     async function executeExport(mode, customConfig = null) {
         showCustomAlert("Generating Image... 📸");
         const container = document.getElementById('exportCanvasContainer');
-        
         let watermarkHtml = '';
 
         if (mode === 'free') {
@@ -549,29 +409,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (customConfig.position === 'top-left') posCSS = 'top: 40px; left: 40px;';
             if (customConfig.position === 'bottom-center') posCSS = 'bottom: 40px; left: 50%; transform: translateX(-50%);';
 
-            watermarkHtml = `
-                <div class="custom-brand-overlay" style="${posCSS} font-size: ${customConfig.size}; color: ${customConfig.color}; opacity: ${customConfig.opacity};">
-                    ${customConfig.text}
-                </div>`;
+            watermarkHtml = `<div class="custom-brand-overlay" style="${posCSS} font-size: ${customConfig.size}; color: ${customConfig.color}; opacity: ${customConfig.opacity};">${customConfig.text}</div>`;
         }
 
-        container.innerHTML = `
-            <div id="posterTarget" class="export-poster">
-                ${watermarkHtml}
-                <div class="export-brand">Prompt Hub 🚀</div>
-                <div class="export-title">${currentGeneratedOutputTitle}</div>
-                <div class="export-text">${currentGeneratedOutputHtml}</div>
-                <div class="export-footer">Generated via raashanmart.in/prompthub</div>
-            </div>
-        `;
+        container.innerHTML = `<div id="posterTarget" class="export-poster">${watermarkHtml}<div class="export-brand">Prompt Hub 🚀</div><div class="export-title">${currentGeneratedOutputTitle}</div><div class="export-text">${currentGeneratedOutputHtml}</div><div class="export-footer">Generated via raashanmart.in/prompthub</div></div>`;
         
         try {
             setTimeout(async () => {
                 const canvas = await html2canvas(document.getElementById('posterTarget'), {scale: 2, backgroundColor: '#0f172a'});
-                const imgData = canvas.toDataURL('image/png');
                 const link = document.createElement('a');
                 link.download = `Output_${currentGeneratedOutputTitle.replace(/\s+/g, '_')}.png`;
-                link.href = imgData;
+                link.href = canvas.toDataURL('image/png');
                 link.click();
                 container.innerHTML = ''; 
             }, 500);
@@ -579,12 +427,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 14. ADD PROMPT & ADMIN ACTIONS
+    // 8. ADD PROMPT SUBMISSION
     // ==========================================
     document.getElementById('openAddPromptBtn').addEventListener('click', () => {
-        document.getElementById('promptTitle').value = '';
-        document.getElementById('promptDesc').value = '';
-        document.getElementById('promptText').value = '';
+        document.getElementById('promptTitle').value = ''; document.getElementById('promptDesc').value = ''; document.getElementById('promptText').value = '';
         document.getElementById('addPromptModal').style.display = 'block';
     });
 
@@ -592,20 +438,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const title = document.getElementById('promptTitle').value.trim();
         const category = document.getElementById('promptCategory').value;
         const text = document.getElementById('promptText').value.trim();
-        
         if(!title || !text) return showCustomAlert('Please fill Title and Prompt Text!');
         document.getElementById('submitPromptBtn').disabled = true;
-
         try {
-            await db.collection('community_prompts').add({
-                title, category, prompt_text: text,
-                authorEmail: currentUser.email, upvotes: 0,
-                status: 'pending', 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            await db.collection('community_prompts').add({ title, category, prompt_text: text, authorEmail: currentUser.email, upvotes: 0, status: 'pending', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             showCustomAlert('Submitted Successfully for Admin Approval! 🚀');
-            document.getElementById('addPromptModal').style.display = 'none';
-            fetchCommunityPrompts();
+            document.getElementById('addPromptModal').style.display = 'none'; fetchCommunityPrompts();
         } catch(err) { showCustomAlert(err.message); }
         document.getElementById('submitPromptBtn').disabled = false;
     });
@@ -619,8 +457,5 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) { showCustomAlert(e.message); }
     }
 
-    // ==========================================
-    // 15. INITIALIZE
-    // ==========================================
     fetchOfficialPrompts();
 });
