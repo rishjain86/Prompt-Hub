@@ -100,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
             authBtn.textContent = "Logout";
             authBtn.classList.add('logout-state');
 
-            // Welcome Logic
             const uid = user.uid;
             const now = Date.now();
             const lastLogin = localStorage.getItem(`lastLogin_${uid}`);
@@ -119,7 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             localStorage.setItem(`lastLogin_${uid}`, now);
-
         } else {
             currentUser = null;
             isAdmin = false;
@@ -254,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // 9. RENDER LOGIC (CARDS & LEADERBOARD)
     // ==========================================
     function filterAndRender() {
-        // LEADERBOARD RENDER
         if (currentTab === 'leaderboard') {
             const userScores = {};
             allCommunityPrompts.forEach(p => {
@@ -272,7 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return promptContainer.innerHTML = html + `</div>`;
         }
 
-        // NORMAL CARDS RENDER
         let dataset = currentTab === 'official' ? [...allOfficialPrompts] : [...allCommunityPrompts];
         
         if (currentTab === 'community') {
@@ -349,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 10. BASIC CARD ACTIONS (View, Copy, Share)
+    // 10. BASIC CARD ACTIONS
     // ==========================================
     window.trackAndView = function(pId, encTitle, encText) {
         let currentViews = parseInt(localStorage.getItem(`views_${pId}`)) || 0;
@@ -382,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 11. AI RUN FLOW & AD SIMULATION
+    // 11. AI RUN FLOW
     // ==========================================
     window.initiateAiRun = function(encTitle, encText) {
         pendingAiRunData = { title: encTitle, text: encText };
@@ -442,7 +438,6 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < retries; i++) {
             try { return await apiFunc(); }
             catch (err) {
-                console.warn(`Attempt ${i + 1} failed: ${err.message}`);
                 if (i < retries - 1) {
                     document.getElementById('generateAiBtn').innerHTML = "Server load high. Retrying...";
                     await new Promise(r => setTimeout(r, delay));
@@ -467,7 +462,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.disabled = true;
 
         try {
-            // Helper Functions
             const callGemini = async (model) => {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
                 const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: finalPrompt }] }] }) });
@@ -496,7 +490,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return data.choices[0].message.content;
             };
 
-            // Execution: 4 Layers with Retry
             const resultText = await callWithRetry(async () => {
                 try { return await callGemini("gemini-2.5-flash"); }
                 catch (e) { 
@@ -524,20 +517,49 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 13. OUTPUT EXPORT (FREEMIUM AD-WALL)
+    // 13. EXPORT MODULE (FREE, AD-WALL & CUSTOM BRAND)
     // ==========================================
     document.getElementById('exportAiOutputBtn').addEventListener('click', () => {
         document.getElementById('aiRunModal').style.display = 'none';
         document.getElementById('watermarkModal').style.display = 'block';
     });
 
+    // Option 1: Free (Default Watermark)
     document.getElementById('downloadFreeBtn').addEventListener('click', () => {
         document.getElementById('watermarkModal').style.display = 'none';
-        executeExport(true); 
+        executeExport('free'); 
     });
 
+    // Option 2: No Watermark (Watch Ad)
     document.getElementById('downloadAdBtn').addEventListener('click', () => {
         document.getElementById('watermarkModal').style.display = 'none';
+        runSimulatedAdAndExport('ad');
+    });
+
+    // Option 3: Custom Brand Editor
+    document.getElementById('openCustomWatermarkBtn').addEventListener('click', () => {
+        document.getElementById('watermarkModal').style.display = 'none';
+        // Pre-fill username if logged in
+        if(currentUser && currentUser.displayName) {
+            document.getElementById('customBrandText').value = '@' + currentUser.displayName.replace(/\s+/g, '');
+        }
+        document.getElementById('customWatermarkModal').style.display = 'block';
+    });
+
+    document.getElementById('downloadCustomBrandBtn').addEventListener('click', () => {
+        const text = document.getElementById('customBrandText').value.trim() || 'Your Brand';
+        const position = document.getElementById('customBrandPosition').value;
+        const size = document.getElementById('customBrandSize').value + 'px';
+        const opacity = document.getElementById('customBrandOpacity').value / 100;
+        const color = document.getElementById('customBrandColor').value;
+        
+        const customConfig = { text, position, size, opacity, color };
+
+        document.getElementById('customWatermarkModal').style.display = 'none';
+        runSimulatedAdAndExport('custom', customConfig);
+    });
+
+    function runSimulatedAdAndExport(mode, config = null) {
         const adModal = document.getElementById('simulatedAdModal');
         adModal.style.display = 'block';
         
@@ -549,16 +571,33 @@ document.addEventListener('DOMContentLoaded', () => {
             if (time <= 0) {
                 clearInterval(interval);
                 adModal.style.display = 'none';
-                executeExport(false); 
+                executeExport(mode, config); 
             }
         }, 1000);
-    });
+    }
 
-    async function executeExport(withWatermark) {
+    async function executeExport(mode, customConfig = null) {
         showCustomAlert("Generating Image... 📸");
         const container = document.getElementById('exportCanvasContainer');
         
-        let watermarkHtml = withWatermark ? `<div class="watermark-overlay">PROMPT HUB</div>` : '';
+        let watermarkHtml = '';
+
+        if (mode === 'free') {
+            watermarkHtml = `<div class="watermark-overlay">PROMPT HUB</div>`;
+        } else if (mode === 'custom' && customConfig) {
+            let posCSS = '';
+            if (customConfig.position === 'center') posCSS = 'top: 50%; left: 50%; transform: translate(-50%, -50%);';
+            if (customConfig.position === 'bottom-right') posCSS = 'bottom: 40px; right: 40px;';
+            if (customConfig.position === 'bottom-left') posCSS = 'bottom: 40px; left: 40px;';
+            if (customConfig.position === 'top-right') posCSS = 'top: 40px; right: 40px;';
+            if (customConfig.position === 'top-left') posCSS = 'top: 40px; left: 40px;';
+            if (customConfig.position === 'bottom-center') posCSS = 'bottom: 40px; left: 50%; transform: translateX(-50%);';
+
+            watermarkHtml = `
+                <div class="custom-brand-overlay" style="${posCSS} font-size: ${customConfig.size}; color: ${customConfig.color}; opacity: ${customConfig.opacity};">
+                    ${customConfig.text}
+                </div>`;
+        }
 
         container.innerHTML = `
             <div id="posterTarget" class="export-poster">
