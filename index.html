@@ -101,16 +101,19 @@
     <div id="addPromptModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" id="closeAddModal">&times;</span>
-            <h2>Add Community Prompt</h2>
+            <h2 id="addModalTitle">Submit for Approval</h2>
+            <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">Community prompts require admin approval.</p>
             <input type="text" id="promptTitle" placeholder="Title">
             <select id="promptCategory">
                 <option value="Coding & Tech">Coding & Tech</option>
                 <option value="Gaming & World Building">Gaming & World Building</option>
-                <option value="Marketing & Social Media">Marketing</option>
+                <option value="Marketing & Social Media">Marketing & Social Media</option>
+                <option value="Copywriting & Content">Copywriting & Content</option>
+                <option value="SEO & Website Ranking">SEO & Website Ranking</option>
             </select>
             <textarea id="promptDesc" placeholder="Description"></textarea>
             <textarea id="promptText" placeholder="Prompt Text..." rows="5"></textarea>
-            <button id="submitPromptBtn" class="primary-btn">Publish Prompt</button>
+            <button id="submitPromptBtn" class="primary-btn">Submit Prompt</button>
         </div>
     </div>
 
@@ -120,6 +123,15 @@
             <h3 id="viewModalTitle"></h3>
             <p id="viewModalText"></p>
             <button id="copyFromViewBtn" class="primary-btn">Copy Prompt</button>
+        </div>
+    </div>
+
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeHistoryModal">&times;</span>
+            <h3>Edit History</h3>
+            <div id="historyContent" class="history-container">
+                </div>
         </div>
     </div>
 
