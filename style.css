@@ -14,7 +14,7 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
-/* NOTE: Added padding-bottom 60px so content doesn't hide behind Ad banner */
+/* NOTE: Added padding-bottom 70px so content doesn't hide behind Ad banner */
 body { background-color: var(--bg-dark); color: var(--text-main); overscroll-behavior-y: none; -webkit-font-smoothing: antialiased; line-height: 1.5; padding-bottom: 70px; overflow-x: hidden; }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
