@@ -85,6 +85,17 @@ document.addEventListener('DOMContentLoaded', () => {
         themeAlertText.innerHTML = message;
         themeAlertModal.style.display = 'block';
     }
+    
+    // Close Modals when clicking outside
+    window.onclick = function(event) {
+        const modals = [authModal, welcomeModal, addPromptModal, viewPromptModal, historyModal, themeAlertModal];
+        modals.forEach(modal => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+
     themeAlertOkBtn.addEventListener('click', () => themeAlertModal.style.display = 'none');
     welcomeOkBtn.addEventListener('click', () => welcomeModal.style.display = 'none');
     closeHistoryModal.addEventListener('click', () => historyModal.style.display = 'none');
@@ -142,6 +153,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             localStorage.setItem(`lastLogin_${uid}`, now);
+            
+            // Refresh feed if logged in to show proper buttons
+            if(currentTab === 'community') filterAndRender();
         } else {
             currentUser = null;
             isAdmin = false;
@@ -149,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
             authBtn.style.color = "#38bdf8";
             authBtn.style.borderColor = "#38bdf8";
             openAddPromptBtn.style.display = 'none';
+            if(currentTab === 'community') filterAndRender();
         }
     });
 
@@ -412,11 +427,11 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             if (editingPromptId && editingPromptData) {
                 // UPDATE LOGIC
-                let historyArr = editingPromptData.editHistory || [];
+                let historyArr = Array.isArray(editingPromptData.editHistory) ? [...editingPromptData.editHistory] : [];
                 historyArr.push({
-                    title: editingPromptData.title,
-                    description: editingPromptData.description,
-                    prompt_text: editingPromptData.prompt_text,
+                    title: editingPromptData.title || 'Untitled',
+                    description: editingPromptData.description || '',
+                    prompt_text: editingPromptData.prompt_text || '',
                     timestamp: new Date().toISOString()
                 });
 
