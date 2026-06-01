@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const keyPart3 = "X0GkLB59CVC8FD525Ghw";
     const GEMINI_API_KEY = keyPart1 + keyPart2 + keyPart3;
 
-    // CROSS-PROMOTION SLIDER APPS
+    // CROSS-PROMOTION SLIDER
     const promoApps = [
         { name: "Amazing AI Promo", link: "https://raashanmart.in/download" },
         { name: "Radha Jaap Counter", link: "https://raashanmart.in/download" },
@@ -37,14 +37,18 @@ document.addEventListener('DOMContentLoaded', () => {
     promoSlider.innerHTML = `Try our other app: <span>${promoApps[0].name}</span>`;
     promoSlider.addEventListener('click', () => window.open(promoApps[currentPromoIdx].link, '_blank'));
 
-    // GLOBALS & DOM
+    // GLOBALS
     let currentUser = null;
+    let isAdmin = false;
     let allOfficialPrompts = [];
     let allCommunityPrompts = [];
     let currentTab = 'official'; 
     let currentCategory = 'All';
     let currentSearch = '';
-    let pendingAiRunData = null; // Stores AI prompt data while Ad is playing
+    
+    let pendingAiRunData = null; 
+    let currentGeneratedOutputHtml = ''; // For Export functionality
+    let currentGeneratedOutputTitle = '';
 
     const promptContainer = document.getElementById('promptContainer');
     const authBtn = document.getElementById('authBtn');
@@ -58,10 +62,12 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(user => {
         if (user) {
             currentUser = user;
+            isAdmin = ['lootocashnow@gmail.com', 'shjain86@gmail.com'].includes(user.email);
             authBtn.textContent = "Logout";
             authBtn.classList.add('logout-state');
         } else {
             currentUser = null;
+            isAdmin = false;
             authBtn.textContent = "Login";
             authBtn.classList.remove('logout-state');
         }
@@ -78,19 +84,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // DATA FETCHING
+    // FETCH DATA
     async function fetchOfficialPrompts() {
         try {
-            const response = await fetch('prompts.json?t=' + Date.now());
-            allOfficialPrompts = await response.json();
+            const res = await fetch('prompts.json?t=' + Date.now());
+            allOfficialPrompts = await res.json();
             filterAndRender();
         } catch (e) { console.log(e); }
     }
 
     async function fetchCommunityPrompts() {
         try {
-            const snapshot = await db.collection('community_prompts').orderBy('timestamp', 'desc').get();
-            allCommunityPrompts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const snap = await db.collection('community_prompts').orderBy('timestamp', 'desc').get();
+            allCommunityPrompts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             if(currentTab === 'community' || currentTab === 'leaderboard') filterAndRender();
         } catch(e) { console.log(e); }
     }
@@ -113,73 +119,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function updateTabsUI() {
-        if(currentTab === 'leaderboard' || currentTab === 'saved') {
-            document.getElementById('categoryFilter').style.display = 'none';
-        } else {
-            document.getElementById('categoryFilter').style.display = 'flex';
-        }
+        document.getElementById('categoryFilter').style.display = (currentTab === 'leaderboard' || currentTab === 'saved') ? 'none' : 'flex';
     }
 
-    // RENDER LEADERBOARD
-    function renderLeaderboard() {
-        promptContainer.innerHTML = '';
-        const userScores = {};
-        
-        allCommunityPrompts.forEach(p => {
-            if(p.status === 'approved' && p.authorEmail) {
-                userScores[p.authorEmail] = (userScores[p.authorEmail] || 0) + (p.upvotes || 0);
-            }
-        });
-
-        const sortedUsers = Object.keys(userScores).map(email => ({
-            email: email.split('@')[0], 
-            score: userScores[email]
-        })).sort((a, b) => b.score - a.score).slice(0, 10); // Top 10
-
-        if(sortedUsers.length === 0) {
-            promptContainer.innerHTML = `<p style="text-align:center; margin-top:30px; color:var(--text-muted);">No data available yet.</p>`;
-            return;
-        }
-
-        let html = `<div class="leaderboard-list">
-            <h2 style="text-align:center; margin-bottom:10px; color:var(--accent-blue);">🏆 Top Creators</h2>`;
-        
-        sortedUsers.forEach((u, idx) => {
-            let rankBadge = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx+1}`;
-            html += `
-                <div class="lb-item">
-                    <span class="lb-rank">${rankBadge}</span>
-                    <span class="lb-name">@${u.email}</span>
-                    <span class="lb-score">❤️ ${u.score}</span>
-                </div>
-            `;
-        });
-        html += `</div>`;
-        promptContainer.innerHTML = html;
-    }
-
-    // RENDER CARDS
+    // RENDER CARDS & LEADERBOARD
     function filterAndRender() {
         if (currentTab === 'leaderboard') {
-            renderLeaderboard();
-            return;
+            const userScores = {};
+            allCommunityPrompts.forEach(p => {
+                if(p.status === 'approved' && p.authorEmail) userScores[p.authorEmail] = (userScores[p.authorEmail] || 0) + (p.upvotes || 0);
+            });
+            const sortedUsers = Object.keys(userScores).map(email => ({email: email.split('@')[0], score: userScores[email]})).sort((a,b) => b.score - a.score).slice(0,10);
+            
+            if(sortedUsers.length === 0) return promptContainer.innerHTML = `<p style="text-align:center; color:var(--text-muted);">No data available yet.</p>`;
+            
+            let html = `<div class="leaderboard-list"><h2 style="text-align:center; margin-bottom:10px; color:var(--accent-blue);">🏆 Top Creators</h2>`;
+            sortedUsers.forEach((u, idx) => {
+                let rank = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx+1}`;
+                html += `<div class="lb-item"><span class="lb-rank">${rank}</span><span class="lb-name">@${u.email}</span><span class="lb-score">❤️ ${u.score}</span></div>`;
+            });
+            return promptContainer.innerHTML = html + `</div>`;
         }
 
         let dataset = currentTab === 'official' ? [...allOfficialPrompts] : [...allCommunityPrompts];
-        
-        if (currentTab === 'community') {
-            dataset = dataset.filter(p => p.status === 'approved');
-        } else if (currentTab === 'saved') {
+        if (currentTab === 'community') dataset = dataset.filter(p => p.status === 'approved');
+        else if (currentTab === 'saved') {
             const bookmarks = JSON.parse(localStorage.getItem(currentUser ? `bookmarks_${currentUser.uid}` : `bookmarks_guest`)) || [];
             dataset = [...allOfficialPrompts, ...allCommunityPrompts].filter(p => bookmarks.includes(p.id));
         }
 
         promptContainer.innerHTML = '';
         dataset.forEach(prompt => {
-            const fullText = prompt.prompt_text || '';
             const encTitle = encodeURIComponent(prompt.title || 'Untitled');
-            const encText = encodeURIComponent(fullText);
-
+            const encText = encodeURIComponent(prompt.prompt_text || '');
             const card = document.createElement('div');
             card.className = 'prompt-card';
             card.innerHTML = `
@@ -187,12 +159,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="badges-container"><span class="category-badge">${prompt.category || 'General'}</span></div>
                 </div>
                 <h3>${prompt.title || 'Untitled'}</h3>
-                <p class="preview-text" onclick="window.copyPrompt('${encText}')">"${fullText.substring(0, 60)}..."</p>
+                <p class="preview-text" onclick="window.copyPrompt('${encText}')">"${(prompt.prompt_text||'').substring(0, 60)}..."</p>
                 <div class="action-row">
                     <button class="action-btn run-ai-btn" onclick="initiateAiRun('${encTitle}', '${encText}')">✨ Run AI</button>
-                    <button class="action-btn copy-card-btn" onclick="window.copyPrompt('${encText}')">📋 Copy</button>
+                    <button class="action-btn copy-card-btn" onclick="window.copyPrompt('${encText}')">📋 Copy Prompt</button>
                     <button class="action-btn share-btn" onclick="window.sharePrompt('${encTitle}', '${encText}')">📲 Share</button>
-                    <button class="action-btn export-btn" onclick="exportToImage('${encTitle}', '${encText}')">🖼️ Export</button>
                 </div>
             `;
             promptContainer.appendChild(card);
@@ -200,115 +171,71 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.copyPrompt = function(encText) {
-        navigator.clipboard.writeText(decodeURIComponent(encText)).then(() => showCustomAlert("Prompt Copied to Clipboard! 🚀"));
+        navigator.clipboard.writeText(decodeURIComponent(encText)).then(() => showCustomAlert("Copied to Clipboard! 🚀"));
     }
 
-    // SHARE LOGIC
     window.sharePrompt = function(encTitle, encText) {
-        const title = decodeURIComponent(encTitle);
-        const text = decodeURIComponent(encText);
-        const url = window.location.href.split('?')[0]; 
-        const shareData = { title: 'Prompt Hub', text: `*${title}*\n"${text}"\n`, url: url };
-        if (navigator.share) navigator.share(shareData).catch(e=>{});
-        else window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareData.text + url)}`, '_blank');
+        const shareData = { title: 'Prompt Hub', text: `*${decodeURIComponent(encTitle)}*\n"${decodeURIComponent(encText)}"\n`, url: window.location.href.split('?')[0] };
+        if (navigator.share) navigator.share(shareData).catch(()=>{});
+        else window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareData.text + shareData.url)}`, '_blank');
     }
 
-    // EXPORT TO IMAGE LOGIC (HTML2CANVAS)
-    window.exportToImage = async function(encTitle, encText) {
-        const title = decodeURIComponent(encTitle);
-        const text = decodeURIComponent(encText);
-        
-        const container = document.getElementById('exportCanvasContainer');
-        container.innerHTML = `
-            <div id="posterTarget" class="export-poster">
-                <div class="export-brand">Prompt Hub 🚀</div>
-                <div class="export-title">${title}</div>
-                <div class="export-text">"${text.length > 300 ? text.substring(0,300) + '...' : text}"</div>
-                <div class="export-footer">Find more at raashanmart.in</div>
-            </div>
-        `;
-        
-        try {
-            showCustomAlert("Generating Image... 📸");
-            const canvas = await html2canvas(document.getElementById('posterTarget'), {scale: 2});
-            const imgData = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.download = `PromptHub_${title.replace(/\s+/g, '_')}.png`;
-            link.href = imgData;
-            link.click();
-            container.innerHTML = ''; // Clean up
-        } catch(e) { showCustomAlert("Error generating image."); }
-    }
-
-    // ADMOB REWARDED AD LOGIC FOR AI RUN
+    // AI RUN & REWARDED AD LOGIC
     window.initiateAiRun = function(encTitle, encText) {
         pendingAiRunData = { title: encTitle, text: encText };
-        
-        // Show Prompt to watch Ad
         document.getElementById('adPromptModal').style.display = 'block';
     }
 
     document.getElementById('watchAdBtn').addEventListener('click', () => {
         document.getElementById('adPromptModal').style.display = 'none';
-        
-        // ------------- ADMOB SDK BRIDGE INJECTION POINT -------------
-        // If wrapped in Android Web2App, you would call:
-        // Android.showRewardedAd();
-        // Here, we simulate the Ad Experience for Web PWA:
-        
         const adModal = document.getElementById('simulatedAdModal');
-        const timerTxt = document.getElementById('adTimer');
         adModal.style.display = 'block';
         
         let time = 3;
-        timerTxt.innerText = time;
+        document.getElementById('adTimer').innerText = time;
         const interval = setInterval(() => {
             time--;
-            timerTxt.innerText = time;
+            document.getElementById('adTimer').innerText = time;
             if (time <= 0) {
                 clearInterval(interval);
                 adModal.style.display = 'none';
-                
-                // Trigger Actual AI Modal after Ad finishes
-                if(pendingAiRunData) {
-                    openAiModal(pendingAiRunData.title, pendingAiRunData.text);
-                }
+                if(pendingAiRunData) openAiModal(pendingAiRunData.title, pendingAiRunData.text);
             }
         }, 1000);
     });
 
-    // AI GENERATION MODAL
     function openAiModal(encTitle, encText) {
-        const title = decodeURIComponent(encTitle);
-        currentAiPromptText = decodeURIComponent(encText);
+        currentGeneratedOutputTitle = decodeURIComponent(encTitle);
+        let baseText = decodeURIComponent(encText);
         
-        document.getElementById('aiPromptTitle').textContent = title;
-        const dynamicContainer = document.getElementById('dynamicInputsContainer');
-        dynamicContainer.innerHTML = '';
+        document.getElementById('aiPromptTitle').textContent = currentGeneratedOutputTitle;
+        const container = document.getElementById('dynamicInputsContainer');
+        container.innerHTML = '';
         document.getElementById('aiOutputContainer').style.display = 'none';
         
-        const matches = [...currentAiPromptText.matchAll(/\[(.*?)\]/g)];
+        const matches = [...baseText.matchAll(/\[(.*?)\]/g)];
         const uniqueVars = [...new Set(matches.map(m => m[1]))]; 
         
         if (uniqueVars.length === 0) {
-            dynamicContainer.innerHTML = '<p style="color:var(--accent-green); margin-bottom:15px;">No variables detected. Run directly!</p>';
+            container.innerHTML = '<p style="color:var(--accent-green); margin-bottom:15px;">No variables detected. Run directly!</p>';
         } else {
             uniqueVars.forEach(vName => {
-                dynamicContainer.insertAdjacentHTML('beforeend', `
-                    <div style="margin-bottom: 10px;">
-                        <label style="font-size: 13px; color: var(--text-muted); display:block; text-transform: capitalize;">${vName}:</label>
-                        <input type="text" class="ai-var-input" data-var="${vName}" placeholder="Enter ${vName}..." style="margin-bottom: 0;">
+                container.insertAdjacentHTML('beforeend', `
+                    <div>
+                        <label style="font-size:13px; color:var(--text-muted); display:block; text-transform:capitalize; margin-bottom:5px;">${vName}:</label>
+                        <input type="text" class="ai-var-input" data-var="${vName}" placeholder="Enter ${vName}...">
                     </div>
                 `);
             });
         }
+        // Save base text for generation
+        document.getElementById('generateAiBtn').setAttribute('data-base', encodeURIComponent(baseText));
         document.getElementById('aiRunModal').style.display = 'block';
     }
 
-    // CALL GEMINI AI API
-    document.getElementById('generateAiBtn').addEventListener('click', async () => {
-        const btn = document.getElementById('generateAiBtn');
-        let finalPrompt = currentAiPromptText;
+    document.getElementById('generateAiBtn').addEventListener('click', async (e) => {
+        const btn = e.target;
+        let finalPrompt = decodeURIComponent(btn.getAttribute('data-base'));
         
         document.querySelectorAll('.ai-var-input').forEach(input => {
             const varName = input.getAttribute('data-var');
@@ -320,21 +247,21 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.disabled = true;
 
         try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-            const response = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ contents: [{ parts: [{ text: finalPrompt }] }] })
             });
             const data = await response.json();
             if (data.error) throw new Error(data.error.message);
             
             const markdownText = data.candidates[0].content.parts[0].text;
-            document.getElementById('aiOutputText').innerHTML = marked.parse(markdownText);
+            currentGeneratedOutputHtml = marked.parse(markdownText); // Save HTML for export
+            
+            document.getElementById('aiOutputText').innerHTML = currentGeneratedOutputHtml;
             document.getElementById('aiOutputContainer').style.display = 'block';
 
             document.getElementById('copyAiOutputBtn').onclick = () => {
-                navigator.clipboard.writeText(markdownText).then(()=>showCustomAlert("AI Output Copied! 🚀"));
+                navigator.clipboard.writeText(markdownText).then(()=>showCustomAlert("Output Copied! 🚀"));
             };
         } catch (err) {
             showCustomAlert("Error: " + err.message);
@@ -343,6 +270,67 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = false;
         }
     });
+
+    // OUTPUT EXPORT WITH WATERMARK AD-WALL
+    document.getElementById('exportAiOutputBtn').addEventListener('click', () => {
+        document.getElementById('aiRunModal').style.display = 'none';
+        document.getElementById('watermarkModal').style.display = 'block';
+    });
+
+    document.getElementById('downloadFreeBtn').addEventListener('click', () => {
+        document.getElementById('watermarkModal').style.display = 'none';
+        executeExport(true); // true = With Watermark
+    });
+
+    document.getElementById('downloadAdBtn').addEventListener('click', () => {
+        document.getElementById('watermarkModal').style.display = 'none';
+        
+        // ------------- ADMOB SDK REWARDED AD FOR WATERMARK REMOVAL -------------
+        const adModal = document.getElementById('simulatedAdModal');
+        adModal.style.display = 'block';
+        
+        let time = 3;
+        document.getElementById('adTimer').innerText = time;
+        const interval = setInterval(() => {
+            time--;
+            document.getElementById('adTimer').innerText = time;
+            if (time <= 0) {
+                clearInterval(interval);
+                adModal.style.display = 'none';
+                executeExport(false); // false = No Watermark
+            }
+        }, 1000);
+    });
+
+    async function executeExport(withWatermark) {
+        showCustomAlert("Generating Image... 📸");
+        const container = document.getElementById('exportCanvasContainer');
+        
+        let watermarkHtml = withWatermark ? `<div class="watermark-overlay">PROMPT HUB</div>` : '';
+
+        container.innerHTML = `
+            <div id="posterTarget" class="export-poster">
+                ${watermarkHtml}
+                <div class="export-brand">Prompt Hub 🚀</div>
+                <div class="export-title">${currentGeneratedOutputTitle}</div>
+                <div class="export-text">${currentGeneratedOutputHtml}</div>
+                <div class="export-footer">Generated via raashanmart.in/prompthub</div>
+            </div>
+        `;
+        
+        try {
+            // Need a slight delay for DOM to render the new HTML properly before canvas paints
+            setTimeout(async () => {
+                const canvas = await html2canvas(document.getElementById('posterTarget'), {scale: 2, backgroundColor: '#0f172a'});
+                const imgData = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = `Output_${currentGeneratedOutputTitle.replace(/\s+/g, '_')}.png`;
+                link.href = imgData;
+                link.click();
+                container.innerHTML = ''; 
+            }, 500);
+        } catch(e) { showCustomAlert("Error generating image."); }
+    }
 
     fetchOfficialPrompts();
 });
