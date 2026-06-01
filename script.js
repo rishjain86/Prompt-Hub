@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // DOM ELEMENTS
     const authBtn = document.getElementById('authBtn');
     const authModal = document.getElementById('authModal');
-    const closeModal = document.getElementById('closeModal');
     const emailInput = document.getElementById('emailInput');
     const passwordInput = document.getElementById('passwordInput');
     const submitAuthBtn = document.getElementById('submitAuthBtn');
@@ -30,15 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleAuthMode = document.getElementById('toggleAuthMode');
     const modalTitle = document.getElementById('modalTitle');
     
-    const welcomeModal = document.getElementById('welcomeModal');
-    const welcomeTitle = document.getElementById('welcomeTitle');
-    const welcomeMessage = document.getElementById('welcomeMessage');
-    const welcomeOkBtn = document.getElementById('welcomeOkBtn');
-
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const sideMenu = document.getElementById('sideMenu');
     const sideMenuOverlay = document.getElementById('sideMenuOverlay');
-    const closeMenuBtn = document.getElementById('closeMenuBtn');
     const menuCategories = document.querySelectorAll('#menuCategories li');
 
     const tabOfficial = document.getElementById('tabOfficial');
@@ -51,19 +44,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const openAddPromptBtn = document.getElementById('openAddPromptBtn');
     const addPromptModal = document.getElementById('addPromptModal');
-    const closeAddModal = document.getElementById('closeAddModal');
     const submitPromptBtn = document.getElementById('submitPromptBtn');
     const addModalTitle = document.getElementById('addModalTitle');
 
     const viewPromptModal = document.getElementById('viewPromptModal');
-    const closeViewModal = document.getElementById('closeViewModal');
     const viewModalTitle = document.getElementById('viewModalTitle');
     const viewModalText = document.getElementById('viewModalText');
-    const copyFromViewBtn = document.getElementById('copyFromViewBtn');
 
     // AI MODAL ELEMENTS
     const aiRunModal = document.getElementById('aiRunModal');
-    const closeAiModal = document.getElementById('closeAiModal');
     const aiPromptTitle = document.getElementById('aiPromptTitle');
     const dynamicInputsContainer = document.getElementById('dynamicInputsContainer');
     const generateAiBtn = document.getElementById('generateAiBtn');
@@ -72,12 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyAiOutputBtn = document.getElementById('copyAiOutputBtn');
 
     const historyModal = document.getElementById('historyModal');
-    const closeHistoryModal = document.getElementById('closeHistoryModal');
     const historyContent = document.getElementById('historyContent');
-
     const themeAlertModal = document.getElementById('themeAlertModal');
     const themeAlertText = document.getElementById('themeAlertText');
-    const themeAlertOkBtn = document.getElementById('themeAlertOkBtn');
 
     // GLOBALS
     let isLoginMode = true;
@@ -91,27 +77,23 @@ document.addEventListener('DOMContentLoaded', () => {
     let textToCopy = '';
     let editingPromptId = null;
     let editingPromptData = null;
-    let currentAiPromptText = ''; // Stores base prompt for AI generation
+    let currentAiPromptText = ''; 
 
     // UTILS
-    function showCustomAlert(message) {
+    window.showCustomAlert = function(message) {
         themeAlertText.innerHTML = message;
         themeAlertModal.style.display = 'block';
     }
     
+    // Close Modals when clicking outside
     window.onclick = function(event) {
-        const modals = [authModal, welcomeModal, addPromptModal, viewPromptModal, historyModal, themeAlertModal, aiRunModal];
+        const modals = [authModal, document.getElementById('welcomeModal'), addPromptModal, viewPromptModal, historyModal, themeAlertModal, aiRunModal];
         modals.forEach(modal => {
             if (event.target === modal) {
                 modal.style.display = 'none';
             }
         });
     }
-
-    themeAlertOkBtn.addEventListener('click', () => themeAlertModal.style.display = 'none');
-    welcomeOkBtn.addEventListener('click', () => welcomeModal.style.display = 'none');
-    closeHistoryModal.addEventListener('click', () => historyModal.style.display = 'none');
-    closeAiModal.addEventListener('click', () => aiRunModal.style.display = 'none');
 
     // HAMBURGER MENU
     function toggleMenu(show) {
@@ -124,7 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     hamburgerBtn.addEventListener('click', () => toggleMenu(true));
-    closeMenuBtn.addEventListener('click', () => toggleMenu(false));
     sideMenuOverlay.addEventListener('click', () => toggleMenu(false));
 
     menuCategories.forEach(li => {
@@ -153,15 +134,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const userName = user.displayName || user.email.split('@')[0];
 
             if (!lastLogin) {
-                welcomeTitle.textContent = "Welcome Aboard! 🚀";
-                welcomeMessage.textContent = `Hi ${userName}, thanks for joining Prompt Hub. Explore the best AI prompts instantly.`;
-                welcomeModal.style.display = 'block';
+                document.getElementById('welcomeTitle').textContent = "Welcome Aboard! 🚀";
+                document.getElementById('welcomeMessage').textContent = `Hi ${userName}, thanks for joining Prompt Hub. Explore the best AI prompts instantly.`;
+                document.getElementById('welcomeModal').style.display = 'block';
             } else {
                 const diffHours = (now - parseInt(lastLogin)) / (1000 * 60 * 60);
                 if (diffHours >= 48) {
-                    welcomeTitle.textContent = "Welcome Back! ✨";
-                    welcomeMessage.textContent = `Great to see you again, ${userName}. Check out what's trending today!`;
-                    welcomeModal.style.display = 'block';
+                    document.getElementById('welcomeTitle').textContent = "Welcome Back! ✨";
+                    document.getElementById('welcomeMessage').textContent = `Great to see you again, ${userName}. Check out what's trending today!`;
+                    document.getElementById('welcomeModal').style.display = 'block';
                 }
             }
             localStorage.setItem(`lastLogin_${uid}`, now);
@@ -176,11 +157,18 @@ document.addEventListener('DOMContentLoaded', () => {
         filterAndRender();
     });
 
-    authBtn.addEventListener('click', () => {
-        if (currentUser) auth.signOut();
-        else authModal.style.display = 'block';
+    authBtn.addEventListener('click', async () => {
+        if (currentUser) {
+            try {
+                await auth.signOut();
+                showCustomAlert("Logged out successfully! 👋");
+            } catch(e) {
+                showCustomAlert("Error logging out.");
+            }
+        } else {
+            authModal.style.display = 'block';
+        }
     });
-    closeModal.addEventListener('click', () => authModal.style.display = 'none');
 
     toggleAuthMode.addEventListener('click', () => {
         isLoginMode = !isLoginMode;
@@ -233,7 +221,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchCommunityPrompts() {
-        if(allCommunityPrompts.length > 0) return; // Prevent over-fetching
         try {
             const snapshot = await db.collection('community_prompts').orderBy('timestamp', 'desc').get();
             allCommunityPrompts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -241,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) { console.error(e); }
     }
 
-    // BOOKMARKS LOGIC (Local Storage tied to User/Device)
+    // BOOKMARKS LOGIC
     function getBookmarksKey() {
         return currentUser ? `bookmarks_${currentUser.uid}` : `bookmarks_guest`;
     }
@@ -275,7 +262,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return false;
             });
         } else if (currentTab === 'saved') {
-            // Merge both and filter by saved IDs
             const bookmarks = getBookmarks();
             const merged = [...allOfficialPrompts, ...allCommunityPrompts];
             dataset = merged.filter(p => bookmarks.includes(p.id));
@@ -345,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         tabSaved.classList.add('active');
         updateTabsUI();
-        if(allCommunityPrompts.length === 0) fetchCommunityPrompts(); // ensure we have community data for saved checking
+        if(allCommunityPrompts.length === 0) fetchCommunityPrompts(); 
         else filterAndRender();
     });
 
@@ -407,7 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="action-row">
                     <button class="action-btn run-ai-btn" onclick="openAiModal('${encTitle}', '${encText}')">✨ Run</button>
                     <button class="action-btn copy-card-btn" onclick="copyPrompt('${encText}')">📋 Copy</button>
-                    <button class="action-btn share-btn" onclick="shareToWhatsApp('${encTitle}', '${encText}')">📲 Share</button>
+                    <button class="action-btn share-btn" onclick="sharePrompt('${encTitle}', '${encText}')">📲 Share</button>
                     ${authorControls}
                     ${adminControls}
                 </div>
@@ -434,13 +420,33 @@ document.addEventListener('DOMContentLoaded', () => {
         navigator.clipboard.writeText(decodeURIComponent(encText)).then(() => showCustomAlert("Prompt Copied to Clipboard! 🚀"));
     }
     
-    // SHARE FEATURE
-    window.shareToWhatsApp = function(encTitle, encText) {
+    // Copy from View Modal
+    window.copyFromView = function() {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            showCustomAlert("Prompt Copied to Clipboard! 🚀");
+            viewPromptModal.style.display = 'none';
+        });
+    }
+
+    // SHARE NATIVE API
+    window.sharePrompt = function(encTitle, encText) {
         const title = decodeURIComponent(encTitle);
         const text = decodeURIComponent(encText);
-        const url = "https://raashanmart.in/prompt-hub"; // Replace with actual live URL later
-        const message = `Check out this amazing AI prompt on *Prompt Hub*:\n\n*${title}*\n"${text}"\n\nTry it here: ${url}`;
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
+        const url = window.location.href.split('?')[0]; 
+        const shareData = {
+            title: 'Prompt Hub: ' + title,
+            text: `Check out this amazing AI prompt on *Prompt Hub*:\n\n*${title}*\n"${text}"\n\n`,
+            url: url
+        };
+
+        if (navigator.share) {
+            navigator.share(shareData).catch(err => {
+                console.log("Share cancelled", err);
+            });
+        } else {
+            const waMessage = `${shareData.text}Try it here: ${url}`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(waMessage)}`, '_blank');
+        }
     }
 
     // AI INTEGRATION LOGIC
@@ -453,9 +459,8 @@ document.addEventListener('DOMContentLoaded', () => {
         aiOutputContainer.style.display = 'none';
         aiOutputText.innerHTML = '';
         
-        // Find all variables inside brackets like [topic], [insert], etc.
         const matches = [...currentAiPromptText.matchAll(/\[(.*?)\]/g)];
-        const uniqueVars = [...new Set(matches.map(m => m[1]))]; // Get unique variable names
+        const uniqueVars = [...new Set(matches.map(m => m[1]))]; 
         
         if (uniqueVars.length === 0) {
             dynamicInputsContainer.innerHTML = '<p style="color:var(--accent-green); margin-bottom:15px;">No variables detected. You can run this prompt directly!</p>';
@@ -480,19 +485,18 @@ document.addEventListener('DOMContentLoaded', () => {
         
         inputs.forEach(input => {
             const varName = input.getAttribute('data-var');
-            const val = input.value.trim() || `[${varName}]`; // If empty, leave as placeholder
-            // Replace globally using regex
+            const val = input.value.trim() || `[${varName}]`; 
             const regex = new RegExp(`\\[${varName}\\]`, 'g');
             finalPrompt = finalPrompt.replace(regex, val);
         });
 
-        // UI State loading
         generateAiBtn.innerHTML = "✨ Generating... Please wait";
         generateAiBtn.disabled = true;
         aiOutputContainer.style.display = 'none';
 
         try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+            // Using stable model version gemini-1.5-flash
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
             const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -506,10 +510,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const markdownText = data.candidates[0].content.parts[0].text;
             
-            // Render markdown output nicely
-            aiOutputText.innerHTML = marked.parse(markdownText);
+            // Check if marked.js loaded properly
+            if (typeof marked !== 'undefined') {
+                aiOutputText.innerHTML = marked.parse(markdownText);
+            } else {
+                aiOutputText.innerText = markdownText;
+            }
             
-            // Setup copy button for raw text
             copyAiOutputBtn.onclick = function() {
                 navigator.clipboard.writeText(markdownText).then(() => {
                     showCustomAlert("AI Output Copied! 🚀");
@@ -519,10 +526,11 @@ document.addEventListener('DOMContentLoaded', () => {
             aiOutputContainer.style.display = 'block';
         } catch (err) {
             showCustomAlert("AI Generation Error: " + err.message);
+        } finally {
+            // Guarantee that button resets even if it fails
+            generateAiBtn.innerHTML = "Generate Output";
+            generateAiBtn.disabled = false;
         }
-        
-        generateAiBtn.innerHTML = "Generate Output";
-        generateAiBtn.disabled = false;
     });
 
 
@@ -564,8 +572,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('promptText').value = prompt.prompt_text || '';
         addPromptModal.style.display = 'block';
     }
-
-    closeAddModal.addEventListener('click', () => addPromptModal.style.display = 'none');
 
     submitPromptBtn.addEventListener('click', async () => {
         const title = document.getElementById('promptTitle').value.trim();
