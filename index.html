@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Prompt Hub | Professional AI Suite</title>
-    <link rel="stylesheet" href="style.css?v=13">
+    <link rel="stylesheet" href="style.css?v=12">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -20,7 +20,8 @@
     </header>
 
     <div class="promo-banner-container">
-        <div id="promoSlider" class="promo-slider"></div>
+        <div id="promoSlider" class="promo-slider">
+            </div>
     </div>
 
     <div id="sideMenuOverlay" class="menu-overlay"></div>
@@ -50,12 +51,6 @@
             <li data-category="Podcasting & Audio">Podcasting & Audio</li>
             <li data-category="Event Planning">Event Planning</li>
             <li data-category="Gaming & World Building">Gaming & World Building</li>
-        </ul>
-        <hr class="menu-divider">
-        <ul class="menu-list footer-links">
-            <li onclick="showCustomAlert('Terms and Conditions coming soon!')">Terms and Conditions</li>
-            <li onclick="showCustomAlert('Privacy Policy coming soon!')">Privacy Policy</li>
-            <li onclick="showCustomAlert('Contact Us: support@prompthub.com')">Contact Us</li>
         </ul>
     </nav>
 
@@ -96,22 +91,12 @@
             <h2 style="color:var(--accent-blue);">Unlock AI Power ⚡</h2>
             <p style="color: var(--text-muted); margin: 15px 0;">To use the Gemini AI generator for this prompt, please watch a short video ad to support us!</p>
             <button id="watchAdBtn" class="primary-btn" style="background-color: #f59e0b;">🎬 Watch Ad to Unlock</button>
-            <button class="maybe-later-btn" onclick="document.getElementById('adPromptModal').style.display='none'">Maybe Later</button>
-        </div>
-    </div>
-
-    <div id="watermarkModal" class="modal">
-        <div class="modal-content" style="text-align: center;">
-            <span class="close-modal" onclick="document.getElementById('watermarkModal').style.display='none'">&times;</span>
-            <h2 style="color:var(--accent-blue);">Export Result 📸</h2>
-            <p style="color: var(--text-muted); margin: 15px 0;">Download your AI generated output to share with others.</p>
-            <button id="downloadFreeBtn" class="secondary-action-btn">⬇️ Download Free (With Watermark)</button>
-            <button id="downloadAdBtn" class="primary-btn" style="background-color: #f59e0b; margin-top: 10px;">🎬 Watch Ad (No Watermark)</button>
+            <button class="btn-icon" style="margin-top:10px; border:none; width:100%;" onclick="document.getElementById('adPromptModal').style.display='none'">Maybe Later</button>
         </div>
     </div>
 
     <div id="simulatedAdModal" class="modal" style="background: black;">
-        <div class="modal-content" style="text-align: center; background: #000; margin-top: 50%; border:none;">
+        <div class="modal-content" style="text-align: center; background: #000; margin-top: 50%;">
             <h2 style="color: #fff;">Test Video Ad Playing...</h2>
             <p id="adTimer" style="color: #f59e0b; font-size: 24px; font-weight: bold; margin: 20px 0;">3</p>
             <p style="color: #666; font-size: 12px;">(In production, real Rewarded Video will play here)</p>
@@ -159,19 +144,12 @@
             <h3>✨ Run with AI</h3>
             <p id="aiPromptTitle" style="color: var(--accent-blue); margin-bottom: 15px; font-weight: bold;"></p>
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Fill in the variables below to customize the prompt before generating.</p>
-            
             <div id="dynamicInputsContainer"></div>
-            
             <button id="generateAiBtn" class="primary-btn" style="background: linear-gradient(to right, #38bdf8, #8b5cf6);">Generate Output</button>
-            
             <div id="aiOutputContainer" style="display:none; margin-top: 20px;">
                 <h4 style="margin-bottom: 10px;">AI Result:</h4>
                 <div id="aiOutputText" class="ai-output-box"></div>
-                
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button id="copyAiOutputBtn" class="primary-btn" style="flex: 1; font-size: 14px;">📋 Copy</button>
-                    <button id="exportAiOutputBtn" class="primary-btn" style="flex: 1; background-color: #f59e0b; font-size: 14px;">🖼️ Export</button>
-                </div>
+                <button id="copyAiOutputBtn" class="primary-btn" style="margin-top:10px;">Copy Output</button>
             </div>
         </div>
     </div>
@@ -185,14 +163,6 @@
         </div>
     </div>
 
-    <div id="historyModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="document.getElementById('historyModal').style.display='none'">&times;</span>
-            <h3>Edit History</h3>
-            <div id="historyContent" class="history-container"></div>
-        </div>
-    </div>
-
     <div id="themeAlertModal" class="modal">
         <div class="modal-content">
             <p id="themeAlertText"></p>
@@ -200,6 +170,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=13"></script>
+    <script src="script.js?v=12"></script>
 </body>
 </html>
