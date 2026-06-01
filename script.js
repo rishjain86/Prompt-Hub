@@ -15,8 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const googleProvider = new firebase.auth.GoogleAuthProvider();
 
     // ADMINS & API KEYS
-    const ADMIN_EMAILS = ['lootocashnow@gmail.com', 'shjain86@gmail.com']; 
-    const GEMINI_API_KEY = "AIzaSyByhMFZKZQVrmcMrfwarRkaALJJ-GzZLGQ";
+    const ADMIN_EMAILS = ['maincryotowala@gmail.com']; 
+    const GEMINI_API_KEY = "AQ.Ab8RN6KnaCRCPJxhRxyL12indZ3xZMP2_rEj1YKJhzjuF-tWOw";
 
     // DOM ELEMENTS
     const authBtn = document.getElementById('authBtn');
