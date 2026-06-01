@@ -154,7 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             localStorage.setItem(`lastLogin_${uid}`, now);
             
-            // Refresh feed if logged in to show proper buttons
             if(currentTab === 'community') filterAndRender();
         } else {
             currentUser = null;
@@ -232,9 +231,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) { promptContainer.innerHTML = '<p style="text-align:center; color:#ef4444;">Error loading database.</p>'; }
     }
 
-    // FILTER & SEARCH
+    // FILTER & SEARCH WITH REAL-TIME LOCAL TRENDING VISUALS
     function filterAndRender() {
-        let dataset = currentTab === 'official' ? allOfficialPrompts : allCommunityPrompts;
+        let dataset = currentTab === 'official' ? [...allOfficialPrompts] : [...allCommunityPrompts];
         
         if (currentTab === 'community') {
             dataset = dataset.filter(p => {
@@ -246,6 +245,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (currentCategory === 'Trending') {
+            // Sort database array dynamically by local tracking clicks
+            dataset.sort((a, b) => {
+                const viewsA = parseInt(localStorage.getItem(`views_${a.id}`)) || 0;
+                const viewsB = parseInt(localStorage.getItem(`views_${b.id}`)) || 0;
+                return viewsB - viewsA;
+            });
             dataset = dataset.slice(0, 5); 
         } else if (currentCategory !== 'All') {
             dataset = dataset.filter(p => p.category === currentCategory);
@@ -309,6 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const preview = fullText.length > 75 ? fullText.substring(0, 75) + '...' : fullText;
             const encTitle = encodeURIComponent(prompt.title || 'Untitled');
             const encText = encodeURIComponent(fullText);
+            const pId = prompt.id || 'custom_' + Math.random().toString(36).substr(2, 9);
 
             let badgesHtml = `<span class="category-badge">${prompt.category || 'General'}</span>`;
             if (isCommunity && prompt.status === 'pending') {
@@ -345,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h3>${prompt.title || 'Untitled'}</h3>
                 <p class="preview-text">"${preview}"</p>
                 <div class="action-row">
-                    <button class="view-btn" onclick="openViewModal('${encTitle}', '${encText}')">View</button>
+                    <button class="view-btn" onclick="trackAndView('${pId}', '${encTitle}', '${encText}')">View</button>
                     <button class="copy-card-btn" onclick="copyPrompt('${encText}')">Copy</button>
                     ${isCommunity ? `<button class="upvote-btn" onclick="upvotePrompt('${prompt.id}')">❤️ ${prompt.upvotes || 0}</button>` : ''}
                     ${authorControls}
@@ -354,6 +360,13 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             promptContainer.appendChild(card);
         });
+    }
+
+    // TRACK VIEWS DYNAMICALLY ON CLICK FOR TRENDING ALGORITHM
+    window.trackAndView = function(pId, encTitle, encText) {
+        let currentViews = parseInt(localStorage.getItem(`views_${pId}`)) || 0;
+        localStorage.setItem(`views_${pId}`, currentViews + 1);
+        openViewModal(encTitle, encText);
     }
 
     // ACTIONS
@@ -426,7 +439,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             if (editingPromptId && editingPromptData) {
-                // UPDATE LOGIC
                 let historyArr = Array.isArray(editingPromptData.editHistory) ? [...editingPromptData.editHistory] : [];
                 historyArr.push({
                     title: editingPromptData.title || 'Untitled',
@@ -437,17 +449,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 await db.collection('community_prompts').doc(editingPromptId).update({
                     title, category, description: desc, prompt_text: text,
-                    status: 'pending', // Requires re-approval
+                    status: 'pending', 
                     isEdited: true,
                     editHistory: historyArr
                 });
                 showCustomAlert('Edit submitted for admin approval! 🚀');
             } else {
-                // ADD NEW LOGIC
                 await db.collection('community_prompts').add({
                     title, category, description: desc, prompt_text: text,
                     authorEmail: currentUser.email, upvotes: 0,
-                    status: 'pending', // Auto-pending for new ones
+                    status: 'pending', 
                     isEdited: false,
                     editHistory: [],
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -467,7 +478,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (historyArr.length === 0) {
             historyContent.innerHTML = '<p style="color:var(--text-muted)">No history available.</p>';
         } else {
-            // Sort to show newest edit at the top
             const sortedHistory = historyArr.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
             sortedHistory.forEach(item => {
                 const dateStr = new Date(item.timestamp).toLocaleString();
