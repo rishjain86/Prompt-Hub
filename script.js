@@ -78,6 +78,72 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ----------------------------------------------------
+    // AUTH MODAL BUTTONS LOGIC (ADDED HERE)
+    // ----------------------------------------------------
+    let isLoginMode = true;
+    const modalTitle = document.getElementById('modalTitle');
+    const submitAuthBtn = document.getElementById('submitAuthBtn');
+    const toggleAuthModeBtn = document.getElementById('toggleAuthMode');
+    const emailInput = document.getElementById('emailInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const googleAuthBtn = document.getElementById('googleAuthBtn');
+
+    // Toggle between Login and Sign Up
+    toggleAuthModeBtn.addEventListener('click', () => {
+        isLoginMode = !isLoginMode;
+        if (isLoginMode) {
+            modalTitle.textContent = "Login";
+            submitAuthBtn.textContent = "Login";
+            toggleAuthModeBtn.innerHTML = `Don't have an account? <span>Sign Up</span>`;
+        } else {
+            modalTitle.textContent = "Sign Up";
+            submitAuthBtn.textContent = "Sign Up";
+            toggleAuthModeBtn.innerHTML = `Already have an account? <span>Login</span>`;
+        }
+    });
+
+    // Handle Email/Password Login & Sign Up
+    submitAuthBtn.addEventListener('click', async () => {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+        
+        if (!email || !password) {
+            showCustomAlert("Please enter both email and password.");
+            return;
+        }
+
+        try {
+            submitAuthBtn.textContent = "Please wait...";
+            if (isLoginMode) {
+                await auth.signInWithEmailAndPassword(email, password);
+                showCustomAlert("Logged in successfully! 🎉");
+            } else {
+                await auth.createUserWithEmailAndPassword(email, password);
+                showCustomAlert("Account created successfully! 🎉");
+            }
+            document.getElementById('authModal').style.display = 'none';
+            emailInput.value = ''; // clear inputs
+            passwordInput.value = '';
+        } catch (error) {
+            showCustomAlert("Error: " + error.message);
+        } finally {
+            submitAuthBtn.textContent = isLoginMode ? "Login" : "Sign Up";
+        }
+    });
+
+    // Handle Google Sign-In
+    googleAuthBtn.addEventListener('click', async () => {
+        try {
+            await auth.signInWithPopup(googleProvider);
+            showCustomAlert("Logged in with Google! 🎉");
+            document.getElementById('authModal').style.display = 'none';
+        } catch (error) {
+            showCustomAlert("Google Sign-In Error: " + error.message);
+        }
+    });
+    // ----------------------------------------------------
+
     // DATA FETCHING
     async function fetchOfficialPrompts() {
         try {
