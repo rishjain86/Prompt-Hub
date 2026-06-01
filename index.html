@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Prompt Hub | Professional AI Suite</title>
-    <link rel="stylesheet" href="style.css?v=4">
+    <link rel="stylesheet" href="style.css?v=5">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
 
@@ -62,6 +63,7 @@
     <div class="app-tabs">
         <button id="tabOfficial" class="tab-btn active">Official</button>
         <button id="tabCommunity" class="tab-btn">Community</button>
+        <button id="tabSaved" class="tab-btn">Saved</button>
     </div>
 
     <button id="openAddPromptBtn" class="add-prompt-btn" style="display:none;">+ Add Expert Prompt</button>
@@ -119,6 +121,25 @@
         </div>
     </div>
 
+    <div id="aiRunModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeAiModal">&times;</span>
+            <h3>✨ Run with AI</h3>
+            <p id="aiPromptTitle" style="color: var(--accent-blue); margin-bottom: 15px; font-weight: bold;"></p>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Fill in the variables below to customize the prompt before generating.</p>
+            
+            <div id="dynamicInputsContainer"></div>
+            
+            <button id="generateAiBtn" class="primary-btn" style="background: linear-gradient(to right, #38bdf8, #8b5cf6);">Generate Output</button>
+            
+            <div id="aiOutputContainer" style="display:none; margin-top: 20px;">
+                <h4 style="margin-bottom: 10px;">AI Result:</h4>
+                <div id="aiOutputText" class="ai-output-box"></div>
+                <button id="copyAiOutputBtn" class="primary-btn" style="margin-top:10px;">Copy Output</button>
+            </div>
+        </div>
+    </div>
+
     <div id="viewPromptModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" id="closeViewModal">&times;</span>
@@ -143,6 +164,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=4"></script>
+    <script src="script.js?v=5"></script>
 </body>
 </html>
