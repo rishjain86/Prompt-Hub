@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. FIREBASE CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyDiZ_S-OPWyUaBdcYxCJLTIrROn16C_U2E",
         authDomain: "prompt-hub-app-2fe0f.firebaseapp.com",
@@ -8,14 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
         appId: "1:242493810474:web:d51af341a15f37897b2053"
     };
 
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     
     const auth = firebase.auth();
     const db = firebase.firestore();
     const googleProvider = new firebase.auth.GoogleAuthProvider();
 
+    // DOM ELEMENTS
     const authBtn = document.getElementById('authBtn');
     const authModal = document.getElementById('authModal');
     const closeModal = document.getElementById('closeModal');
@@ -23,8 +23,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordInput = document.getElementById('passwordInput');
     const submitAuthBtn = document.getElementById('submitAuthBtn');
     const googleAuthBtn = document.getElementById('googleAuthBtn');
+    const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
     const toggleAuthMode = document.getElementById('toggleAuthMode');
     const modalTitle = document.getElementById('modalTitle');
+    
+    const welcomeModal = document.getElementById('welcomeModal');
+    const welcomeTitle = document.getElementById('welcomeTitle');
+    const welcomeMessage = document.getElementById('welcomeMessage');
+    const welcomeOkBtn = document.getElementById('welcomeOkBtn');
+
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const sideMenu = document.getElementById('sideMenu');
+    const sideMenuOverlay = document.getElementById('sideMenuOverlay');
+    const closeMenuBtn = document.getElementById('closeMenuBtn');
+    const menuCategories = document.querySelectorAll('#menuCategories li');
 
     const tabOfficial = document.getElementById('tabOfficial');
     const tabCommunity = document.getElementById('tabCommunity');
@@ -48,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewModalText = document.getElementById('viewModalText');
     const copyFromViewBtn = document.getElementById('copyFromViewBtn');
 
+    // GLOBALS
     let isLoginMode = true;
     let currentUser = null;
     let allOfficialPrompts = [];
@@ -57,12 +70,43 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSearch = '';
     let textToCopy = '';
 
+    // UTILS
     function showCustomAlert(message) {
         themeAlertText.innerHTML = message;
         themeAlertModal.style.display = 'block';
     }
     themeAlertOkBtn.addEventListener('click', () => themeAlertModal.style.display = 'none');
+    welcomeOkBtn.addEventListener('click', () => welcomeModal.style.display = 'none');
 
+    // HAMBURGER MENU
+    function toggleMenu(show) {
+        if(show) {
+            sideMenu.classList.add('open');
+            sideMenuOverlay.style.display = 'block';
+        } else {
+            sideMenu.classList.remove('open');
+            sideMenuOverlay.style.display = 'none';
+        }
+    }
+    hamburgerBtn.addEventListener('click', () => toggleMenu(true));
+    closeMenuBtn.addEventListener('click', () => toggleMenu(false));
+    sideMenuOverlay.addEventListener('click', () => toggleMenu(false));
+
+    menuCategories.forEach(li => {
+        li.addEventListener('click', (e) => {
+            currentCategory = e.target.getAttribute('data-category');
+            
+            // Remove active from quick filters, and set 'All' as visual default if not present
+            filterBtns.forEach(b => b.classList.remove('active'));
+            const matchingBtn = document.querySelector(`.filter-btn[data-category="${currentCategory}"]`);
+            if(matchingBtn) matchingBtn.classList.add('active');
+            
+            toggleMenu(false);
+            filterAndRender();
+        });
+    });
+
+    // AUTH & WELCOME LOGIC
     auth.onAuthStateChanged(user => {
         if (user) {
             currentUser = user;
@@ -70,6 +114,27 @@ document.addEventListener('DOMContentLoaded', () => {
             authBtn.style.color = "#ef4444";
             authBtn.style.borderColor = "#ef4444";
             if (currentTab === 'community') openAddPromptBtn.style.display = 'block';
+
+            // Welcome Logic
+            const uid = user.uid;
+            const now = Date.now();
+            const lastLogin = localStorage.getItem(`lastLogin_${uid}`);
+            const userName = user.displayName || user.email.split('@')[0];
+
+            if (!lastLogin) {
+                welcomeTitle.textContent = "Welcome Aboard! 🚀";
+                welcomeMessage.textContent = `Hi ${userName}, thanks for joining Prompt Hub. Explore the best AI prompts instantly.`;
+                welcomeModal.style.display = 'block';
+            } else {
+                const diffHours = (now - parseInt(lastLogin)) / (1000 * 60 * 60);
+                if (diffHours >= 48) { // > 2 days
+                    welcomeTitle.textContent = "Welcome Back! ✨";
+                    welcomeMessage.textContent = `Great to see you again, ${userName}. Check out what's trending today!`;
+                    welcomeModal.style.display = 'block';
+                }
+            }
+            localStorage.setItem(`lastLogin_${uid}`, now);
+
         } else {
             currentUser = null;
             authBtn.textContent = "Login";
@@ -83,7 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentUser) auth.signOut();
         else authModal.style.display = 'block';
     });
-    
     closeModal.addEventListener('click', () => authModal.style.display = 'none');
 
     toggleAuthMode.addEventListener('click', () => {
@@ -102,9 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isLoginMode) await auth.signInWithEmailAndPassword(email, password);
             else await auth.createUserWithEmailAndPassword(email, password);
             authModal.style.display = 'none';
-        } catch (error) { 
-            showCustomAlert(error.message); 
-        }
+        } catch (error) { showCustomAlert(error.message); }
         submitAuthBtn.disabled = false;
     });
 
@@ -115,6 +177,21 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) { showCustomAlert(error.message); }
     });
 
+    forgotPasswordBtn.addEventListener('click', async () => {
+        const email = emailInput.value.trim();
+        if (!email) {
+            return showCustomAlert("Please enter your email address in the input field above first.");
+        }
+        try {
+            await auth.sendPasswordResetEmail(email);
+            showCustomAlert("Password reset link has been sent to your email!");
+            authModal.style.display = 'none';
+        } catch (error) {
+            showCustomAlert(error.message);
+        }
+    });
+
+    // DATA FETCHING
     async function fetchOfficialPrompts() {
         promptContainer.innerHTML = '<p style="text-align:center;">Loading Expert Prompts...</p>';
         try {
@@ -133,16 +210,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const snapshot = await db.collection('community_prompts').orderBy('timestamp', 'desc').get();
             allCommunityPrompts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             filterAndRender();
-        } catch(e) { 
-            promptContainer.innerHTML = '<p style="text-align:center; color:#ef4444;">Error loading database.</p>'; 
-        }
+        } catch(e) { promptContainer.innerHTML = '<p style="text-align:center; color:#ef4444;">Error loading database.</p>'; }
     }
 
+    // FILTER & SEARCH
     function filterAndRender() {
         let dataset = currentTab === 'official' ? allOfficialPrompts : allCommunityPrompts;
-        if (currentCategory !== 'All') {
+        
+        if (currentCategory === 'Trending') {
+            // Pick exactly 5 prompts for trending
+            dataset = dataset.slice(0, 5); 
+        } else if (currentCategory !== 'All') {
             dataset = dataset.filter(p => p.category === currentCategory);
         }
+        
         if (currentSearch) {
             const query = currentSearch.toLowerCase();
             dataset = dataset.filter(p => 
@@ -190,6 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchCommunityPrompts();
     });
 
+    // RENDER CARDS
     function renderPrompts(promptsToRender, isCommunity) {
         promptContainer.innerHTML = '';
         if(promptsToRender.length === 0){
@@ -218,19 +300,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ACTIONS
     window.openViewModal = function(encTitle, encText) {
         viewModalTitle.textContent = decodeURIComponent(encTitle);
         textToCopy = decodeURIComponent(encText);
         viewModalText.textContent = textToCopy;
         viewPromptModal.style.display = 'block';
     }
-
     closeViewModal.addEventListener('click', () => viewPromptModal.style.display = 'none');
-
     window.copyPrompt = function(encText) {
         navigator.clipboard.writeText(decodeURIComponent(encText)).then(() => showCustomAlert("Prompt Copied to Clipboard! 🚀"));
     }
-
     copyFromViewBtn.addEventListener('click', () => {
         navigator.clipboard.writeText(textToCopy).then(() => {
             showCustomAlert("Prompt Copied to Clipboard! 🚀");
@@ -272,5 +352,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { showCustomAlert(e.message); }
     }
 
+    // INIT
     fetchOfficialPrompts();
 });
