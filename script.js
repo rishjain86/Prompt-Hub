@@ -10,10 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    
     const auth = firebase.auth();
     const db = firebase.firestore();
     const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+    // ADMINS EMAILS
+    const ADMIN_EMAILS = ['lootocashnow@gmail.com', 'shjain86@gmail.com']; 
 
     // DOM ELEMENTS
     const authBtn = document.getElementById('authBtn');
@@ -49,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addPromptModal = document.getElementById('addPromptModal');
     const closeAddModal = document.getElementById('closeAddModal');
     const submitPromptBtn = document.getElementById('submitPromptBtn');
+    const addModalTitle = document.getElementById('addModalTitle');
 
     const themeAlertModal = document.getElementById('themeAlertModal');
     const themeAlertText = document.getElementById('themeAlertText');
@@ -60,15 +63,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewModalText = document.getElementById('viewModalText');
     const copyFromViewBtn = document.getElementById('copyFromViewBtn');
 
+    const historyModal = document.getElementById('historyModal');
+    const closeHistoryModal = document.getElementById('closeHistoryModal');
+    const historyContent = document.getElementById('historyContent');
+
     // GLOBALS
     let isLoginMode = true;
     let currentUser = null;
+    let isAdmin = false;
     let allOfficialPrompts = [];
     let allCommunityPrompts = [];
     let currentTab = 'official'; 
     let currentCategory = 'All';
     let currentSearch = '';
     let textToCopy = '';
+    let editingPromptId = null;
+    let editingPromptData = null;
 
     // UTILS
     function showCustomAlert(message) {
@@ -77,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     themeAlertOkBtn.addEventListener('click', () => themeAlertModal.style.display = 'none');
     welcomeOkBtn.addEventListener('click', () => welcomeModal.style.display = 'none');
+    closeHistoryModal.addEventListener('click', () => historyModal.style.display = 'none');
 
     // HAMBURGER MENU
     function toggleMenu(show) {
@@ -95,12 +106,9 @@ document.addEventListener('DOMContentLoaded', () => {
     menuCategories.forEach(li => {
         li.addEventListener('click', (e) => {
             currentCategory = e.target.getAttribute('data-category');
-            
-            // Remove active from quick filters, and set 'All' as visual default if not present
             filterBtns.forEach(b => b.classList.remove('active'));
             const matchingBtn = document.querySelector(`.filter-btn[data-category="${currentCategory}"]`);
             if(matchingBtn) matchingBtn.classList.add('active');
-            
             toggleMenu(false);
             filterAndRender();
         });
@@ -110,12 +118,12 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(user => {
         if (user) {
             currentUser = user;
+            isAdmin = ADMIN_EMAILS.includes(user.email);
             authBtn.textContent = "Logout";
             authBtn.style.color = "#ef4444";
             authBtn.style.borderColor = "#ef4444";
             if (currentTab === 'community') openAddPromptBtn.style.display = 'block';
 
-            // Welcome Logic
             const uid = user.uid;
             const now = Date.now();
             const lastLogin = localStorage.getItem(`lastLogin_${uid}`);
@@ -127,16 +135,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 welcomeModal.style.display = 'block';
             } else {
                 const diffHours = (now - parseInt(lastLogin)) / (1000 * 60 * 60);
-                if (diffHours >= 48) { // > 2 days
+                if (diffHours >= 48) {
                     welcomeTitle.textContent = "Welcome Back! ✨";
                     welcomeMessage.textContent = `Great to see you again, ${userName}. Check out what's trending today!`;
                     welcomeModal.style.display = 'block';
                 }
             }
             localStorage.setItem(`lastLogin_${uid}`, now);
-
         } else {
             currentUser = null;
+            isAdmin = false;
             authBtn.textContent = "Login";
             authBtn.style.color = "#38bdf8";
             authBtn.style.borderColor = "#38bdf8";
@@ -179,16 +187,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     forgotPasswordBtn.addEventListener('click', async () => {
         const email = emailInput.value.trim();
-        if (!email) {
-            return showCustomAlert("Please enter your email address in the input field above first.");
-        }
+        if (!email) return showCustomAlert("Please enter your email address in the input field above first.");
         try {
             await auth.sendPasswordResetEmail(email);
             showCustomAlert("Password reset link has been sent to your email!");
             authModal.style.display = 'none';
-        } catch (error) {
-            showCustomAlert(error.message);
-        }
+        } catch (error) { showCustomAlert(error.message); }
     });
 
     // DATA FETCHING
@@ -217,8 +221,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function filterAndRender() {
         let dataset = currentTab === 'official' ? allOfficialPrompts : allCommunityPrompts;
         
+        if (currentTab === 'community') {
+            dataset = dataset.filter(p => {
+                if (isAdmin) return true; 
+                if (p.status === 'approved') return true; 
+                if (currentUser && p.authorEmail === currentUser.email) return true; 
+                return false;
+            });
+        }
+
         if (currentCategory === 'Trending') {
-            // Pick exactly 5 prompts for trending
             dataset = dataset.slice(0, 5); 
         } else if (currentCategory !== 'All') {
             dataset = dataset.filter(p => p.category === currentCategory);
@@ -236,10 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderPrompts(dataset, currentTab === 'community');
     }
 
-    searchInput.addEventListener('input', (e) => {
-        currentSearch = e.target.value;
-        filterAndRender();
-    });
+    searchInput.addEventListener('input', (e) => { currentSearch = e.target.value; filterAndRender(); });
 
     filterBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -286,14 +295,46 @@ document.addEventListener('DOMContentLoaded', () => {
             const encTitle = encodeURIComponent(prompt.title || 'Untitled');
             const encText = encodeURIComponent(fullText);
 
+            let badgesHtml = `<span class="category-badge">${prompt.category || 'General'}</span>`;
+            if (isCommunity && prompt.status === 'pending') {
+                badgesHtml += `<span class="pending-badge">Pending Approval</span>`;
+            }
+            if (isCommunity && prompt.isEdited) {
+                badgesHtml += `<span class="edited-badge">Edited</span>`;
+            }
+
+            let historyIconHtml = '';
+            if (isCommunity && prompt.isEdited) {
+                const historyData = encodeURIComponent(JSON.stringify(prompt.editHistory || []));
+                historyIconHtml = `<button class="history-icon-btn" onclick="openHistory('${historyData}')" title="View Edit History">⏱️</button>`;
+            }
+
+            let adminControls = '';
+            if (isAdmin && prompt.status === 'pending') {
+                adminControls = `
+                    <button class="admin-btn approve" onclick="adminAction('${prompt.id}', 'approve')">Approve</button>
+                    <button class="admin-btn reject" onclick="adminAction('${prompt.id}', 'reject')">Reject</button>
+                `;
+            }
+
+            let authorControls = '';
+            if (currentUser && prompt.authorEmail === currentUser.email) {
+                authorControls = `<button class="edit-btn" onclick="openEditModal('${prompt.id}')">Edit</button>`;
+            }
+
             card.innerHTML = `
-                <span class="category-badge">${prompt.category || 'General'}</span>
+                <div class="card-header-row">
+                    <div class="badges-container">${badgesHtml}</div>
+                    ${historyIconHtml}
+                </div>
                 <h3>${prompt.title || 'Untitled'}</h3>
                 <p class="preview-text">"${preview}"</p>
                 <div class="action-row">
                     <button class="view-btn" onclick="openViewModal('${encTitle}', '${encText}')">View</button>
                     <button class="copy-card-btn" onclick="copyPrompt('${encText}')">Copy</button>
                     ${isCommunity ? `<button class="upvote-btn" onclick="upvotePrompt('${prompt.id}')">❤️ ${prompt.upvotes || 0}</button>` : ''}
+                    ${authorControls}
+                    ${adminControls}
                 </div>
             `;
             promptContainer.appendChild(card);
@@ -318,7 +359,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    openAddPromptBtn.addEventListener('click', () => addPromptModal.style.display = 'block');
+    // ADMIN ACTIONS
+    window.adminAction = async function(docId, action) {
+        if (!isAdmin) return;
+        try {
+            if (action === 'approve') {
+                await db.collection('community_prompts').doc(docId).update({ status: 'approved' });
+                showCustomAlert("Prompt Approved.");
+            } else if (action === 'reject') {
+                await db.collection('community_prompts').doc(docId).delete();
+                showCustomAlert("Prompt Rejected/Deleted.");
+            }
+            fetchCommunityPrompts();
+        } catch(e) { showCustomAlert(e.message); }
+    }
+
+    // ADD / EDIT PROMPT
+    openAddPromptBtn.addEventListener('click', () => {
+        editingPromptId = null;
+        editingPromptData = null;
+        addModalTitle.textContent = "Submit for Approval";
+        document.getElementById('promptTitle').value = '';
+        document.getElementById('promptDesc').value = '';
+        document.getElementById('promptText').value = '';
+        addPromptModal.style.display = 'block';
+    });
+
+    window.openEditModal = function(docId) {
+        const prompt = allCommunityPrompts.find(p => p.id === docId);
+        if (!prompt) return;
+        editingPromptId = docId;
+        editingPromptData = prompt;
+        addModalTitle.textContent = "Edit Prompt";
+        document.getElementById('promptTitle').value = prompt.title || '';
+        document.getElementById('promptCategory').value = prompt.category || 'Coding & Tech';
+        document.getElementById('promptDesc').value = prompt.description || '';
+        document.getElementById('promptText').value = prompt.prompt_text || '';
+        addPromptModal.style.display = 'block';
+    }
+
     closeAddModal.addEventListener('click', () => addPromptModal.style.display = 'none');
 
     submitPromptBtn.addEventListener('click', async () => {
@@ -326,23 +405,68 @@ document.addEventListener('DOMContentLoaded', () => {
         const category = document.getElementById('promptCategory').value;
         const desc = document.getElementById('promptDesc').value.trim();
         const text = document.getElementById('promptText').value.trim();
+        
         if(!title || !category || !desc || !text) return showCustomAlert('Please fill all fields!');
         submitPromptBtn.disabled = true;
+
         try {
-            await db.collection('community_prompts').add({
-                title, category, description: desc, prompt_text: text,
-                authorEmail: currentUser.email, upvotes: 0,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            showCustomAlert('Published Successfully! 🚀');
+            if (editingPromptId && editingPromptData) {
+                // UPDATE LOGIC
+                let historyArr = editingPromptData.editHistory || [];
+                historyArr.push({
+                    title: editingPromptData.title,
+                    description: editingPromptData.description,
+                    prompt_text: editingPromptData.prompt_text,
+                    timestamp: new Date().toISOString()
+                });
+
+                await db.collection('community_prompts').doc(editingPromptId).update({
+                    title, category, description: desc, prompt_text: text,
+                    status: 'pending', // Requires re-approval
+                    isEdited: true,
+                    editHistory: historyArr
+                });
+                showCustomAlert('Edit submitted for admin approval! 🚀');
+            } else {
+                // ADD NEW LOGIC
+                await db.collection('community_prompts').add({
+                    title, category, description: desc, prompt_text: text,
+                    authorEmail: currentUser.email, upvotes: 0,
+                    status: 'pending', // Auto-pending for new ones
+                    isEdited: false,
+                    editHistory: [],
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showCustomAlert('Published Successfully for Admin Approval! 🚀');
+            }
+            
             addPromptModal.style.display = 'none';
-            document.getElementById('promptTitle').value = '';
-            document.getElementById('promptDesc').value = '';
-            document.getElementById('promptText').value = '';
             fetchCommunityPrompts();
         } catch(err) { showCustomAlert(err.message); }
         submitPromptBtn.disabled = false;
     });
+
+    window.openHistory = function(encHistoryData) {
+        const historyArr = JSON.parse(decodeURIComponent(encHistoryData));
+        historyContent.innerHTML = '';
+        if (historyArr.length === 0) {
+            historyContent.innerHTML = '<p style="color:var(--text-muted)">No history available.</p>';
+        } else {
+            // Sort to show newest edit at the top
+            const sortedHistory = historyArr.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+            sortedHistory.forEach(item => {
+                const dateStr = new Date(item.timestamp).toLocaleString();
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <div class="history-date">${dateStr}</div>
+                    <div class="history-text"><strong>Title:</strong> ${item.title}<br/><br/><strong>Text:</strong><br/>${item.prompt_text}</div>
+                `;
+                historyContent.appendChild(div);
+            });
+        }
+        historyModal.style.display = 'block';
+    }
 
     window.upvotePrompt = async function(docId) {
         if (!currentUser) return showCustomAlert("Please Login to upvote!");
