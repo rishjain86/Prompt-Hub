@@ -14,8 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const db = firebase.firestore();
     const googleProvider = new firebase.auth.GoogleAuthProvider();
 
-    // ADMINS EMAILS
+    // ADMINS & API KEYS
     const ADMIN_EMAILS = ['lootocashnow@gmail.com', 'shjain86@gmail.com']; 
+    const GEMINI_API_KEY = "AIzaSyByhMFZKZQVrmcMrfwarRkaALJJ-GzZLGQ";
 
     // DOM ELEMENTS
     const authBtn = document.getElementById('authBtn');
@@ -42,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const tabOfficial = document.getElementById('tabOfficial');
     const tabCommunity = document.getElementById('tabCommunity');
+    const tabSaved = document.getElementById('tabSaved');
     const categoryFilter = document.getElementById('categoryFilter');
     const filterBtns = document.querySelectorAll('.filter-btn');
     const searchInput = document.getElementById('searchInput');
@@ -53,19 +55,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitPromptBtn = document.getElementById('submitPromptBtn');
     const addModalTitle = document.getElementById('addModalTitle');
 
-    const themeAlertModal = document.getElementById('themeAlertModal');
-    const themeAlertText = document.getElementById('themeAlertText');
-    const themeAlertOkBtn = document.getElementById('themeAlertOkBtn');
-
     const viewPromptModal = document.getElementById('viewPromptModal');
     const closeViewModal = document.getElementById('closeViewModal');
     const viewModalTitle = document.getElementById('viewModalTitle');
     const viewModalText = document.getElementById('viewModalText');
     const copyFromViewBtn = document.getElementById('copyFromViewBtn');
 
+    // AI MODAL ELEMENTS
+    const aiRunModal = document.getElementById('aiRunModal');
+    const closeAiModal = document.getElementById('closeAiModal');
+    const aiPromptTitle = document.getElementById('aiPromptTitle');
+    const dynamicInputsContainer = document.getElementById('dynamicInputsContainer');
+    const generateAiBtn = document.getElementById('generateAiBtn');
+    const aiOutputContainer = document.getElementById('aiOutputContainer');
+    const aiOutputText = document.getElementById('aiOutputText');
+    const copyAiOutputBtn = document.getElementById('copyAiOutputBtn');
+
     const historyModal = document.getElementById('historyModal');
     const closeHistoryModal = document.getElementById('closeHistoryModal');
     const historyContent = document.getElementById('historyContent');
+
+    const themeAlertModal = document.getElementById('themeAlertModal');
+    const themeAlertText = document.getElementById('themeAlertText');
+    const themeAlertOkBtn = document.getElementById('themeAlertOkBtn');
 
     // GLOBALS
     let isLoginMode = true;
@@ -79,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let textToCopy = '';
     let editingPromptId = null;
     let editingPromptData = null;
+    let currentAiPromptText = ''; // Stores base prompt for AI generation
 
     // UTILS
     function showCustomAlert(message) {
@@ -86,9 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
         themeAlertModal.style.display = 'block';
     }
     
-    // Close Modals when clicking outside
     window.onclick = function(event) {
-        const modals = [authModal, welcomeModal, addPromptModal, viewPromptModal, historyModal, themeAlertModal];
+        const modals = [authModal, welcomeModal, addPromptModal, viewPromptModal, historyModal, themeAlertModal, aiRunModal];
         modals.forEach(modal => {
             if (event.target === modal) {
                 modal.style.display = 'none';
@@ -99,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     themeAlertOkBtn.addEventListener('click', () => themeAlertModal.style.display = 'none');
     welcomeOkBtn.addEventListener('click', () => welcomeModal.style.display = 'none');
     closeHistoryModal.addEventListener('click', () => historyModal.style.display = 'none');
+    closeAiModal.addEventListener('click', () => aiRunModal.style.display = 'none');
 
     // HAMBURGER MENU
     function toggleMenu(show) {
@@ -133,7 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
             authBtn.textContent = "Logout";
             authBtn.style.color = "#ef4444";
             authBtn.style.borderColor = "#ef4444";
-            if (currentTab === 'community') openAddPromptBtn.style.display = 'block';
 
             const uid = user.uid;
             const now = Date.now();
@@ -153,17 +165,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             localStorage.setItem(`lastLogin_${uid}`, now);
-            
-            if(currentTab === 'community') filterAndRender();
         } else {
             currentUser = null;
             isAdmin = false;
             authBtn.textContent = "Login";
             authBtn.style.color = "#38bdf8";
             authBtn.style.borderColor = "#38bdf8";
-            openAddPromptBtn.style.display = 'none';
-            if(currentTab === 'community') filterAndRender();
         }
+        updateTabsUI();
+        filterAndRender();
     });
 
     authBtn.addEventListener('click', () => {
@@ -223,36 +233,62 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchCommunityPrompts() {
-        promptContainer.innerHTML = '<p style="text-align:center;">Loading Community Prompts...</p>';
+        if(allCommunityPrompts.length > 0) return; // Prevent over-fetching
         try {
             const snapshot = await db.collection('community_prompts').orderBy('timestamp', 'desc').get();
             allCommunityPrompts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            filterAndRender();
-        } catch(e) { promptContainer.innerHTML = '<p style="text-align:center; color:#ef4444;">Error loading database.</p>'; }
+            if(currentTab === 'community') filterAndRender();
+        } catch(e) { console.error(e); }
     }
 
-    // FILTER & SEARCH WITH REAL-TIME LOCAL TRENDING VISUALS
+    // BOOKMARKS LOGIC (Local Storage tied to User/Device)
+    function getBookmarksKey() {
+        return currentUser ? `bookmarks_${currentUser.uid}` : `bookmarks_guest`;
+    }
+    function getBookmarks() {
+        return JSON.parse(localStorage.getItem(getBookmarksKey())) || [];
+    }
+    window.toggleBookmark = function(pId) {
+        let bookmarks = getBookmarks();
+        if (bookmarks.includes(pId)) {
+            bookmarks = bookmarks.filter(id => id !== pId);
+            showCustomAlert("Removed from Saved ⭐");
+        } else {
+            bookmarks.push(pId);
+            showCustomAlert("Saved to My Prompts ⭐");
+        }
+        localStorage.setItem(getBookmarksKey(), JSON.stringify(bookmarks));
+        filterAndRender();
+    }
+
+    // FILTER & SEARCH
     function filterAndRender() {
-        let dataset = currentTab === 'official' ? [...allOfficialPrompts] : [...allCommunityPrompts];
+        let dataset = [];
         
-        if (currentTab === 'community') {
-            dataset = dataset.filter(p => {
+        if (currentTab === 'official') {
+            dataset = [...allOfficialPrompts];
+        } else if (currentTab === 'community') {
+            dataset = allCommunityPrompts.filter(p => {
                 if (isAdmin) return true; 
                 if (p.status === 'approved') return true; 
                 if (currentUser && p.authorEmail === currentUser.email) return true; 
                 return false;
             });
+        } else if (currentTab === 'saved') {
+            // Merge both and filter by saved IDs
+            const bookmarks = getBookmarks();
+            const merged = [...allOfficialPrompts, ...allCommunityPrompts];
+            dataset = merged.filter(p => bookmarks.includes(p.id));
         }
 
-        if (currentCategory === 'Trending') {
-            // Sort database array dynamically by local tracking clicks
+        if (currentCategory === 'Trending' && currentTab !== 'saved') {
             dataset.sort((a, b) => {
                 const viewsA = parseInt(localStorage.getItem(`views_${a.id}`)) || 0;
                 const viewsB = parseInt(localStorage.getItem(`views_${b.id}`)) || 0;
                 return viewsB - viewsA;
             });
             dataset = dataset.slice(0, 5); 
-        } else if (currentCategory !== 'All') {
+        } else if (currentCategory !== 'All' && currentCategory !== 'Trending') {
             dataset = dataset.filter(p => p.category === currentCategory);
         }
         
@@ -279,34 +315,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    function updateTabsUI() {
+        if(currentTab === 'community' && currentUser) openAddPromptBtn.style.display = 'block';
+        else openAddPromptBtn.style.display = 'none';
+
+        if(currentTab === 'saved') categoryFilter.style.display = 'none';
+        else categoryFilter.style.display = 'flex';
+    }
+
     tabOfficial.addEventListener('click', () => {
         currentTab = 'official';
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         tabOfficial.classList.add('active');
-        tabCommunity.classList.remove('active');
-        categoryFilter.style.display = 'flex';
-        openAddPromptBtn.style.display = 'none';
+        updateTabsUI();
         filterAndRender();
     });
 
     tabCommunity.addEventListener('click', () => {
         currentTab = 'community';
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         tabCommunity.classList.add('active');
-        tabOfficial.classList.remove('active');
-        categoryFilter.style.display = 'none';
-        currentCategory = 'All';
-        filterBtns.forEach(b => b.classList.remove('active'));
-        filterBtns[0].classList.add('active');
-        if(currentUser) openAddPromptBtn.style.display = 'block';
+        updateTabsUI();
         fetchCommunityPrompts();
+        filterAndRender();
+    });
+
+    tabSaved.addEventListener('click', () => {
+        currentTab = 'saved';
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        tabSaved.classList.add('active');
+        updateTabsUI();
+        if(allCommunityPrompts.length === 0) fetchCommunityPrompts(); // ensure we have community data for saved checking
+        else filterAndRender();
     });
 
     // RENDER CARDS
     function renderPrompts(promptsToRender, isCommunity) {
         promptContainer.innerHTML = '';
         if(promptsToRender.length === 0){
-            promptContainer.innerHTML = '<p style="text-align:center;">No prompts found.</p>';
+            let emptyMsg = currentTab === 'saved' ? "You haven't saved any prompts yet! ⭐" : "No prompts found.";
+            promptContainer.innerHTML = `<p style="text-align:center; margin-top: 30px; color: var(--text-muted);">${emptyMsg}</p>`;
             return;
         }
+
+        const bookmarks = getBookmarks();
+
         promptsToRender.forEach(prompt => {
             const card = document.createElement('div');
             card.className = 'prompt-card';
@@ -314,46 +367,47 @@ document.addEventListener('DOMContentLoaded', () => {
             const preview = fullText.length > 75 ? fullText.substring(0, 75) + '...' : fullText;
             const encTitle = encodeURIComponent(prompt.title || 'Untitled');
             const encText = encodeURIComponent(fullText);
-            const pId = prompt.id || 'custom_' + Math.random().toString(36).substr(2, 9);
+            const pId = prompt.id;
+            const isSaved = bookmarks.includes(pId);
 
             let badgesHtml = `<span class="category-badge">${prompt.category || 'General'}</span>`;
-            if (isCommunity && prompt.status === 'pending') {
-                badgesHtml += `<span class="pending-badge">Pending Approval</span>`;
-            }
-            if (isCommunity && prompt.isEdited) {
-                badgesHtml += `<span class="edited-badge">Edited</span>`;
-            }
+            if (prompt.status === 'pending') badgesHtml += `<span class="pending-badge">Pending</span>`;
+            if (prompt.isEdited) badgesHtml += `<span class="edited-badge">Edited</span>`;
 
             let historyIconHtml = '';
-            if (isCommunity && prompt.isEdited) {
+            if (prompt.isEdited) {
                 const historyData = encodeURIComponent(JSON.stringify(prompt.editHistory || []));
-                historyIconHtml = `<button class="history-icon-btn" onclick="openHistory('${historyData}')" title="View Edit History">⏱️</button>`;
+                historyIconHtml = `<button class="card-icon-btn" onclick="openHistory('${historyData}')" title="View Edit History">⏱️</button>`;
             }
 
             let adminControls = '';
             if (isAdmin && prompt.status === 'pending') {
                 adminControls = `
-                    <button class="admin-btn approve" onclick="adminAction('${prompt.id}', 'approve')">Approve</button>
-                    <button class="admin-btn reject" onclick="adminAction('${prompt.id}', 'reject')">Reject</button>
-                `;
+                    <div style="display:flex; gap:10px; width:100%; margin-top:5px;">
+                        <button class="action-btn admin-btn approve" onclick="adminAction('${prompt.id}', 'approve')">Approve</button>
+                        <button class="action-btn admin-btn reject" onclick="adminAction('${prompt.id}', 'reject')">Reject</button>
+                    </div>`;
             }
 
             let authorControls = '';
             if (currentUser && prompt.authorEmail === currentUser.email) {
-                authorControls = `<button class="edit-btn" onclick="openEditModal('${prompt.id}')">Edit</button>`;
+                authorControls = `<button class="action-btn edit-btn" onclick="openEditModal('${prompt.id}')">Edit Prompt</button>`;
             }
 
             card.innerHTML = `
                 <div class="card-header-row">
                     <div class="badges-container">${badgesHtml}</div>
-                    ${historyIconHtml}
+                    <div class="icon-group">
+                        ${historyIconHtml}
+                        <button class="card-icon-btn ${isSaved ? 'saved' : ''}" onclick="toggleBookmark('${pId}')" title="Save Prompt">${isSaved ? '★' : '☆'}</button>
+                    </div>
                 </div>
-                <h3>${prompt.title || 'Untitled'}</h3>
-                <p class="preview-text">"${preview}"</p>
+                <h3 onclick="trackAndView('${pId}', '${encTitle}', '${encText}')" style="cursor:pointer;">${prompt.title || 'Untitled'}</h3>
+                <p class="preview-text" onclick="trackAndView('${pId}', '${encTitle}', '${encText}')">"${preview}"</p>
                 <div class="action-row">
-                    <button class="view-btn" onclick="trackAndView('${pId}', '${encTitle}', '${encText}')">View</button>
-                    <button class="copy-card-btn" onclick="copyPrompt('${encText}')">Copy</button>
-                    ${isCommunity ? `<button class="upvote-btn" onclick="upvotePrompt('${prompt.id}')">❤️ ${prompt.upvotes || 0}</button>` : ''}
+                    <button class="action-btn run-ai-btn" onclick="openAiModal('${encTitle}', '${encText}')">✨ Run</button>
+                    <button class="action-btn copy-card-btn" onclick="copyPrompt('${encText}')">📋 Copy</button>
+                    <button class="action-btn share-btn" onclick="shareToWhatsApp('${encTitle}', '${encText}')">📲 Share</button>
                     ${authorControls}
                     ${adminControls}
                 </div>
@@ -362,30 +416,115 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // TRACK VIEWS DYNAMICALLY ON CLICK FOR TRENDING ALGORITHM
+    // ACTIONS
     window.trackAndView = function(pId, encTitle, encText) {
         let currentViews = parseInt(localStorage.getItem(`views_${pId}`)) || 0;
         localStorage.setItem(`views_${pId}`, currentViews + 1);
         openViewModal(encTitle, encText);
     }
 
-    // ACTIONS
     window.openViewModal = function(encTitle, encText) {
         viewModalTitle.textContent = decodeURIComponent(encTitle);
         textToCopy = decodeURIComponent(encText);
         viewModalText.textContent = textToCopy;
         viewPromptModal.style.display = 'block';
     }
-    closeViewModal.addEventListener('click', () => viewPromptModal.style.display = 'none');
+    
     window.copyPrompt = function(encText) {
         navigator.clipboard.writeText(decodeURIComponent(encText)).then(() => showCustomAlert("Prompt Copied to Clipboard! 🚀"));
     }
-    copyFromViewBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            showCustomAlert("Prompt Copied to Clipboard! 🚀");
-            viewPromptModal.style.display = 'none';
+    
+    // SHARE FEATURE
+    window.shareToWhatsApp = function(encTitle, encText) {
+        const title = decodeURIComponent(encTitle);
+        const text = decodeURIComponent(encText);
+        const url = "https://raashanmart.in/prompt-hub"; // Replace with actual live URL later
+        const message = `Check out this amazing AI prompt on *Prompt Hub*:\n\n*${title}*\n"${text}"\n\nTry it here: ${url}`;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    // AI INTEGRATION LOGIC
+    window.openAiModal = function(encTitle, encText) {
+        const title = decodeURIComponent(encTitle);
+        currentAiPromptText = decodeURIComponent(encText);
+        
+        aiPromptTitle.textContent = title;
+        dynamicInputsContainer.innerHTML = '';
+        aiOutputContainer.style.display = 'none';
+        aiOutputText.innerHTML = '';
+        
+        // Find all variables inside brackets like [topic], [insert], etc.
+        const matches = [...currentAiPromptText.matchAll(/\[(.*?)\]/g)];
+        const uniqueVars = [...new Set(matches.map(m => m[1]))]; // Get unique variable names
+        
+        if (uniqueVars.length === 0) {
+            dynamicInputsContainer.innerHTML = '<p style="color:var(--accent-green); margin-bottom:15px;">No variables detected. You can run this prompt directly!</p>';
+        } else {
+            uniqueVars.forEach(vName => {
+                const inputHtml = `
+                    <div style="margin-bottom: 10px;">
+                        <label style="font-size: 13px; color: var(--text-muted); display:block; margin-bottom: 5px; text-transform: capitalize;">${vName}:</label>
+                        <input type="text" class="ai-var-input" data-var="${vName}" placeholder="Enter ${vName}..." style="margin-bottom: 0;">
+                    </div>
+                `;
+                dynamicInputsContainer.insertAdjacentHTML('beforeend', inputHtml);
+            });
+        }
+        
+        aiRunModal.style.display = 'block';
+    }
+
+    generateAiBtn.addEventListener('click', async () => {
+        let finalPrompt = currentAiPromptText;
+        const inputs = document.querySelectorAll('.ai-var-input');
+        
+        inputs.forEach(input => {
+            const varName = input.getAttribute('data-var');
+            const val = input.value.trim() || `[${varName}]`; // If empty, leave as placeholder
+            // Replace globally using regex
+            const regex = new RegExp(`\\[${varName}\\]`, 'g');
+            finalPrompt = finalPrompt.replace(regex, val);
         });
+
+        // UI State loading
+        generateAiBtn.innerHTML = "✨ Generating... Please wait";
+        generateAiBtn.disabled = true;
+        aiOutputContainer.style.display = 'none';
+
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: finalPrompt }] }]
+                })
+            });
+
+            const data = await response.json();
+            if (data.error) throw new Error(data.error.message);
+            
+            const markdownText = data.candidates[0].content.parts[0].text;
+            
+            // Render markdown output nicely
+            aiOutputText.innerHTML = marked.parse(markdownText);
+            
+            // Setup copy button for raw text
+            copyAiOutputBtn.onclick = function() {
+                navigator.clipboard.writeText(markdownText).then(() => {
+                    showCustomAlert("AI Output Copied! 🚀");
+                });
+            };
+            
+            aiOutputContainer.style.display = 'block';
+        } catch (err) {
+            showCustomAlert("AI Generation Error: " + err.message);
+        }
+        
+        generateAiBtn.innerHTML = "Generate Output";
+        generateAiBtn.disabled = false;
     });
+
 
     // ADMIN ACTIONS
     window.adminAction = async function(docId, action) {
@@ -491,14 +630,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         historyModal.style.display = 'block';
-    }
-
-    window.upvotePrompt = async function(docId) {
-        if (!currentUser) return showCustomAlert("Please Login to upvote!");
-        try {
-            await db.collection('community_prompts').doc(docId).update({ upvotes: firebase.firestore.FieldValue.increment(1) });
-            fetchCommunityPrompts();
-        } catch (e) { showCustomAlert(e.message); }
     }
 
     // INIT
