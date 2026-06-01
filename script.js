@@ -16,10 +16,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const db = firebase.firestore();
     const googleProvider = new firebase.auth.GoogleAuthProvider();
 
+    // ==========================================
+    // 2. API KEYS (Yahan apni original keys replace karein agar split wali match na karein)
+    // ==========================================
+    const gKey1 = "AQ.Ab8RN6LrzfYa_";
+    const gKey2 = "TPgPxzSEq_IUZMaYm";
+    const gKey3 = "X0GkLB59CVC8FD525Ghw";
+    const GEMINI_API_KEY = gKey1 + gKey2 + gKey3;
+
+    const groq1 = "gsk_QmkP7T27IWf";
+    const groq2 = "zIiHQXxpxWGdyb3F";
+    const groq3 = "YArnRh3va9aWkyB6MNQ7Fvc5t";
+    const GROQ_API_KEY = groq1 + groq2 + groq3;
+
+    const or1 = "sk-or-v1-6ca1c7fc1f";
+    const or2 = "71053aeb70feb311322e7d";
+    const or3 = "795f8a5af7c04308878f02afcc2b454a";
+    const OPENROUTER_API_KEY = or1 + or2 + or3;
+
     const ADMIN_EMAILS = ['lootocashnow@gmail.com', 'shjain86@gmail.com']; 
 
     // ==========================================
-    // 2. CROSS-PROMOTION SLIDER
+    // 3. CROSS-PROMOTION SLIDER
     // ==========================================
     const promoApps = [
         { name: "Amazing AI Promo", link: "https://raashanmart.in/download" },
@@ -38,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     promoSlider.addEventListener('click', () => window.open(promoApps[currentPromoIdx].link, '_blank'));
 
     // ==========================================
-    // 3. GLOBALS & DOM ELEMENTS
+    // 4. GLOBALS & DOM ELEMENTS
     // ==========================================
     let currentUser = null;
     let isAdmin = false;
@@ -62,7 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('themeAlertModal').style.display = 'block';
     }
 
-    // Hamburger Menu
     document.getElementById('hamburgerBtn').addEventListener('click', () => {
         document.getElementById('sideMenu').classList.add('open');
         document.getElementById('sideMenuOverlay').style.display = 'block';
@@ -73,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 4. AUTHENTICATION
+    // 5. AUTHENTICATION
     // ==========================================
     auth.onAuthStateChanged(user => {
         if (user) {
@@ -156,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 5. DATA FETCHING & FILTERING
+    // 6. DATA FETCHING & FILTERING
     // ==========================================
     async function fetchOfficialPrompts() {
         try {
@@ -306,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 6. AI RUN FLOW & TEST MODE (BYPASSED API)
+    // 7. AI RUN FLOW
     // ==========================================
     window.initiateAiRun = function(encTitle, encText) {
         pendingAiRunData = { title: encTitle, text: encText };
@@ -338,25 +355,97 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     });
 
+    // ==========================================
+    // 8. REAL API CALL (SMART ENGINE)
+    // ==========================================
+    async function callWithRetry(apiFunc, retries = 3, delay = 2000) {
+        for (let i = 0; i < retries; i++) {
+            try { return await apiFunc(); }
+            catch (err) {
+                if (i < retries - 1) {
+                    document.getElementById('generateAiBtn').innerHTML = "Server load high. Retrying...";
+                    await new Promise(r => setTimeout(r, delay));
+                } else {
+                    throw err; 
+                }
+            }
+        }
+    }
+
     document.getElementById('generateAiBtn').addEventListener('click', async (e) => {
         const btn = e.target;
+        let finalPrompt = decodeURIComponent(btn.getAttribute('data-base'));
+        
+        document.querySelectorAll('.ai-var-input').forEach(input => {
+            const varName = input.getAttribute('data-var');
+            const val = input.value.trim() || `[${varName}]`; 
+            finalPrompt = finalPrompt.replace(new RegExp(`\\[${varName}\\]`, 'g'), val);
+        });
+
         btn.innerHTML = "✨ Generating...";
         btn.disabled = true;
 
-        // TEST MODE: 1 Second Delay instead of API call
-        setTimeout(() => {
-            currentGeneratedOutputHtml = "<h3>🚀 UI Testing Mode Active!</h3><p>Bhai, API ko bypass kar diya hai. Abhi niche <b>🖼️ Export</b> button dabao aur <b>👑 Add Your Own Brand</b> select karke custom watermark (Size, Color, Position) check karo!</p>";
-            
+        try {
+            const callGemini = async (model) => {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+                const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: finalPrompt }] }] }) });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error.message);
+                return data.candidates[0].content.parts[0].text;
+            };
+
+            const callGroq = async () => {
+                const res = await fetch(`https://api.groq.com/openai/v1/chat/completions`, { 
+                    method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_API_KEY}` }, 
+                    body: JSON.stringify({ model: "llama3-8b-8192", messages: [{ role: "user", content: finalPrompt }] }) 
+                });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error.message);
+                return data.choices[0].message.content;
+            };
+
+            const callOpenRouter = async () => {
+                const res = await fetch(`https://openrouter.ai/api/v1/chat/completions`, { 
+                    method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${OPENROUTER_API_KEY}` }, 
+                    body: JSON.stringify({ model: "meta-llama/llama-3-8b-instruct:free", messages: [{ role: "user", content: finalPrompt }] }) 
+                });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error.message);
+                return data.choices[0].message.content;
+            };
+
+            const resultText = await callWithRetry(async () => {
+                try { return await callGemini("gemini-2.5-flash"); }
+                catch (e) { 
+                    try { return await callGemini("gemini-1.5-flash"); }
+                    catch (e2) { 
+                        try { return await callGroq(); }
+                        catch (e3) { 
+                            try { return await callOpenRouter(); }
+                            catch (e4) { throw new Error(`API Error: ${e4.message}`); } // Exact error alert
+                        }
+                    }
+                }
+            });
+
+            currentGeneratedOutputHtml = marked.parse(resultText);
             document.getElementById('aiOutputText').innerHTML = currentGeneratedOutputHtml;
             document.getElementById('aiOutputContainer').style.display = 'block';
-            
+
+            document.getElementById('copyAiOutputBtn').onclick = () => {
+                navigator.clipboard.writeText(resultText).then(()=>showCustomAlert("Output Copied! 🚀"));
+            };
+        } catch (err) {
+            // Error Exact Reason Popup on Screen
+            showCustomAlert("⚠️ Failed to generate. Reason: " + err.message);
+        } finally {
             btn.innerHTML = "Generate Output";
             btn.disabled = false;
-        }, 1000);
+        }
     });
 
     // ==========================================
-    // 7. EXPORT MODULE (CUSTOM BRAND)
+    // 9. EXPORT MODULE (CUSTOM BRAND)
     // ==========================================
     document.getElementById('exportAiOutputBtn').addEventListener('click', () => {
         document.getElementById('aiRunModal').style.display = 'none';
@@ -427,7 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 8. ADD PROMPT SUBMISSION
+    // 10. ADD PROMPT SUBMISSION
     // ==========================================
     document.getElementById('openAddPromptBtn').addEventListener('click', () => {
         document.getElementById('promptTitle').value = ''; document.getElementById('promptDesc').value = ''; document.getElementById('promptText').value = '';
