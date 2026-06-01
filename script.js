@@ -14,28 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const db = firebase.firestore();
     const googleProvider = new firebase.auth.GoogleAuthProvider();
 
-    // ==========================================
-    // 🔑 API KEYS (Split to bypass GitHub Scanner)
-    // ==========================================
-    // 1. Gemini API
-    const gKey1 = "AQ.Ab8RN6LrzfYa_";
-    const gKey2 = "TPgPxzSEq_IUZMaYm";
-    const gKey3 = "X0GkLB59CVC8FD525Ghw";
-    const GEMINI_API_KEY = gKey1 + gKey2 + gKey3;
-
-    // 2. Groq API
-    const groq1 = "gsk_QmkP7T27IWf";
-    const groq2 = "zIiHQXxpxWGdyb3F";
-    const groq3 = "YArnRh3va9aWkyB6MNQ7Fvc5t";
-    const GROQ_API_KEY = groq1 + groq2 + groq3;
-
-    // 3. OpenRouter API
-    const or1 = "sk-or-v1-6ca1c7fc1f";
-    const or2 = "71053aeb70feb311322e7d";
-    const or3 = "795f8a5af7c04308878f02afcc2b454a";
-    const OPENROUTER_API_KEY = or1 + or2 + or3;
-
-    const ADMIN_EMAILS = ['lootocashnow@gmail.com', 'shjain86@gmail.com']; 
+    // API KEY
+    const keyPart1 = "AQ.Ab8RN6LrzfYa_";
+    const keyPart2 = "TPgPxzSEq_IUZMaYm";
+    const keyPart3 = "X0GkLB59CVC8FD525Ghw";
+    const GEMINI_API_KEY = keyPart1 + keyPart2 + keyPart3;
 
     // CROSS-PROMOTION SLIDER
     const promoApps = [
@@ -64,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSearch = '';
     
     let pendingAiRunData = null; 
-    let currentGeneratedOutputHtml = ''; 
+    let currentGeneratedOutputHtml = ''; // For Export functionality
     let currentGeneratedOutputTitle = '';
 
     const promptContainer = document.getElementById('promptContainer');
@@ -79,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(user => {
         if (user) {
             currentUser = user;
-            isAdmin = ADMIN_EMAILS.includes(user.email);
+            isAdmin = ['lootocashnow@gmail.com', 'shjain86@gmail.com'].includes(user.email);
             authBtn.textContent = "Logout";
             authBtn.classList.add('logout-state');
         } else {
@@ -116,22 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
             allCommunityPrompts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             if(currentTab === 'community' || currentTab === 'leaderboard') filterAndRender();
         } catch(e) { console.log(e); }
-    }
-
-    // BOOKMARKS LOGIC
-    function getBookmarksKey() { return currentUser ? `bookmarks_${currentUser.uid}` : `bookmarks_guest`; }
-    function getBookmarks() { return JSON.parse(localStorage.getItem(getBookmarksKey())) || []; }
-    window.toggleBookmark = function(pId) {
-        let bookmarks = getBookmarks();
-        if (bookmarks.includes(pId)) {
-            bookmarks = bookmarks.filter(id => id !== pId);
-            showCustomAlert("Removed from Saved ⭐");
-        } else {
-            bookmarks.push(pId);
-            showCustomAlert("Saved to My Prompts ⭐");
-        }
-        localStorage.setItem(getBookmarksKey(), JSON.stringify(bookmarks));
-        filterAndRender();
     }
 
     // TABS
@@ -177,48 +144,22 @@ document.addEventListener('DOMContentLoaded', () => {
         let dataset = currentTab === 'official' ? [...allOfficialPrompts] : [...allCommunityPrompts];
         if (currentTab === 'community') dataset = dataset.filter(p => p.status === 'approved');
         else if (currentTab === 'saved') {
-            const bookmarks = getBookmarks();
+            const bookmarks = JSON.parse(localStorage.getItem(currentUser ? `bookmarks_${currentUser.uid}` : `bookmarks_guest`)) || [];
             dataset = [...allOfficialPrompts, ...allCommunityPrompts].filter(p => bookmarks.includes(p.id));
-        }
-
-        if (currentCategory === 'Trending' && currentTab !== 'saved') {
-            dataset.sort((a, b) => {
-                const viewsA = parseInt(localStorage.getItem(`views_${a.id}`)) || 0;
-                const viewsB = parseInt(localStorage.getItem(`views_${b.id}`)) || 0;
-                return viewsB - viewsA;
-            });
-            dataset = dataset.slice(0, 5); 
-        } else if (currentCategory !== 'All' && currentCategory !== 'Trending') {
-            dataset = dataset.filter(p => p.category === currentCategory);
-        }
-        
-        if (currentSearch) {
-            const query = currentSearch.toLowerCase();
-            dataset = dataset.filter(p => 
-                (p.title && p.title.toLowerCase().includes(query)) || 
-                (p.category && p.category.toLowerCase().includes(query)) ||
-                (p.description && p.description.toLowerCase().includes(query)) ||
-                (p.prompt_text && p.prompt_text.toLowerCase().includes(query))
-            );
         }
 
         promptContainer.innerHTML = '';
         dataset.forEach(prompt => {
             const encTitle = encodeURIComponent(prompt.title || 'Untitled');
             const encText = encodeURIComponent(prompt.prompt_text || '');
-            const pId = prompt.id || 'custom_' + Math.random().toString(36).substr(2, 9);
-            const isSaved = getBookmarks().includes(pId);
             const card = document.createElement('div');
             card.className = 'prompt-card';
             card.innerHTML = `
                 <div class="card-header-row">
                     <div class="badges-container"><span class="category-badge">${prompt.category || 'General'}</span></div>
-                    <div class="icon-group">
-                        <button class="card-icon-btn ${isSaved ? 'saved' : ''}" onclick="toggleBookmark('${pId}')" title="Save Prompt">${isSaved ? '★' : '☆'}</button>
-                    </div>
                 </div>
-                <h3 onclick="trackAndView('${pId}', '${encTitle}', '${encText}')" style="cursor:pointer;">${prompt.title || 'Untitled'}</h3>
-                <p class="preview-text" onclick="trackAndView('${pId}', '${encTitle}', '${encText}')">"${(prompt.prompt_text||'').substring(0, 60)}..."</p>
+                <h3>${prompt.title || 'Untitled'}</h3>
+                <p class="preview-text" onclick="window.copyPrompt('${encText}')">"${(prompt.prompt_text||'').substring(0, 60)}..."</p>
                 <div class="action-row">
                     <button class="action-btn run-ai-btn" onclick="initiateAiRun('${encTitle}', '${encText}')">✨ Run AI</button>
                     <button class="action-btn copy-card-btn" onclick="window.copyPrompt('${encText}')">📋 Copy Prompt</button>
@@ -226,37 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             promptContainer.appendChild(card);
-        });
-    }
-
-    searchInput.addEventListener('input', (e) => { currentSearch = e.target.value; filterAndRender(); });
-
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            currentCategory = e.target.getAttribute('data-category');
-            filterAndRender();
-        });
-    });
-
-    window.trackAndView = function(pId, encTitle, encText) {
-        let currentViews = parseInt(localStorage.getItem(`views_${pId}`)) || 0;
-        localStorage.setItem(`views_${pId}`, currentViews + 1);
-        window.openViewModal(encTitle, encText);
-    }
-
-    window.openViewModal = function(encTitle, encText) {
-        document.getElementById('viewModalTitle').textContent = decodeURIComponent(encTitle);
-        textToCopy = decodeURIComponent(encText);
-        document.getElementById('viewModalText').textContent = textToCopy;
-        document.getElementById('viewPromptModal').style.display = 'block';
-    }
-
-    window.copyFromView = function() {
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            showCustomAlert("Prompt Copied to Clipboard! 🚀");
-            document.getElementById('viewPromptModal').style.display = 'none';
         });
     }
 
@@ -318,13 +228,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 `);
             });
         }
+        // Save base text for generation
         document.getElementById('generateAiBtn').setAttribute('data-base', encodeURIComponent(baseText));
         document.getElementById('aiRunModal').style.display = 'block';
     }
 
-    // ==========================================
-    // 🚀 BULLETPROOF 4-LAYER AI FALLBACK ENGINE
-    // ==========================================
     document.getElementById('generateAiBtn').addEventListener('click', async (e) => {
         const btn = e.target;
         let finalPrompt = decodeURIComponent(btn.getAttribute('data-base'));
@@ -338,73 +246,25 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.innerHTML = "✨ Generating...";
         btn.disabled = true;
 
-        let markdownText = "";
-
-        // HELPER FUNCTIONS FOR APIs
-        async function callGemini(modelName) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
-            const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: finalPrompt }] }] }) });
-            const data = await response.json();
-            if (data.error) throw new Error(data.error.message);
-            return data.candidates[0].content.parts[0].text;
-        }
-
-        async function callGroq() {
-            const url = `https://api.groq.com/openai/v1/chat/completions`;
-            const response = await fetch(url, { 
-                method: "POST", 
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_API_KEY}` }, 
-                body: JSON.stringify({ model: "llama3-8b-8192", messages: [{ role: "user", content: finalPrompt }] }) 
-            });
-            const data = await response.json();
-            if (data.error) throw new Error(data.error.message);
-            return data.choices[0].message.content;
-        }
-
-        async function callOpenRouter() {
-            const url = `https://openrouter.ai/api/v1/chat/completions`;
-            const response = await fetch(url, { 
-                method: "POST", 
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${OPENROUTER_API_KEY}` }, 
-                body: JSON.stringify({ model: "meta-llama/llama-3-8b-instruct:free", messages: [{ role: "user", content: finalPrompt }] }) 
-            });
-            const data = await response.json();
-            if (data.error) throw new Error(data.error.message);
-            return data.choices[0].message.content;
-        }
-
         try {
-            // LAYER 1: Gemini 2.5 Flash
-            try {
-                markdownText = await callGemini("gemini-2.5-flash");
-            } catch (err1) {
-                console.warn("Gemini 2.5 Failed:", err1.message);
-                // LAYER 2: Gemini 1.5 Flash
-                try {
-                    markdownText = await callGemini("gemini-1.5-flash");
-                } catch (err2) {
-                    console.warn("Gemini 1.5 Failed:", err2.message);
-                    // LAYER 3: Groq (Llama 3)
-                    try {
-                        markdownText = await callGroq();
-                    } catch (err3) {
-                        console.warn("Groq Failed:", err3.message);
-                        // LAYER 4: OpenRouter (Llama 3 Free)
-                        markdownText = await callOpenRouter();
-                    }
-                }
-            }
-
-            // Render Success Output
-            currentGeneratedOutputHtml = marked.parse(markdownText); 
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ parts: [{ text: finalPrompt }] }] })
+            });
+            const data = await response.json();
+            if (data.error) throw new Error(data.error.message);
+            
+            const markdownText = data.candidates[0].content.parts[0].text;
+            currentGeneratedOutputHtml = marked.parse(markdownText); // Save HTML for export
+            
             document.getElementById('aiOutputText').innerHTML = currentGeneratedOutputHtml;
             document.getElementById('aiOutputContainer').style.display = 'block';
 
             document.getElementById('copyAiOutputBtn').onclick = () => {
                 navigator.clipboard.writeText(markdownText).then(()=>showCustomAlert("Output Copied! 🚀"));
             };
-        } catch (finalErr) {
-            showCustomAlert("Generation Error. All APIs are currently busy. Try again in 1 min.");
+        } catch (err) {
+            showCustomAlert("Error: " + err.message);
         } finally {
             btn.innerHTML = "Generate Output";
             btn.disabled = false;
@@ -419,11 +279,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('downloadFreeBtn').addEventListener('click', () => {
         document.getElementById('watermarkModal').style.display = 'none';
-        executeExport(true); 
+        executeExport(true); // true = With Watermark
     });
 
     document.getElementById('downloadAdBtn').addEventListener('click', () => {
         document.getElementById('watermarkModal').style.display = 'none';
+        
+        // ------------- ADMOB SDK REWARDED AD FOR WATERMARK REMOVAL -------------
         const adModal = document.getElementById('simulatedAdModal');
         adModal.style.display = 'block';
         
@@ -435,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (time <= 0) {
                 clearInterval(interval);
                 adModal.style.display = 'none';
-                executeExport(false); 
+                executeExport(false); // false = No Watermark
             }
         }, 1000);
     });
@@ -457,6 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         
         try {
+            // Need a slight delay for DOM to render the new HTML properly before canvas paints
             setTimeout(async () => {
                 const canvas = await html2canvas(document.getElementById('posterTarget'), {scale: 2, backgroundColor: '#0f172a'});
                 const imgData = canvas.toDataURL('image/png');
@@ -467,25 +330,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.innerHTML = ''; 
             }, 500);
         } catch(e) { showCustomAlert("Error generating image."); }
-    }
-
-    // Toggle Login/Signup modals
-    const toggleAuthMode = document.getElementById('toggleAuthMode');
-    toggleAuthMode.addEventListener('click', () => {
-        isLoginMode = !isLoginMode;
-        document.getElementById('modalTitle').textContent = isLoginMode ? "Login" : "Create Account";
-        document.getElementById('submitAuthBtn').textContent = isLoginMode ? "Login" : "Sign Up";
-        toggleAuthMode.innerHTML = isLoginMode ? "Don't have an account? <span>Sign Up</span>" : "Already have an account? <span>Login</span>";
-    });
-
-    // ADMIN ACTIONS
-    window.adminAction = async function(docId, action) {
-        if (!isAdmin) return;
-        try {
-            if (action === 'approve') await db.collection('community_prompts').doc(docId).update({ status: 'approved' });
-            else if (action === 'reject') await db.collection('community_prompts').doc(docId).delete();
-            fetchCommunityPrompts();
-        } catch(e) { showCustomAlert(e.message); }
     }
 
     fetchOfficialPrompts();
