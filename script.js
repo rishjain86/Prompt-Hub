@@ -124,9 +124,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             currentUser = user;
             isAdmin = ADMIN_EMAILS.includes(user.email);
+            
+            // Clean UI Update for Logout state
             authBtn.textContent = "Logout";
-            authBtn.style.color = "#ef4444";
-            authBtn.style.borderColor = "#ef4444";
+            authBtn.classList.add('logout-state');
 
             const uid = user.uid;
             const now = Date.now();
@@ -150,8 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUser = null;
             isAdmin = false;
             authBtn.textContent = "Login";
-            authBtn.style.color = "#38bdf8";
-            authBtn.style.borderColor = "#38bdf8";
+            authBtn.classList.remove('logout-state');
         }
         updateTabsUI();
         filterAndRender();
@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const preview = fullText.length > 75 ? fullText.substring(0, 75) + '...' : fullText;
             const encTitle = encodeURIComponent(prompt.title || 'Untitled');
             const encText = encodeURIComponent(fullText);
-            const pId = prompt.id;
+            const pId = prompt.id || 'custom_' + Math.random().toString(36).substr(2, 9);
             const isSaved = bookmarks.includes(pId);
 
             let badgesHtml = `<span class="category-badge">${prompt.category || 'General'}</span>`;
@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // AI INTEGRATION LOGIC
+    // AI INTEGRATION LOGIC (Using v1 stable endpoint now)
     window.openAiModal = function(encTitle, encText) {
         const title = decodeURIComponent(encTitle);
         currentAiPromptText = decodeURIComponent(encText);
@@ -495,8 +495,8 @@ document.addEventListener('DOMContentLoaded', () => {
         aiOutputContainer.style.display = 'none';
 
         try {
-            // Using stable model version gemini-1.5-flash
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+            // FIXED: Using v1 endpoint instead of v1beta
+            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
             const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -510,7 +510,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const markdownText = data.candidates[0].content.parts[0].text;
             
-            // Check if marked.js loaded properly
             if (typeof marked !== 'undefined') {
                 aiOutputText.innerHTML = marked.parse(markdownText);
             } else {
@@ -527,12 +526,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             showCustomAlert("AI Generation Error: " + err.message);
         } finally {
-            // Guarantee that button resets even if it fails
             generateAiBtn.innerHTML = "Generate Output";
             generateAiBtn.disabled = false;
         }
     });
-
 
     // ADMIN ACTIONS
     window.adminAction = async function(docId, action) {
