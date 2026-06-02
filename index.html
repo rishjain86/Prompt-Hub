@@ -4,19 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Prompt Hub | Professional AI Suite</title>
-    <link rel="stylesheet" href="style.css?v=25">
+    <link rel="stylesheet" href="style.css?v=26">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
-    <!-- HEADER SECTION -->
     <header class="header">
         <button id="hamburgerBtn" class="icon-btn">☰</button>
-        <div class="brand">
+        <div class="brand" onclick="window.goToHome()" style="cursor: pointer;">
             <h1>Prompt Hub</h1>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -28,12 +26,10 @@
         </div>
     </header>
 
-    <!-- Cross Promotion Banner -->
     <div class="promo-banner-container">
         <div id="promoSlider" class="promo-slider"></div>
     </div>
 
-    <!-- Side Menu -->
     <div id="sideMenuOverlay" class="menu-overlay"></div>
     <nav id="sideMenu" class="side-menu">
         <div class="menu-header">
@@ -41,6 +37,7 @@
             <span class="close-menu" onclick="document.getElementById('sideMenu').classList.remove('open'); document.getElementById('sideMenuOverlay').style.display='none';">&times;</span>
         </div>
         <ul id="menuCategories" class="menu-list">
+            <li onclick="window.goToHome()" style="color: var(--accent-blue); font-weight: bold;">🏠 Back to Home</li>
             <li data-category="Coding & Tech">Coding & Tech</li>
             <li data-category="Marketing & Social Media">Marketing & Social Media</li>
             <li data-category="Copywriting & Content">Copywriting & Content</li>
@@ -70,14 +67,12 @@
         </ul>
     </nav>
 
-    <!-- Search Bar -->
     <div class="search-section-wrapper">
         <div class="search-container">
             <input type="search" id="searchInput" name="searchQuery" placeholder="Search prompts (e.g. Gaming)..." autocomplete="nope" autocorrect="off" spellcheck="false">
         </div>
     </div>
 
-    <!-- App Tabs -->
     <div class="app-tabs">
         <button id="tabOfficial" class="tab-btn active">Official</button>
         <button id="tabCommunity" class="tab-btn">Community</button>
@@ -87,7 +82,6 @@
 
     <button id="openAddPromptBtn" class="add-prompt-btn" style="display:none;">+ Add Expert Prompt</button>
 
-    <!-- Category Filters -->
     <nav class="category-filter" id="categoryFilter">
         <button class="filter-btn active" data-category="All">All</button>
         <button class="filter-btn trending-btn" data-category="Trending">🔥 Trending</button>
@@ -96,21 +90,12 @@
         <button class="filter-btn" data-category="Gaming & World Building">Gaming</button>
     </nav>
 
-    <!-- Main Containers -->
     <main class="prompt-container" id="promptContainer"></main>
 
-    <!-- Creator Profile Dashboard Container -->
     <main id="profileContainer" style="display: none; padding: 20px; max-width: 1200px; margin: 0 auto;"></main>
 
     <div id="exportCanvasContainer" style="position: absolute; top: -9999px; left: -9999px;"></div>
 
-    <div class="admob-banner-container">
-        <div class="admob-banner">AdMob Test Banner (320x50)</div>
-    </div>
-
-    <!-- ================= MODALS ================= -->
-
-    <!-- Welcome / Streak Modal -->
     <div id="welcomeModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('welcomeModal').style.display='none'">&times;</span>
@@ -120,7 +105,6 @@
         </div>
     </div>
 
-    <!-- Auth Modal -->
     <div id="authModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('authModal').style.display='none'">&times;</span>
@@ -142,7 +126,6 @@
         </div>
     </div>
 
-    <!-- Out of Coins Modal -->
     <div id="coinModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('coinModal').style.display='none'">&times;</span>
@@ -152,18 +135,16 @@
         </div>
     </div>
 
-    <!-- Ad Prompt Modal -->
     <div id="adPromptModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('adPromptModal').style.display='none'">&times;</span>
             <h2 style="color:var(--accent-blue);">Unlock AI Power ⚡</h2>
-            <p style="color: var(--text-muted); margin: 15px 0;">To use the Gemini AI generator for this prompt, please watch a short video ad to support us!</p>
+            <p style="color: var(--text-muted); margin: 15px 0;">To use the AI generator for this prompt, please watch a short video ad to support us!</p>
             <button id="watchAdBtn" class="primary-btn" style="background-color: #f59e0b;">🎬 Watch Ad to Unlock</button>
             <button class="maybe-later-btn" onclick="document.getElementById('adPromptModal').style.display='none'">Maybe Later</button>
         </div>
     </div>
 
-    <!-- Simulated Ad Modal -->
     <div id="simulatedAdModal" class="modal" style="background: black;">
         <div class="modal-content" style="text-align: center; background: #000; margin-top: 50%; border:none;">
             <h2 style="color: #fff;">Test Video Ad Playing...</h2>
@@ -172,7 +153,6 @@
         </div>
     </div>
 
-    <!-- AI Run Modal -->
     <div id="aiRunModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('aiRunModal').style.display='none'">&times;</span>
@@ -192,14 +172,13 @@
                 <div id="aiOutputText" class="ai-output-box"></div>
                 
                 <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button id="copyAiOutputBtn" class="primary-btn" style="flex: 1; font-size: 14px;">📋 Copy</button>
-                    <button id="exportAiOutputBtn" class="primary-btn" style="flex: 1; background-color: #f59e0b; font-size: 14px;">🖼️ Export</button>
+                    <button id="copyAiOutputBtn" class="primary-btn" style="flex: 1; font-size: 14px;">📋 Copy Text</button>
+                    <button id="exportAiOutputBtn" class="primary-btn" style="flex: 1; background-color: #f59e0b; font-size: 14px;">🖼️ Export Image</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Export & Watermark Modal -->
     <div id="watermarkModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('watermarkModal').style.display='none'">&times;</span>
@@ -220,7 +199,6 @@
         </div>
     </div>
 
-    <!-- Custom Brand Editor Modal -->
     <div id="customWatermarkModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('customWatermarkModal').style.display='none'">&times;</span>
@@ -266,7 +244,6 @@
         </div>
     </div>
 
-    <!-- View Prompt Modal -->
     <div id="viewPromptModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('viewPromptModal').style.display='none'">&times;</span>
@@ -276,7 +253,6 @@
         </div>
     </div>
 
-    <!-- ADD PROMPT MODAL UPDATED WITH AI ENHANCER -->
     <div id="addPromptModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('addPromptModal').style.display='none'">&times;</span>
@@ -286,16 +262,17 @@
             <input type="text" id="promptTitle" placeholder="Title">
             <select id="promptCategory">
                 <option value="Coding & Tech">Coding & Tech</option>
-                <option value="Gaming & World Building">Gaming & World Building</option>
                 <option value="Marketing & Social Media">Marketing & Social Media</option>
+                <option value="AI Art & Image Gen">AI Art & Image Gen</option>
                 <option value="Copywriting & Content">Copywriting & Content</option>
                 <option value="SEO & Website Ranking">SEO & Website Ranking</option>
+                <option value="Business & Finance">Business & Finance</option>
+                <option value="Gaming & World Building">Gaming & World Building</option>
             </select>
-            <textarea id="promptDesc" placeholder="Description"></textarea>
+            <textarea id="promptDesc" placeholder="Short Description"></textarea>
             
             <textarea id="promptText" placeholder="Prompt Text (Type a basic idea and use AI to enhance it...)" rows="5"></textarea>
             
-            <!-- NAYA: AI Enhancer Button -->
             <button id="enhancePromptBtn" class="secondary-action-btn" style="margin-bottom: 15px; border-color: var(--accent-blue); color: var(--accent-blue); font-weight:bold;">
                 🪄 Enhance with AI (-2 🪙)
             </button>
@@ -304,7 +281,6 @@
         </div>
     </div>
 
-    <!-- Edit Profile Modal -->
     <div id="editProfileModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('editProfileModal').style.display='none'">&times;</span>
@@ -329,7 +305,15 @@
         </div>
     </div>
 
-    <!-- Custom Theme Alert Modal -->
+    <div id="coinHistoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="document.getElementById('coinHistoryModal').style.display='none'">&times;</span>
+            <h2 style="color:#fbbf24; margin-bottom: 15px;">Coin History 🪙</h2>
+            <div id="coinHistoryList" style="max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+                </div>
+        </div>
+    </div>
+
     <div id="themeAlertModal" class="modal">
         <div class="modal-content">
             <p id="themeAlertText" style="text-align: center; font-size: 16px; margin-bottom: 20px;"></p>
@@ -337,6 +321,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=25"></script>
+    <script src="script.js?v=26"></script>
 </body>
 </html>
