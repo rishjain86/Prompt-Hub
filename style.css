@@ -979,6 +979,7 @@ input[type="color"]::-webkit-color-swatch {
 .profile-user-info { 
     display: flex; 
     align-items: center; 
+    justify-content: space-between;
     gap: 15px; 
     border-bottom: 1px solid var(--border-color); 
     padding-bottom: 15px; 
@@ -995,6 +996,13 @@ input[type="color"]::-webkit-color-swatch {
     font-size: 24px; 
     font-weight: bold; 
     color: white; 
+}
+
+.profile-bio {
+    font-size: 13px; 
+    color: var(--text-muted); 
+    margin-top: 5px; 
+    font-style: italic;
 }
 
 .profile-stats-grid { 
@@ -1023,4 +1031,48 @@ input[type="color"]::-webkit-color-swatch {
     text-transform: uppercase; 
     letter-spacing: 1px; 
     margin-top: 5px; 
+}
+
+/* AVATAR GRID & EDIT BUTTON */
+.edit-profile-btn { 
+    background: transparent; 
+    border: 1px solid var(--border-color); 
+    color: var(--text-main); 
+    padding: 5px 15px; 
+    border-radius: 20px; 
+    font-size: 12px; 
+    cursor: pointer; 
+    transition: 0.2s; 
+}
+
+.edit-profile-btn:hover { 
+    border-color: var(--accent-blue); 
+    color: var(--accent-blue); 
+}
+
+.avatar-grid { 
+    display: flex; 
+    gap: 10px; 
+    flex-wrap: wrap; 
+    margin-bottom: 15px; 
+}
+
+.avatar-option { 
+    width: 45px; 
+    height: 45px; 
+    font-size: 24px; 
+    background: var(--bg-dark); 
+    border: 2px solid var(--border-color); 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    cursor: pointer; 
+    transition: all 0.2s; 
+}
+
+.avatar-option.selected { 
+    border-color: var(--accent-blue); 
+    background: rgba(56, 189, 248, 0.2); 
+    transform: scale(1.1); 
 }
