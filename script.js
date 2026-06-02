@@ -90,12 +90,10 @@ document.addEventListener('DOMContentLoaded', () => {
             authBtn.classList.add('logout-state');
             document.getElementById('coinWallet').style.display = 'flex';
 
-            // Firebase Coin Sync & Initial Assignment
             const userRef = db.collection('users').doc(user.uid);
             const doc = await userRef.get();
             
             if (!doc.exists) {
-                // New user receives 20 coins
                 await userRef.set({ 
                     email: user.email, 
                     coins: 20, 
@@ -103,7 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 document.getElementById('coinCount').innerText = "20";
             } else {
-                // Existing user
                 document.getElementById('coinCount').innerText = doc.data().coins || 0;
             }
 
@@ -131,27 +128,25 @@ document.addEventListener('DOMContentLoaded', () => {
             authBtn.textContent = "Login";
             authBtn.classList.remove('logout-state');
             document.getElementById('coinWallet').style.display = 'none';
+            // If logged out while on profile, reset to official tab
+            if (currentTab === 'profile') {
+                document.getElementById('tabOfficial').click();
+            }
         }
         
         updateTabsUI();
         filterAndRender();
     });
 
-    // 💰 UNIVERSAL COIN MANAGER
     window.updateCoins = async function(amount) {
-        if (!currentUser) {
-            return false;
-        }
+        if (!currentUser) return false;
         
         const userRef = db.collection('users').doc(currentUser.uid);
         try {
             const doc = await userRef.get();
             let currentCoins = doc.exists ? (doc.data().coins || 0) : 0;
             
-            // Prevent balance from going negative
-            if (currentCoins + amount < 0) {
-                return false; 
-            }
+            if (currentCoins + amount < 0) return false; 
             
             await userRef.set({ coins: currentCoins + amount }, { merge: true });
             document.getElementById('coinCount').innerText = currentCoins + amount;
@@ -166,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('coinModal').style.display = 'block';
     };
 
-    // 🎬 AD-WATCH TO TOP UP COINS (+15)
     document.getElementById('watchAdForCoinsBtn').addEventListener('click', () => {
         document.getElementById('coinModal').style.display = 'none';
         const adModal = document.getElementById('simulatedAdModal');
@@ -269,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const snap = await db.collection('community_prompts').orderBy('timestamp', 'desc').get();
             allCommunityPrompts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
-            if(currentTab === 'community' || currentTab === 'leaderboard') {
+            if(currentTab === 'community' || currentTab === 'leaderboard' || currentTab === 'profile') {
                 filterAndRender();
             }
         } catch(e) { 
@@ -302,6 +296,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            // Check auth for Profile Tab
+            if (e.target.id === 'tabProfile' && !currentUser) {
+                return showCustomAlert("Please Login to view your Profile! 👤");
+            }
+
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
             
@@ -309,10 +308,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target.id === 'tabCommunity') currentTab = 'community';
             if (e.target.id === 'tabSaved') currentTab = 'saved';
             if (e.target.id === 'tabLeaderboard') currentTab = 'leaderboard';
+            if (e.target.id === 'tabProfile') currentTab = 'profile';
             
             updateTabsUI();
             
-            if(currentTab === 'community' || currentTab === 'leaderboard') {
+            if(currentTab === 'community' || currentTab === 'leaderboard' || currentTab === 'profile') {
                 fetchCommunityPrompts(); 
             } else {
                 filterAndRender();
@@ -321,13 +321,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function updateTabsUI() {
-        if (currentTab === 'leaderboard' || currentTab === 'saved') {
+        if (currentTab === 'leaderboard' || currentTab === 'saved' || currentTab === 'profile') {
             document.getElementById('categoryFilter').style.display = 'none';
         } else {
             document.getElementById('categoryFilter').style.display = 'flex';
         }
         
-        if (currentTab === 'community' && currentUser) {
+        if ((currentTab === 'community' || currentTab === 'profile') && currentUser) {
             document.getElementById('openAddPromptBtn').style.display = 'block';
         } else {
             document.getElementById('openAddPromptBtn').style.display = 'none';
@@ -348,7 +348,95 @@ document.addEventListener('DOMContentLoaded', () => {
         filterAndRender(); 
     });
 
+    // ==========================================
+    // NEW: RENDER CREATOR DASHBOARD
+    // ==========================================
+    function renderProfileDashboard() {
+        const profileContainer = document.getElementById('profileContainer');
+        if (!currentUser) return;
+
+        let myPrompts = allCommunityPrompts.filter(p => p.authorEmail === currentUser.email);
+        let totalUpvotes = myPrompts.reduce((sum, p) => sum + (p.upvotes || 0), 0);
+        let approvedCount = myPrompts.filter(p => p.status === 'approved').length;
+        let pendingCount = myPrompts.filter(p => p.status === 'pending').length;
+        let currentCoins = document.getElementById('coinCount').innerText;
+        
+        let initial = (currentUser.displayName || currentUser.email).charAt(0).toUpperCase();
+        let userName = currentUser.displayName || currentUser.email.split('@')[0];
+
+        let html = `
+            <div class="profile-header-card">
+                <div class="profile-user-info">
+                    <div class="profile-avatar">${initial}</div>
+                    <div>
+                        <h2 style="color: var(--text-main); margin:0;">${userName}</h2>
+                        <p style="color: var(--text-muted); font-size: 14px; margin:0;">${currentUser.email}</p>
+                    </div>
+                </div>
+                <div class="profile-stats-grid">
+                    <div class="stat-box"><div class="stat-value" style="color:#fbbf24;">${currentCoins}</div><div class="stat-label">Coins 🪙</div></div>
+                    <div class="stat-box"><div class="stat-value" style="color:#10b981;">${totalUpvotes}</div><div class="stat-label">Total Likes ❤️</div></div>
+                    <div class="stat-box"><div class="stat-value">${approvedCount}</div><div class="stat-label">Approved ✅</div></div>
+                    <div class="stat-box"><div class="stat-value" style="color:#f59e0b;">${pendingCount}</div><div class="stat-label">Pending ⏳</div></div>
+                </div>
+            </div>
+            
+            <h3 style="margin-bottom: 15px; color: var(--accent-blue);">My Submitted Prompts</h3>
+            <div class="prompt-container" style="padding:0;">
+        `;
+
+        if (myPrompts.length === 0) {
+            html += `<p style="color:var(--text-muted);">You haven't submitted any prompts yet. Click "+ Add Expert Prompt" to start!</p>`;
+        } else {
+            myPrompts.forEach(prompt => {
+                const encTitle = encodeURIComponent(prompt.title || 'Untitled');
+                const encText = encodeURIComponent(prompt.prompt_text || '');
+                const pId = prompt.id;
+
+                let badgesHtml = `<span class="category-badge">${prompt.category || 'General'}</span>`;
+                if (prompt.status === 'pending') {
+                    badgesHtml += `<span class="pending-badge">Pending Approval</span>`;
+                } else if (prompt.status === 'approved') {
+                    badgesHtml += `<span class="category-badge" style="background:rgba(16,185,129,0.1); color:#10b981; border:1px solid rgba(16,185,129,0.3);">Approved ✅</span>`;
+                }
+
+                html += `
+                <div class="prompt-card">
+                    <div class="card-header-row">
+                        <div class="badges-container">${badgesHtml}</div>
+                        <div class="icon-group"><span style="color:var(--text-muted); font-size:12px; font-weight:bold;">❤️ ${prompt.upvotes || 0}</span></div>
+                    </div>
+                    <h3 onclick="trackAndView('${pId}', '${encTitle}', '${encText}')" style="cursor:pointer;">${prompt.title || 'Untitled'}</h3>
+                    <p class="preview-text" onclick="trackAndView('${pId}', '${encTitle}', '${encText}')">"${(prompt.prompt_text||'').substring(0, 60)}..."</p>
+                    
+                    <div class="action-row">
+                        <button class="action-btn run-ai-btn" onclick="initiateAiRun('${encTitle}', '${encText}')">✨ Run AI</button>
+                        <button class="action-btn copy-card-btn" onclick="window.copyPrompt('${encText}')">📋 Copy</button>
+                    </div>
+                </div>`;
+            });
+        }
+
+        html += `</div>`;
+        profileContainer.innerHTML = html;
+    }
+
+    // ==========================================
+    // Filter and Render Logic updated for Profile Tab
+    // ==========================================
     function filterAndRender() {
+        
+        // Hide/Show correct containers
+        if (currentTab === 'profile') {
+            document.getElementById('promptContainer').style.display = 'none';
+            document.getElementById('profileContainer').style.display = 'block';
+            renderProfileDashboard();
+            return;
+        } else {
+            document.getElementById('promptContainer').style.display = 'grid';
+            document.getElementById('profileContainer').style.display = 'none';
+        }
+
         if (currentTab === 'leaderboard') {
             const userScores = {};
             
@@ -381,6 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             promptContainer.innerHTML = html + `</div>`;
+            document.getElementById('promptContainer').style.display = 'block'; // Block override for lists
             return;
         }
 
@@ -564,7 +653,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.innerHTML = "✨ Generating...";
         btn.disabled = true;
 
-        // FAKE DELAY FOR TESTING (No Real API Blockage)
+        // FAKE DELAY FOR TESTING
         setTimeout(() => {
             currentGeneratedOutputHtml = "<h3>🚀 Test Mode Active!</h3><p>Bhai, aapke <b>5 Coins deduct ho gaye hain!</b> API bypass kar di gayi hai taaki aap aage ka flow test kar sako. Abhi niche <b>🖼️ Export</b> button dabao aur Custom Brand watermark test karo.</p>";
             
