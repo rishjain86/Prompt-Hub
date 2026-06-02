@@ -9,15 +9,15 @@ jobs:
 
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '18'
 
     - name: Setup Java JDK
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
@@ -59,13 +59,14 @@ jobs:
         mv android/app/build/outputs/apk/release/app-release-unsigned.apk PromptHub-Live.apk
 
     - name: Upload Signed APK Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: PromptHub-Signed-APK
         path: PromptHub-Live.apk
 
     - name: Upload Keystore Artifact (SAVE TO DRIVE)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: PromptHub-Keystore
         path: prompthub.jks
+        
