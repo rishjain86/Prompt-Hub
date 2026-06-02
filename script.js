@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const googleProvider = new firebase.auth.GoogleAuthProvider();
 
     // ==========================================
-    // 2. API KEYS (Original keys from user)
+    // 2. API KEYS
     // ==========================================
     const gKey1 = "AQ.Ab8RN6LrzfYa_";
     const gKey2 = "TPgPxzSEq_IUZMaYm";
@@ -80,7 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('themeAlertModal').style.display = 'block';
     }
 
-    // Hamburger Menu
     document.getElementById('hamburgerBtn').addEventListener('click', () => {
         document.getElementById('sideMenu').classList.add('open');
         document.getElementById('sideMenuOverlay').style.display = 'block';
@@ -91,14 +90,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 5. AUTHENTICATION & WELCOME POPUP
+    // 5. AUTHENTICATION & WALLET SYSTEM (NEW)
     // ==========================================
-    auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged(async (user) => {
         if (user) {
             currentUser = user;
             isAdmin = ADMIN_EMAILS.includes(user.email);
             authBtn.textContent = "Logout";
             authBtn.classList.add('logout-state');
+            document.getElementById('coinWallet').style.display = 'flex';
+
+            // Firebase Coin Sync & Initial Assignment
+            const userRef = db.collection('users').doc(user.uid);
+            const doc = await userRef.get();
+            if (!doc.exists) {
+                // Naya user = 20 coins reward
+                await userRef.set({ email: user.email, coins: 20, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                document.getElementById('coinCount').innerText = "20";
+            } else {
+                // Purana user = Fetch real balance
+                document.getElementById('coinCount').innerText = doc.data().coins || 0;
+            }
 
             const uid = user.uid;
             const now = Date.now();
@@ -107,13 +119,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!lastLogin) {
                 document.getElementById('welcomeTitle').textContent = "Welcome Aboard! 🚀";
-                document.getElementById('welcomeMessage').textContent = `Hi ${userName}, thanks for joining Prompt Hub. Explore the best AI prompts instantly.`;
+                document.getElementById('welcomeMessage').textContent = `Hi ${userName}, you've received 20 Free Coins to start generating!`;
                 document.getElementById('welcomeModal').style.display = 'block';
             } else {
                 const diffHours = (now - parseInt(lastLogin)) / (1000 * 60 * 60);
                 if (diffHours >= 48) {
                     document.getElementById('welcomeTitle').textContent = "Welcome Back! ✨";
-                    document.getElementById('welcomeMessage').textContent = `Great to see you again, ${userName}. Check out what's trending today!`;
+                    document.getElementById('welcomeMessage').textContent = `Great to see you again, ${userName}. Keep creating!`;
                     document.getElementById('welcomeModal').style.display = 'block';
                 }
             }
@@ -123,11 +135,57 @@ document.addEventListener('DOMContentLoaded', () => {
             isAdmin = false;
             authBtn.textContent = "Login";
             authBtn.classList.remove('logout-state');
+            document.getElementById('coinWallet').style.display = 'none';
         }
         updateTabsUI();
         filterAndRender();
     });
 
+    // 💰 UNIVERSAL COIN MANAGER (Deductions & Additions)
+    window.updateCoins = async function(amount) {
+        if (!currentUser) return false;
+        const userRef = db.collection('users').doc(currentUser.uid);
+        try {
+            const doc = await userRef.get();
+            let currentCoins = doc.exists ? (doc.data().coins || 0) : 0;
+            
+            // Check if deduction drops balance below 0
+            if (currentCoins + amount < 0) return false; 
+            
+            await userRef.set({ coins: currentCoins + amount }, { merge: true });
+            document.getElementById('coinCount').innerText = currentCoins + amount;
+            return true;
+        } catch (e) { 
+            console.error("Coin error:", e);
+            return false; 
+        }
+    };
+
+    window.showCoinModal = function() {
+        document.getElementById('coinModal').style.display = 'block';
+    };
+
+    // 🎬 AD-WATCH TO TOP UP COINS (+15)
+    document.getElementById('watchAdForCoinsBtn').addEventListener('click', () => {
+        document.getElementById('coinModal').style.display = 'none';
+        const adModal = document.getElementById('simulatedAdModal');
+        adModal.style.display = 'block';
+        
+        let time = 3; document.getElementById('adTimer').innerText = time;
+        const interval = setInterval(async () => {
+            time--; document.getElementById('adTimer').innerText = time;
+            if (time <= 0) {
+                clearInterval(interval);
+                adModal.style.display = 'none';
+                await updateCoins(15); 
+                showCustomAlert("💰 15 Coins added successfully!");
+            }
+        }, 1000);
+    });
+
+    // ==========================================
+    // 6. AUTHENTICATION MODAL LOGIC
+    // ==========================================
     authBtn.addEventListener('click', async () => {
         if (currentUser) {
             await auth.signOut();
@@ -174,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 6. DATA FETCHING
+    // 7. DATA FETCHING & FILTERING
     // ==========================================
     async function fetchOfficialPrompts() {
         try {
@@ -192,9 +250,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) { console.log(e); }
     }
 
-    // ==========================================
-    // 7. BOOKMARKS (SAVED TAB)
-    // ==========================================
     function getBookmarksKey() { return currentUser ? `bookmarks_${currentUser.uid}` : `bookmarks_guest`; }
     function getBookmarks() { return JSON.parse(localStorage.getItem(getBookmarksKey())) || []; }
     window.toggleBookmark = function(pId) {
@@ -210,19 +265,14 @@ document.addEventListener('DOMContentLoaded', () => {
         filterAndRender();
     }
 
-    // ==========================================
-    // 8. TABS & FILTERING
-    // ==========================================
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
-            
             if (e.target.id === 'tabOfficial') currentTab = 'official';
             if (e.target.id === 'tabCommunity') currentTab = 'community';
             if (e.target.id === 'tabSaved') currentTab = 'saved';
             if (e.target.id === 'tabLeaderboard') currentTab = 'leaderboard';
-            
             updateTabsUI();
             if(currentTab === 'community' || currentTab === 'leaderboard') fetchCommunityPrompts(); 
             else filterAndRender();
@@ -243,14 +293,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    document.getElementById('searchInput').addEventListener('input', (e) => { 
-        currentSearch = e.target.value; 
-        filterAndRender(); 
-    });
+    document.getElementById('searchInput').addEventListener('input', (e) => { currentSearch = e.target.value; filterAndRender(); });
 
-    // ==========================================
-    // 9. RENDER LOGIC
-    // ==========================================
     function filterAndRender() {
         if (currentTab === 'leaderboard') {
             const userScores = {};
@@ -258,9 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(p.status === 'approved' && p.authorEmail) userScores[p.authorEmail] = (userScores[p.authorEmail] || 0) + (p.upvotes || 0);
             });
             const sortedUsers = Object.keys(userScores).map(email => ({email: email.split('@')[0], score: userScores[email]})).sort((a,b) => b.score - a.score).slice(0,10);
-            
             if(sortedUsers.length === 0) return promptContainer.innerHTML = `<p style="text-align:center; color:var(--text-muted); margin-top:20px;">No data available yet.</p>`;
-            
             let html = `<div class="leaderboard-list"><h2 style="text-align:center; margin-bottom:10px; color:var(--accent-blue);">🏆 Top Creators</h2>`;
             sortedUsers.forEach((u, idx) => {
                 let rank = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx+1}`;
@@ -271,19 +313,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let dataset = currentTab === 'official' ? [...allOfficialPrompts] : [...allCommunityPrompts];
         
-        if (currentTab === 'community') {
-            dataset = dataset.filter(p => p.status === 'approved' || isAdmin || (currentUser && p.authorEmail === currentUser.email));
-        } else if (currentTab === 'saved') {
-            const bookmarks = getBookmarks();
-            dataset = [...allOfficialPrompts, ...allCommunityPrompts].filter(p => bookmarks.includes(p.id));
-        }
+        if (currentTab === 'community') dataset = dataset.filter(p => p.status === 'approved' || isAdmin || (currentUser && p.authorEmail === currentUser.email));
+        else if (currentTab === 'saved') dataset = [...allOfficialPrompts, ...allCommunityPrompts].filter(p => getBookmarks().includes(p.id));
 
         if (currentCategory === 'Trending' && currentTab !== 'saved') {
-            dataset.sort((a, b) => {
-                const viewsA = parseInt(localStorage.getItem(`views_${a.id}`)) || 0;
-                const viewsB = parseInt(localStorage.getItem(`views_${b.id}`)) || 0;
-                return viewsB - viewsA;
-            });
+            dataset.sort((a, b) => { return (parseInt(localStorage.getItem(`views_${b.id}`)) || 0) - (parseInt(localStorage.getItem(`views_${a.id}`)) || 0); });
             dataset = dataset.slice(0, 5); 
         } else if (currentCategory !== 'All' && currentCategory !== 'Trending') {
             dataset = dataset.filter(p => p.category === currentCategory);
@@ -291,18 +325,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (currentSearch) {
             const query = currentSearch.toLowerCase();
-            dataset = dataset.filter(p => 
-                (p.title && p.title.toLowerCase().includes(query)) || 
-                (p.category && p.category.toLowerCase().includes(query)) ||
-                (p.prompt_text && p.prompt_text.toLowerCase().includes(query))
-            );
+            dataset = dataset.filter(p => (p.title && p.title.toLowerCase().includes(query)) || (p.category && p.category.toLowerCase().includes(query)) || (p.prompt_text && p.prompt_text.toLowerCase().includes(query)));
         }
 
         promptContainer.innerHTML = '';
-        if(dataset.length === 0) {
-            promptContainer.innerHTML = `<p style="text-align:center; color:var(--text-muted); margin-top:20px;">No prompts found.</p>`;
-            return;
-        }
+        if(dataset.length === 0) return promptContainer.innerHTML = `<p style="text-align:center; color:var(--text-muted); margin-top:20px;">No prompts found.</p>`;
 
         dataset.forEach(prompt => {
             const encTitle = encodeURIComponent(prompt.title || 'Untitled');
@@ -315,11 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let adminControls = '';
             if (isAdmin && prompt.status === 'pending') {
-                adminControls = `
-                    <div style="display:flex; gap:10px; width:100%; margin-top:5px;">
-                        <button class="action-btn edit-btn" style="color:#10b981; border-color:#10b981;" onclick="adminAction('${pId}', 'approve')">Approve</button>
-                        <button class="action-btn edit-btn" style="color:#ef4444; border-color:#ef4444;" onclick="adminAction('${pId}', 'reject')">Reject</button>
-                    </div>`;
+                adminControls = `<div style="display:flex; gap:10px; width:100%; margin-top:5px;"><button class="action-btn edit-btn" style="color:#10b981; border-color:#10b981;" onclick="adminAction('${pId}', 'approve')">Approve</button><button class="action-btn edit-btn" style="color:#ef4444; border-color:#ef4444;" onclick="adminAction('${pId}', 'reject')">Reject</button></div>`;
             }
 
             const card = document.createElement('div');
@@ -327,9 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.innerHTML = `
                 <div class="card-header-row">
                     <div class="badges-container">${badgesHtml}</div>
-                    <div class="icon-group">
-                        <button class="card-icon-btn ${isSaved ? 'saved' : ''}" onclick="toggleBookmark('${pId}')" title="Save Prompt">${isSaved ? '★' : '☆'}</button>
-                    </div>
+                    <div class="icon-group"><button class="card-icon-btn ${isSaved ? 'saved' : ''}" onclick="toggleBookmark('${pId}')" title="Save Prompt">${isSaved ? '★' : '☆'}</button></div>
                 </div>
                 <h3 onclick="trackAndView('${pId}', '${encTitle}', '${encText}')" style="cursor:pointer;">${prompt.title || 'Untitled'}</h3>
                 <p class="preview-text" onclick="trackAndView('${pId}', '${encTitle}', '${encText}')">"${(prompt.prompt_text||'').substring(0, 60)}..."</p>
@@ -344,33 +365,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ==========================================
-    // 10. CARD ACTIONS (View, Copy, Share)
-    // ==========================================
     window.trackAndView = function(pId, encTitle, encText) {
-        let currentViews = parseInt(localStorage.getItem(`views_${pId}`)) || 0;
-        localStorage.setItem(`views_${pId}`, currentViews + 1);
-        window.openViewModal(encTitle, encText);
-    }
-
-    window.openViewModal = function(encTitle, encText) {
+        localStorage.setItem(`views_${pId}`, (parseInt(localStorage.getItem(`views_${pId}`)) || 0) + 1);
         document.getElementById('viewModalTitle').textContent = decodeURIComponent(encTitle);
         textToCopy = decodeURIComponent(encText);
         document.getElementById('viewModalText').textContent = textToCopy;
         document.getElementById('viewPromptModal').style.display = 'block';
     }
 
-    window.copyFromView = function() {
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            showCustomAlert("Prompt Copied to Clipboard! 🚀");
-            document.getElementById('viewPromptModal').style.display = 'none';
-        });
-    }
-
-    window.copyPrompt = function(encText) {
-        navigator.clipboard.writeText(decodeURIComponent(encText)).then(() => showCustomAlert("Copied to Clipboard! 🚀"));
-    }
-
+    window.copyFromView = function() { navigator.clipboard.writeText(textToCopy).then(() => { showCustomAlert("Prompt Copied to Clipboard! 🚀"); document.getElementById('viewPromptModal').style.display = 'none'; }); }
+    window.copyPrompt = function(encText) { navigator.clipboard.writeText(decodeURIComponent(encText)).then(() => showCustomAlert("Copied to Clipboard! 🚀")); }
     window.sharePrompt = function(encTitle, encText) {
         const shareData = { title: 'Prompt Hub', text: `*${decodeURIComponent(encTitle)}*\n"${decodeURIComponent(encText)}"\n`, url: window.location.href.split('?')[0] };
         if (navigator.share) navigator.share(shareData).catch(()=>{});
@@ -378,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 11. AI RUN FLOW & AD SIMULATION
+    // 8. AI RUN FLOW
     // ==========================================
     window.initiateAiRun = function(encTitle, encText) {
         pendingAiRunData = { title: encTitle, text: encText };
@@ -387,52 +391,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('watchAdBtn').addEventListener('click', () => {
         document.getElementById('adPromptModal').style.display = 'none';
-        const adModal = document.getElementById('simulatedAdModal');
-        adModal.style.display = 'block';
-        
+        document.getElementById('simulatedAdModal').style.display = 'block';
         let time = 3;
         document.getElementById('adTimer').innerText = time;
         const interval = setInterval(() => {
-            time--;
-            document.getElementById('adTimer').innerText = time;
+            time--; document.getElementById('adTimer').innerText = time;
             if (time <= 0) {
                 clearInterval(interval);
-                adModal.style.display = 'none';
-                if(pendingAiRunData) openAiModal(pendingAiRunData.title, pendingAiRunData.text);
+                document.getElementById('simulatedAdModal').style.display = 'none';
+                if(pendingAiRunData) {
+                    currentGeneratedOutputTitle = decodeURIComponent(pendingAiRunData.title);
+                    document.getElementById('aiPromptTitle').textContent = currentGeneratedOutputTitle;
+                    const container = document.getElementById('dynamicInputsContainer');
+                    container.innerHTML = ''; document.getElementById('aiOutputContainer').style.display = 'none';
+                    const matches = [...decodeURIComponent(pendingAiRunData.text).matchAll(/\[(.*?)\]/g)];
+                    const uniqueVars = [...new Set(matches.map(m => m[1]))]; 
+                    if (uniqueVars.length === 0) container.innerHTML = '<p style="color:var(--accent-green); margin-bottom:15px;">No variables detected. Run directly!</p>';
+                    else uniqueVars.forEach(vName => { container.insertAdjacentHTML('beforeend', `<div><label style="font-size:13px; color:var(--text-muted); display:block; text-transform:capitalize; margin-bottom:5px;">${vName}:</label><input type="text" class="ai-var-input" data-var="${vName}" placeholder="Enter ${vName}..."></div>`); });
+                    document.getElementById('aiRunModal').style.display = 'block';
+                }
             }
         }, 1000);
     });
 
-    function openAiModal(encTitle, encText) {
-        currentGeneratedOutputTitle = decodeURIComponent(encTitle);
-        let baseText = decodeURIComponent(encText);
-        
-        document.getElementById('aiPromptTitle').textContent = currentGeneratedOutputTitle;
-        const container = document.getElementById('dynamicInputsContainer');
-        container.innerHTML = '';
-        document.getElementById('aiOutputContainer').style.display = 'none';
-        
-        const matches = [...baseText.matchAll(/\[(.*?)\]/g)];
-        const uniqueVars = [...new Set(matches.map(m => m[1]))]; 
-        
-        if (uniqueVars.length === 0) {
-            container.innerHTML = '<p style="color:var(--accent-green); margin-bottom:15px;">No variables detected. Run directly!</p>';
-        } else {
-            uniqueVars.forEach(vName => {
-                container.insertAdjacentHTML('beforeend', `
-                    <div>
-                        <label style="font-size:13px; color:var(--text-muted); display:block; text-transform:capitalize; margin-bottom:5px;">${vName}:</label>
-                        <input type="text" class="ai-var-input" data-var="${vName}" placeholder="Enter ${vName}...">
-                    </div>
-                `);
-            });
-        }
-        document.getElementById('generateAiBtn').setAttribute('data-base', encodeURIComponent(baseText));
-        document.getElementById('aiRunModal').style.display = 'block';
-    }
-
     // ==========================================
-    // 12. REAL API CALL (SMART ENGINE)
+    // 9. REAL API CALL & COIN DEDUCTION
     // ==========================================
     async function callWithRetry(apiFunc, retries = 3, delay = 2000) {
         for (let i = 0; i < retries; i++) {
@@ -441,14 +424,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (i < retries - 1) {
                     document.getElementById('generateAiBtn').innerHTML = "Server load high. Retrying...";
                     await new Promise(r => setTimeout(r, delay));
-                } else {
-                    throw err; 
-                }
+                } else { throw err; }
             }
         }
     }
 
     document.getElementById('generateAiBtn').addEventListener('click', async (e) => {
+        // --- COIN CHECK LOGIC (-5 Coins) ---
+        if (!currentUser) return showCustomAlert("Please Login to generate AI Content!");
+        
+        let hasCoins = await updateCoins(-5);
+        if (!hasCoins) {
+            document.getElementById('aiRunModal').style.display = 'none';
+            return showCoinModal();
+        }
+
         const btn = e.target;
         let finalPrompt = decodeURIComponent(btn.getAttribute('data-base'));
         
@@ -512,73 +502,65 @@ document.addEventListener('DOMContentLoaded', () => {
                 navigator.clipboard.writeText(resultText).then(()=>showCustomAlert("Output Copied! 🚀"));
             };
         } catch (err) {
-            showCustomAlert("⚠️ Failed to generate. Reason: " + err.message);
+            // Agar API fail ho gayi, toh 5 coins refund kar do
+            await updateCoins(5);
+            showCustomAlert("⚠️ Failed to generate. Coins refunded. Reason: " + err.message);
         } finally {
-            btn.innerHTML = "Generate Output";
+            btn.innerHTML = "Generate Output (Cost: 5 🪙)";
             btn.disabled = false;
         }
     });
 
     // ==========================================
-    // 13. EXPORT MODULE (FREE, AD-WALL & CUSTOM BRAND)
+    // 10. EXPORT MODULE & BRAND COIN DEDUCTION
     // ==========================================
     document.getElementById('exportAiOutputBtn').addEventListener('click', () => {
         document.getElementById('aiRunModal').style.display = 'none';
         document.getElementById('watermarkModal').style.display = 'block';
     });
 
-    document.getElementById('downloadFreeBtn').addEventListener('click', () => {
-        document.getElementById('watermarkModal').style.display = 'none';
-        executeExport('free'); 
-    });
-
-    document.getElementById('downloadAdBtn').addEventListener('click', () => {
-        document.getElementById('watermarkModal').style.display = 'none';
-        runSimulatedAdAndExport('ad');
-    });
+    document.getElementById('downloadFreeBtn').addEventListener('click', () => { document.getElementById('watermarkModal').style.display = 'none'; executeExport('free'); });
+    document.getElementById('downloadAdBtn').addEventListener('click', () => { document.getElementById('watermarkModal').style.display = 'none'; runSimulatedAdAndExport('ad'); });
 
     document.getElementById('openCustomWatermarkBtn').addEventListener('click', () => {
         document.getElementById('watermarkModal').style.display = 'none';
-        if(currentUser && currentUser.displayName) {
-            document.getElementById('customBrandText').value = '@' + currentUser.displayName.replace(/\s+/g, '');
-        }
+        if(currentUser && currentUser.displayName) document.getElementById('customBrandText').value = '@' + currentUser.displayName.replace(/\s+/g, '');
         document.getElementById('customWatermarkModal').style.display = 'block';
     });
 
-    document.getElementById('downloadCustomBrandBtn').addEventListener('click', () => {
-        const text = document.getElementById('customBrandText').value.trim() || 'Your Brand';
-        const position = document.getElementById('customBrandPosition').value;
-        const size = document.getElementById('customBrandSize').value + 'px';
-        const opacity = document.getElementById('customBrandOpacity').value / 100;
-        const color = document.getElementById('customBrandColor').value;
-        
-        const customConfig = { text, position, size, opacity, color };
+    document.getElementById('downloadCustomBrandBtn').addEventListener('click', async () => {
+        // --- COIN CHECK LOGIC (-10 Coins) ---
+        if (!currentUser) return showCustomAlert("Please Login first!");
 
+        let hasCoins = await updateCoins(-10);
+        if (!hasCoins) {
+            document.getElementById('customWatermarkModal').style.display = 'none';
+            return showCoinModal();
+        }
+
+        const customConfig = { 
+            text: document.getElementById('customBrandText').value.trim() || 'Your Brand',
+            position: document.getElementById('customBrandPosition').value,
+            size: document.getElementById('customBrandSize').value + 'px',
+            opacity: document.getElementById('customBrandOpacity').value / 100,
+            color: document.getElementById('customBrandColor').value 
+        };
         document.getElementById('customWatermarkModal').style.display = 'none';
         runSimulatedAdAndExport('custom', customConfig);
     });
 
     function runSimulatedAdAndExport(mode, config = null) {
-        const adModal = document.getElementById('simulatedAdModal');
-        adModal.style.display = 'block';
-        
-        let time = 3;
-        document.getElementById('adTimer').innerText = time;
+        document.getElementById('simulatedAdModal').style.display = 'block';
+        let time = 3; document.getElementById('adTimer').innerText = time;
         const interval = setInterval(() => {
-            time--;
-            document.getElementById('adTimer').innerText = time;
-            if (time <= 0) {
-                clearInterval(interval);
-                adModal.style.display = 'none';
-                executeExport(mode, config); 
-            }
+            time--; document.getElementById('adTimer').innerText = time;
+            if (time <= 0) { clearInterval(interval); document.getElementById('simulatedAdModal').style.display = 'none'; executeExport(mode, config); }
         }, 1000);
     }
 
     async function executeExport(mode, customConfig = null) {
         showCustomAlert("Generating Image... 📸");
         const container = document.getElementById('exportCanvasContainer');
-        
         let watermarkHtml = '';
 
         if (mode === 'free') {
@@ -592,29 +574,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (customConfig.position === 'top-left') posCSS = 'top: 40px; left: 40px;';
             if (customConfig.position === 'bottom-center') posCSS = 'bottom: 40px; left: 50%; transform: translateX(-50%);';
 
-            watermarkHtml = `
-                <div class="custom-brand-overlay" style="${posCSS} font-size: ${customConfig.size}; color: ${customConfig.color}; opacity: ${customConfig.opacity};">
-                    ${customConfig.text}
-                </div>`;
+            watermarkHtml = `<div class="custom-brand-overlay" style="${posCSS} font-size: ${customConfig.size}; color: ${customConfig.color}; opacity: ${customConfig.opacity};">${customConfig.text}</div>`;
         }
 
-        container.innerHTML = `
-            <div id="posterTarget" class="export-poster">
-                ${watermarkHtml}
-                <div class="export-brand">Prompt Hub 🚀</div>
-                <div class="export-title">${currentGeneratedOutputTitle}</div>
-                <div class="export-text">${currentGeneratedOutputHtml}</div>
-                <div class="export-footer">Generated via raashanmart.in/prompthub</div>
-            </div>
-        `;
+        container.innerHTML = `<div id="posterTarget" class="export-poster">${watermarkHtml}<div class="export-brand">Prompt Hub 🚀</div><div class="export-title">${currentGeneratedOutputTitle}</div><div class="export-text">${currentGeneratedOutputHtml}</div><div class="export-footer">Generated via raashanmart.in/prompthub</div></div>`;
         
         try {
             setTimeout(async () => {
                 const canvas = await html2canvas(document.getElementById('posterTarget'), {scale: 2, backgroundColor: '#0f172a'});
-                const imgData = canvas.toDataURL('image/png');
                 const link = document.createElement('a');
                 link.download = `Output_${currentGeneratedOutputTitle.replace(/\s+/g, '_')}.png`;
-                link.href = imgData;
+                link.href = canvas.toDataURL('image/png');
                 link.click();
                 container.innerHTML = ''; 
             }, 500);
@@ -622,12 +592,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 14. ADD PROMPT & ADMIN ACTIONS
+    // 11. ADD PROMPT SUBMISSION
     // ==========================================
     document.getElementById('openAddPromptBtn').addEventListener('click', () => {
-        document.getElementById('promptTitle').value = '';
-        document.getElementById('promptDesc').value = '';
-        document.getElementById('promptText').value = '';
+        document.getElementById('promptTitle').value = ''; document.getElementById('promptDesc').value = ''; document.getElementById('promptText').value = '';
         document.getElementById('addPromptModal').style.display = 'block';
     });
 
@@ -635,20 +603,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const title = document.getElementById('promptTitle').value.trim();
         const category = document.getElementById('promptCategory').value;
         const text = document.getElementById('promptText').value.trim();
-        
         if(!title || !text) return showCustomAlert('Please fill Title and Prompt Text!');
         document.getElementById('submitPromptBtn').disabled = true;
-
         try {
-            await db.collection('community_prompts').add({
-                title, category, prompt_text: text,
-                authorEmail: currentUser.email, upvotes: 0,
-                status: 'pending', 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            await db.collection('community_prompts').add({ title, category, prompt_text: text, authorEmail: currentUser.email, upvotes: 0, status: 'pending', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             showCustomAlert('Submitted Successfully for Admin Approval! 🚀');
-            document.getElementById('addPromptModal').style.display = 'none';
-            fetchCommunityPrompts();
+            document.getElementById('addPromptModal').style.display = 'none'; fetchCommunityPrompts();
         } catch(err) { showCustomAlert(err.message); }
         document.getElementById('submitPromptBtn').disabled = false;
     });
@@ -662,8 +622,5 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) { showCustomAlert(e.message); }
     }
 
-    // ==========================================
-    // 15. INITIALIZE
-    // ==========================================
     fetchOfficialPrompts();
 });
