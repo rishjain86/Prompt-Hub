@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Prompt Hub | Professional AI Suite</title>
-    <link rel="stylesheet" href="style.css?v=26">
+    <link rel="stylesheet" href="style.css?v=27">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -12,6 +12,7 @@
 </head>
 <body>
 
+    <!-- HEADER SECTION -->
     <header class="header">
         <button id="hamburgerBtn" class="icon-btn">☰</button>
         <div class="brand" onclick="window.goToHome()" style="cursor: pointer;">
@@ -26,10 +27,12 @@
         </div>
     </header>
 
+    <!-- CROSS PROMOTION BANNER -->
     <div class="promo-banner-container">
         <div id="promoSlider" class="promo-slider"></div>
     </div>
 
+    <!-- SIDE MENU -->
     <div id="sideMenuOverlay" class="menu-overlay"></div>
     <nav id="sideMenu" class="side-menu">
         <div class="menu-header">
@@ -61,18 +64,21 @@
         </ul>
         <hr class="menu-divider">
         <ul class="menu-list footer-links">
-            <li onclick="showCustomAlert('Terms and Conditions coming soon!')">Terms and Conditions</li>
-            <li onclick="showCustomAlert('Privacy Policy coming soon!')">Privacy Policy</li>
-            <li onclick="showCustomAlert('Contact Us: support@prompthub.com')">Contact Us</li>
+            <!-- NAYA: T&C, Privacy Policy, and Contact Us Logic -->
+            <li onclick="document.getElementById('termsModal').style.display='block'; document.getElementById('sideMenu').classList.remove('open'); document.getElementById('sideMenuOverlay').style.display='none';">Terms and Conditions</li>
+            <li onclick="document.getElementById('privacyModal').style.display='block'; document.getElementById('sideMenu').classList.remove('open'); document.getElementById('sideMenuOverlay').style.display='none';">Privacy Policy</li>
+            <li onclick="window.location.href='mailto:maincryptowala@gmail.com'">Contact Us</li>
         </ul>
     </nav>
 
+    <!-- SEARCH BAR -->
     <div class="search-section-wrapper">
         <div class="search-container">
             <input type="search" id="searchInput" name="searchQuery" placeholder="Search prompts (e.g. Gaming)..." autocomplete="nope" autocorrect="off" spellcheck="false">
         </div>
     </div>
 
+    <!-- APP TABS -->
     <div class="app-tabs">
         <button id="tabOfficial" class="tab-btn active">Official</button>
         <button id="tabCommunity" class="tab-btn">Community</button>
@@ -82,6 +88,7 @@
 
     <button id="openAddPromptBtn" class="add-prompt-btn" style="display:none;">+ Add Expert Prompt</button>
 
+    <!-- CATEGORY FILTERS -->
     <nav class="category-filter" id="categoryFilter">
         <button class="filter-btn active" data-category="All">All</button>
         <button class="filter-btn trending-btn" data-category="Trending">🔥 Trending</button>
@@ -90,12 +97,17 @@
         <button class="filter-btn" data-category="Gaming & World Building">Gaming</button>
     </nav>
 
+    <!-- MAIN CONTAINERS -->
     <main class="prompt-container" id="promptContainer"></main>
 
+    <!-- CREATOR PROFILE DASHBOARD CONTAINER -->
     <main id="profileContainer" style="display: none; padding: 20px; max-width: 1200px; margin: 0 auto;"></main>
 
     <div id="exportCanvasContainer" style="position: absolute; top: -9999px; left: -9999px;"></div>
 
+    <!-- ================= MODALS ================= -->
+
+    <!-- Welcome / Streak Modal -->
     <div id="welcomeModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('welcomeModal').style.display='none'">&times;</span>
@@ -105,6 +117,7 @@
         </div>
     </div>
 
+    <!-- Auth Modal -->
     <div id="authModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('authModal').style.display='none'">&times;</span>
@@ -126,6 +139,7 @@
         </div>
     </div>
 
+    <!-- Out of Coins Modal -->
     <div id="coinModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('coinModal').style.display='none'">&times;</span>
@@ -135,6 +149,7 @@
         </div>
     </div>
 
+    <!-- Ad Prompt Modal -->
     <div id="adPromptModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('adPromptModal').style.display='none'">&times;</span>
@@ -145,6 +160,7 @@
         </div>
     </div>
 
+    <!-- Simulated Ad Modal -->
     <div id="simulatedAdModal" class="modal" style="background: black;">
         <div class="modal-content" style="text-align: center; background: #000; margin-top: 50%; border:none;">
             <h2 style="color: #fff;">Test Video Ad Playing...</h2>
@@ -153,6 +169,7 @@
         </div>
     </div>
 
+    <!-- AI Run Modal -->
     <div id="aiRunModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('aiRunModal').style.display='none'">&times;</span>
@@ -179,6 +196,7 @@
         </div>
     </div>
 
+    <!-- Export & Watermark Modal -->
     <div id="watermarkModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('watermarkModal').style.display='none'">&times;</span>
@@ -199,6 +217,7 @@
         </div>
     </div>
 
+    <!-- Custom Brand Editor Modal -->
     <div id="customWatermarkModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('customWatermarkModal').style.display='none'">&times;</span>
@@ -244,6 +263,7 @@
         </div>
     </div>
 
+    <!-- View Prompt Modal -->
     <div id="viewPromptModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('viewPromptModal').style.display='none'">&times;</span>
@@ -253,6 +273,7 @@
         </div>
     </div>
 
+    <!-- ADD PROMPT MODAL WITH AI ENHANCER -->
     <div id="addPromptModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('addPromptModal').style.display='none'">&times;</span>
@@ -281,6 +302,7 @@
         </div>
     </div>
 
+    <!-- Edit Profile Modal -->
     <div id="editProfileModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('editProfileModal').style.display='none'">&times;</span>
@@ -305,15 +327,48 @@
         </div>
     </div>
 
+    <!-- Coin History Modal -->
     <div id="coinHistoryModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('coinHistoryModal').style.display='none'">&times;</span>
             <h2 style="color:#fbbf24; margin-bottom: 15px;">Coin History 🪙</h2>
             <div id="coinHistoryList" style="max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
-                </div>
+            </div>
         </div>
     </div>
 
+    <!-- TERMS AND CONDITIONS MODAL -->
+    <div id="termsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="document.getElementById('termsModal').style.display='none'">&times;</span>
+            <h2 style="color:var(--accent-blue); margin-bottom: 15px;">Terms and Conditions 📜</h2>
+            <div style="color:var(--text-muted); font-size: 14px; line-height: 1.6; max-height: 60vh; overflow-y: auto;">
+                <p><strong>1. Acceptance of Terms:</strong> By accessing and using Prompt Hub, you accept and agree to be bound by the terms and provision of this agreement.</p><br>
+                <p><strong>2. User Content:</strong> You retain ownership of the prompts you submit, but grant Prompt Hub a worldwide, royalty-free license to display and share them within the community.</p><br>
+                <p><strong>3. Virtual Currency (Coins):</strong> The coins provided in this app are strictly for accessing in-app AI features (like AI enhancements and watermarks). They hold no real-world monetary value, cannot be cashed out, and cannot be exchanged for real money.</p><br>
+                <p><strong>4. Prohibited Conduct:</strong> Users must not submit malicious, NSFW, hateful, or illegal prompts. Admins reserve the right to ban accounts and remove content violating these rules without prior notice.</p><br>
+                <p><strong>5. Limitation of Liability:</strong> Prompt Hub provides AI-generated content "as is" and is not responsible for any inaccuracies, damages, or issues arising from the use of generated outputs.</p><br>
+                <p><strong>6. Contact:</strong> If you have any questions regarding these Terms, you may contact us at <strong>maincryptowala@gmail.com</strong>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRIVACY POLICY MODAL -->
+    <div id="privacyModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="document.getElementById('privacyModal').style.display='none'">&times;</span>
+            <h2 style="color:var(--accent-green); margin-bottom: 15px;">Privacy Policy 🔒</h2>
+            <div style="color:var(--text-muted); font-size: 14px; line-height: 1.6; max-height: 60vh; overflow-y: auto;">
+                <p><strong>1. Information Collection:</strong> We collect your email address and basic profile information (like Display Name) when you register via Email/Password or Google Sign-In.</p><br>
+                <p><strong>2. Use of Information:</strong> Your email is used solely for authentication, leaderboard display (masked username), and to associate your submitted prompts with your creator account.</p><br>
+                <p><strong>3. Data Storage and Security:</strong> We securely store your data using Google Firebase infrastructure. We do not sell, rent, or share your personal data with third-party data brokers or advertisers.</p><br>
+                <p><strong>4. AI Processing:</strong> Prompts submitted for AI enhancement or generation are sent to secure third-party AI API providers (such as Groq and OpenRouter). Please do not include highly sensitive personal information (like passwords or government IDs) in your prompt text.</p><br>
+                <p><strong>5. Data Deletion & Contact:</strong> You have the right to request the deletion of your account and associated data. For data deletion requests or privacy concerns, please email us directly at <strong>maincryptowala@gmail.com</strong>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Theme Alert Modal -->
     <div id="themeAlertModal" class="modal">
         <div class="modal-content">
             <p id="themeAlertText" style="text-align: center; font-size: 16px; margin-bottom: 20px;"></p>
@@ -321,6 +376,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=26"></script>
+    <script src="script.js?v=27"></script>
 </body>
 </html>
