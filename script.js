@@ -21,8 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const googleProvider = new firebase.auth.GoogleAuthProvider();
 
     const ADMIN_EMAILS = [
-        'lootocashnow@gmail.com', 
-        'shjain86@gmail.com'
+        'maincryptowala@gmail.com', 
     ]; 
 
     // ==========================================
