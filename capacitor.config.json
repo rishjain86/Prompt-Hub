@@ -1,7 +1,7 @@
 {
   "appId": "com.prompthub.app",
   "appName": "Prompt Hub",
-  "webDir": ".",
+  "webDir": "www",
   "bundledWebRuntime": false,
   "plugins": {
     "SplashScreen": {
