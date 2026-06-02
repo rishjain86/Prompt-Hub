@@ -176,3 +176,24 @@ input[type="color"]::-webkit-color-swatch { border: 1px solid var(--border-color
 .lb-rank { font-size: 24px; font-weight: bold; color: #fbbf24; width: 40px;}
 .lb-name { flex-grow: 1; font-size: 16px; color: var(--text-main); }
 .lb-score { font-size: 16px; font-weight: bold; color: var(--accent-green); background: rgba(16, 185, 129, 0.1); padding: 5px 15px; border-radius: 20px;}
+
+/* WHATSAPP STATUS & STORY MODE (9:16) */
+.export-poster.story-mode {
+    width: 1080px;
+    height: 1920px;
+    min-height: 1920px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centers content vertically for Status */
+    padding: 80px;
+}
+.export-poster.story-mode .export-title { font-size: 50px; }
+.export-poster.story-mode .export-text { font-size: 30px; line-height: 1.7; }
+.export-poster.story-mode .export-brand { font-size: 40px; margin-bottom: 40px; }
+.export-poster.story-mode .export-footer { 
+    position: absolute; 
+    bottom: 60px; 
+    width: calc(100% - 160px); 
+    border-top: 1px solid rgba(255,255,255,0.1); 
+    padding-top: 30px;
+}
