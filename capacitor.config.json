@@ -1,17 +1,16 @@
 {
   "appId": "com.prompthub.app",
   "appName": "Prompt Hub",
-  "webDir": "www",
+  "webDir": ".",
   "bundledWebRuntime": false,
   "plugins": {
-    "AdMob": {
-      "initializeForTesting": true
-    },
     "SplashScreen": {
-      "launchShowDuration": 2500,
+      "launchShowDuration": 3000,
+      "launchAutoHide": true,
       "backgroundColor": "#0f172a",
-      "showSpinner": false,
-      "androidSplashResourceName": "splash"
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false
     }
   }
 }
