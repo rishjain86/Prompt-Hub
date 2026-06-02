@@ -28,6 +28,12 @@ jobs:
         npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/splash-screen
         npm install -D @capacitor/assets
 
+    - name: Prepare Web Directory (www)
+      run: |
+        mkdir -p www
+        cp index.html style.css script.js prompts.json www/
+        cp -r assets www/assets || true
+
     - name: Add Android Platform & Sync
       run: |
         npx cap add android || true
@@ -63,4 +69,3 @@ jobs:
       with:
         name: PromptHub-Keystore
         path: prompthub.jks
-        
