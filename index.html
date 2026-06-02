@@ -13,20 +13,17 @@
 </head>
 <body>
 
-    <!-- Header Section -->
+    <!-- HEADER SECTION -->
     <header class="header">
         <button id="hamburgerBtn" class="icon-btn">☰</button>
         <div class="brand">
             <h1>Prompt Hub</h1>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <!-- Coin Wallet -->
             <div id="coinWallet" class="coin-wallet" style="display: none;" onclick="showCoinModal()">
                 🪙 <span id="coinCount">0</span>
             </div>
-            <!-- Profile Icon in Header -->
             <button id="headerProfileBtn" class="icon-btn" style="display: none; font-size: 20px;" title="My Profile">👤</button>
-            
             <button id="authBtn">Login</button>
         </div>
     </header>
@@ -113,7 +110,7 @@
 
     <!-- ================= MODALS ================= -->
 
-    <!-- Welcome Modal -->
+    <!-- Welcome / Streak Modal -->
     <div id="welcomeModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('welcomeModal').style.display='none'">&times;</span>
@@ -142,36 +139,6 @@
                 Sign in with Google
             </button>
             <p id="toggleAuthMode">Don't have an account? <span>Sign Up</span></p>
-        </div>
-    </div>
-
-    <!-- Edit Profile Modal (NEW) -->
-    <div id="editProfileModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="document.getElementById('editProfileModal').style.display='none'">&times;</span>
-            <h2 style="color:var(--accent-blue); margin-bottom: 15px; text-align: center;">Edit Profile</h2>
-            
-            <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:10px;">Select Avatar:</label>
-            <div id="avatarSelectionGrid" class="avatar-grid">
-                <div class="avatar-option" data-avatar="🧑‍💻">🧑‍💻</div>
-                <div class="avatar-option" data-avatar="🥷">🥷</div>
-                <div class="avatar-option" data-avatar="🦸‍♂️">🦸‍♂️</div>
-                <div class="avatar-option" data-avatar="🤖">🤖</div>
-                <div class="avatar-option" data-avatar="👽">👽</div>
-                <div class="avatar-option" data-avatar="👾">👾</div>
-                <div class="avatar-option" data-avatar="🐯">🐯</div>
-                <div class="avatar-option" data-avatar="🚀">🚀</div>
-                <div class="avatar-option" data-avatar="👑">👑</div>
-                <div class="avatar-option" data-avatar="⚡">⚡</div>
-            </div>
-
-            <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px; margin-top:15px;">Display Name:</label>
-            <input type="text" id="editProfileName" placeholder="Your Name" class="ai-var-input">
-
-            <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Short Bio (Max 50 chars):</label>
-            <input type="text" id="editProfileBio" placeholder="E.g. Tech Enthusiast, Creator..." maxlength="50" class="ai-var-input">
-
-            <button id="saveProfileBtn" class="primary-btn" style="background: linear-gradient(135deg, #10b981, #3b82f6); margin-top: 10px;">💾 Save Changes</button>
         </div>
     </div>
 
@@ -239,7 +206,6 @@
             <h2 style="color:var(--accent-blue);">Export Result 📸</h2>
             <p style="color: var(--text-muted); margin: 15px 0;">Choose your layout and watermark option.</p>
             
-            <!-- Canvas Format Selector -->
             <div style="margin-bottom: 20px; text-align: left; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;">
                 <label style="font-size:13px; color:var(--accent-blue); display:block; margin-bottom:5px; font-weight:bold;">🖼️ Canvas Size / Layout:</label>
                 <select id="exportCanvasFormat" class="ai-var-input" style="margin-bottom: 0;">
@@ -310,12 +276,13 @@
         </div>
     </div>
 
-    <!-- Add Prompt Modal -->
+    <!-- ADD PROMPT MODAL UPDATED WITH AI ENHANCER -->
     <div id="addPromptModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('addPromptModal').style.display='none'">&times;</span>
             <h2 id="addModalTitle">Submit for Approval</h2>
             <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">Community prompts require admin approval.</p>
+            
             <input type="text" id="promptTitle" placeholder="Title">
             <select id="promptCategory">
                 <option value="Coding & Tech">Coding & Tech</option>
@@ -325,8 +292,40 @@
                 <option value="SEO & Website Ranking">SEO & Website Ranking</option>
             </select>
             <textarea id="promptDesc" placeholder="Description"></textarea>
-            <textarea id="promptText" placeholder="Prompt Text..." rows="5"></textarea>
+            
+            <textarea id="promptText" placeholder="Prompt Text (Type a basic idea and use AI to enhance it...)" rows="5"></textarea>
+            
+            <!-- NAYA: AI Enhancer Button -->
+            <button id="enhancePromptBtn" class="secondary-action-btn" style="margin-bottom: 15px; border-color: var(--accent-blue); color: var(--accent-blue); font-weight:bold;">
+                🪄 Enhance with AI (-2 🪙)
+            </button>
+            
             <button id="submitPromptBtn" class="primary-btn">Submit Prompt</button>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="document.getElementById('editProfileModal').style.display='none'">&times;</span>
+            <h2 style="color:var(--accent-green); margin-bottom: 15px;">Edit Profile ✏️</h2>
+            
+            <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Display Name:</label>
+            <input type="text" id="editProfileName" placeholder="Your Name" class="ai-var-input">
+            
+            <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:10px;">Select Avatar:</label>
+            <div id="avatarSelector" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; justify-content: center;">
+                <div class="avatar-option" data-avatar="👨‍💻">👨‍💻</div>
+                <div class="avatar-option" data-avatar="🥷">🥷</div>
+                <div class="avatar-option" data-avatar="🦸‍♂️">🦸‍♂️</div>
+                <div class="avatar-option" data-avatar="🤖">🤖</div>
+                <div class="avatar-option" data-avatar="👽">👽</div>
+                <div class="avatar-option" data-avatar="🦁">🦁</div>
+                <div class="avatar-option" data-avatar="🚀">🚀</div>
+                <div class="avatar-option" data-avatar="👑">👑</div>
+            </div>
+
+            <button id="saveProfileBtn" class="primary-btn" style="background: linear-gradient(135deg, #10b981, #3b82f6);">Save Changes</button>
         </div>
     </div>
 
