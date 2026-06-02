@@ -70,13 +70,11 @@
         </div>
     </div>
 
-    <!-- NEW TAB: PROFILE ADDED -->
     <div class="app-tabs">
         <button id="tabOfficial" class="tab-btn active">Official</button>
         <button id="tabCommunity" class="tab-btn">Community</button>
         <button id="tabSaved" class="tab-btn">Saved</button>
         <button id="tabLeaderboard" class="tab-btn">🏆 Top</button>
-        <button id="tabProfile" class="tab-btn">👤 Profile</button>
     </div>
 
     <button id="openAddPromptBtn" class="add-prompt-btn" style="display:none;">+ Add Expert Prompt</button>
@@ -97,7 +95,6 @@
         <div class="admob-banner">AdMob Test Banner (320x50)</div>
     </div>
 
-    <!-- ================= MODALS ================= -->
     <div id="welcomeModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('welcomeModal').style.display='none'">&times;</span>
@@ -129,6 +126,16 @@
             <h2 style="color:#fbbf24;">Out of Coins! 🪙</h2>
             <p style="color: var(--text-muted); margin: 15px 0;">You need coins to generate AI outputs and custom watermarks. Watch a short ad to get 15 free coins!</p>
             <button id="watchAdForCoinsBtn" class="primary-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🎬 Watch Ad (+15 Coins)</button>
+        </div>
+    </div>
+
+    <div id="adPromptModal" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <span class="close-modal" onclick="document.getElementById('adPromptModal').style.display='none'">&times;</span>
+            <h2 style="color:var(--accent-blue);">Unlock AI Power ⚡</h2>
+            <p style="color: var(--text-muted); margin: 15px 0;">To use the Gemini AI generator for this prompt, please watch a short video ad to support us!</p>
+            <button id="watchAdBtn" class="primary-btn" style="background-color: #f59e0b;">🎬 Watch Ad to Unlock</button>
+            <button class="maybe-later-btn" onclick="document.getElementById('adPromptModal').style.display='none'">Maybe Later</button>
         </div>
     </div>
 
@@ -167,17 +174,16 @@
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('watermarkModal').style.display='none'">&times;</span>
             <h2 style="color:var(--accent-blue);">Export Result 📸</h2>
-            <p style="color: var(--text-muted); margin: 10px 0;">Choose your size & download option.</p>
+            <p style="color: var(--text-muted); margin: 15px 0;">Choose your layout and watermark option.</p>
             
-            <!-- WhatsApp Status Option -->
-            <div style="margin-bottom: 20px; text-align: left;">
-                <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Image Size (Aspect Ratio):</label>
-                <select id="exportSizeSelect" class="ai-var-input" style="margin-bottom: 0;">
-                    <option value="auto">Auto (Flexible Fit)</option>
-                    <option value="whatsapp">📱 WhatsApp Status (9:16)</option>
+            <div style="margin-bottom: 20px; text-align: left; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;">
+                <label style="font-size:13px; color:var(--accent-blue); display:block; margin-bottom:5px; font-weight:bold;">🖼️ Canvas Size / Layout:</label>
+                <select id="exportCanvasFormat" class="ai-var-input" style="margin-bottom: 0;">
+                    <option value="standard">Standard Post (Auto Height)</option>
+                    <option value="story">WhatsApp Status / Story (9:16)</option>
                 </select>
             </div>
-
+            
             <button id="downloadFreeBtn" class="secondary-action-btn" style="margin-bottom: 10px;">⬇️ Free (Prompt Hub Watermark)</button>
             <button id="downloadAdBtn" class="primary-btn" style="background-color: #f59e0b; margin-bottom: 10px;">🎬 Watch Ad (No Watermark)</button>
             <button id="openCustomWatermarkBtn" class="primary-btn" style="background: linear-gradient(to right, #10b981, #3b82f6);">👑 Add Your Own Brand (-10 🪙)</button>
@@ -240,7 +246,7 @@
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('addPromptModal').style.display='none'">&times;</span>
             <h2 id="addModalTitle">Submit for Approval</h2>
-            <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">Create new or tweak a Remixed prompt.</p>
+            <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">Community prompts require admin approval.</p>
             <input type="text" id="promptTitle" placeholder="Title">
             <select id="promptCategory">
                 <option value="Coding & Tech">Coding & Tech</option>
@@ -249,7 +255,7 @@
                 <option value="Copywriting & Content">Copywriting & Content</option>
                 <option value="SEO & Website Ranking">SEO & Website Ranking</option>
             </select>
-            <textarea id="promptDesc" placeholder="Description (Optional)"></textarea>
+            <textarea id="promptDesc" placeholder="Description"></textarea>
             <textarea id="promptText" placeholder="Prompt Text..." rows="5"></textarea>
             <button id="submitPromptBtn" class="primary-btn">Submit Prompt</button>
         </div>
