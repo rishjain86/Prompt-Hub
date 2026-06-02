@@ -53,10 +53,16 @@ jobs:
         chmod +x gradlew
         ./gradlew assembleRelease
 
-    - name: Sign APK with Jarsigner
+    - name: Align and Sign APK (V2/V3 Signature)
       run: |
-        jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore prompthub.jks -storepass "prompt123" android/app/build/outputs/apk/release/app-release-unsigned.apk prompthub-alias
-        mv android/app/build/outputs/apk/release/app-release-unsigned.apk PromptHub-Live.apk
+        # Android build tools ka latest version dhoondhna
+        BUILD_TOOLS=$(ls $ANDROID_HOME/build-tools | sort -V | tail -n 1)
+        
+        # 1. Zipalign (Memory optimization ke liye)
+        $ANDROID_HOME/build-tools/$BUILD_TOOLS/zipalign -v -p 4 android/app/build/outputs/apk/release/app-release-unsigned.apk PromptHub-Aligned.apk
+        
+        # 2. Apksigner (Android 11+ V2/V3 strict signing)
+        $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner sign --ks prompthub.jks --ks-pass pass:prompt123 --ks-key-alias prompthub-alias --key-pass pass:prompt123 --out PromptHub-Live.apk PromptHub-Aligned.apk
 
     - name: Upload Signed APK Artifact
       uses: actions/upload-artifact@v4
