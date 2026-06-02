@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Prompt Hub | Professional AI Suite</title>
-    <link rel="stylesheet" href="style.css?v=22">
+    <link rel="stylesheet" href="style.css?v=23">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -75,6 +75,7 @@
         <button id="tabCommunity" class="tab-btn">Community</button>
         <button id="tabSaved" class="tab-btn">Saved</button>
         <button id="tabLeaderboard" class="tab-btn">🏆 Top</button>
+        <button id="tabProfile" class="tab-btn" style="color: var(--accent-green);">👤 Profile</button>
     </div>
 
     <button id="openAddPromptBtn" class="add-prompt-btn" style="display:none;">+ Add Expert Prompt</button>
@@ -88,6 +89,8 @@
     </nav>
 
     <main class="prompt-container" id="promptContainer"></main>
+
+    <main id="profileContainer" style="display: none; padding: 20px; max-width: 1200px; margin: 0 auto;"></main>
 
     <div id="exportCanvasContainer" style="position: absolute; top: -9999px; left: -9999px;"></div>
 
@@ -268,6 +271,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=22"></script>
+    <script src="script.js?v=23"></script>
 </body>
 </html>
