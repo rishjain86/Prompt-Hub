@@ -1,7 +1,7 @@
 name: Build APK & Generate Keystore
 
 on:
-  workflow_dispatch: # Isse aap manually GitHub Actions tab se build run kar payenge
+  workflow_dispatch:
 
 jobs:
   build:
@@ -39,6 +39,12 @@ jobs:
         npx cap add android || true
         npx cap sync android
 
+    - name: Inject AdMob App ID into Manifest
+      run: |
+        MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
+        # Google ka Test App ID inject kar rahe hain taaki crash na ho
+        sed -i 's|</application>|    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>\n    </application>|g' $MANIFEST_PATH
+
     - name: Generate App Icons & Splash Screen
       run: |
         npx @capacitor/assets generate --android
@@ -55,13 +61,8 @@ jobs:
 
     - name: Align and Sign APK (V2/V3 Signature)
       run: |
-        # Android build tools ka latest version dhoondhna
         BUILD_TOOLS=$(ls $ANDROID_HOME/build-tools | sort -V | tail -n 1)
-        
-        # 1. Zipalign (Memory optimization ke liye)
         $ANDROID_HOME/build-tools/$BUILD_TOOLS/zipalign -v -p 4 android/app/build/outputs/apk/release/app-release-unsigned.apk PromptHub-Aligned.apk
-        
-        # 2. Apksigner (Android 11+ V2/V3 strict signing)
         $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner sign --ks prompthub.jks --ks-pass pass:prompt123 --ks-key-alias prompthub-alias --key-pass pass:prompt123 --out PromptHub-Live.apk PromptHub-Aligned.apk
 
     - name: Upload Signed APK Artifact
