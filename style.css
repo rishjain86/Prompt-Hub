@@ -466,7 +466,7 @@ body {
     cursor: pointer; 
 }
 
-/* ACTION ROW (Run AI, Copy, Share) */
+/* ACTION ROW */
 .action-row { 
     display: flex; 
     gap: 8px; 
@@ -739,7 +739,7 @@ input[type="color"]::-webkit-color-swatch {
     border: 1px solid var(--border-color); 
 }
 
-/* AI OUTPUT BOX (MARKDOWN FIXES) */
+/* AI OUTPUT BOX */
 .ai-output-box { 
     background: var(--bg-dark); 
     padding: 15px; 
@@ -802,7 +802,7 @@ input[type="color"]::-webkit-color-swatch {
     white-space: pre; 
 }
 
-/* EXPORT TEMPLATE (WATERMARK & POSTER) */
+/* EXPORT TEMPLATE */
 .export-poster { 
     width: 800px; 
     min-height: 800px; 
@@ -931,7 +931,7 @@ input[type="color"]::-webkit-color-swatch {
     border-radius: 20px;
 }
 
-/* WHATSAPP STATUS & STORY MODE (9:16) */
+/* WHATSAPP STATUS */
 .export-poster.story-mode { 
     width: 1080px; 
     height: 1920px; 
@@ -964,7 +964,7 @@ input[type="color"]::-webkit-color-swatch {
     padding-top: 30px; 
 }
 
-/* CREATOR PROFILE DASHBOARD STYLING */
+/* CREATOR PROFILE DASHBOARD */
 .profile-header-card { 
     background: var(--card-bg); 
     border: 1px solid var(--border-color); 
@@ -979,7 +979,6 @@ input[type="color"]::-webkit-color-swatch {
 .profile-user-info { 
     display: flex; 
     align-items: center; 
-    justify-content: space-between;
     gap: 15px; 
     border-bottom: 1px solid var(--border-color); 
     padding-bottom: 15px; 
@@ -998,16 +997,9 @@ input[type="color"]::-webkit-color-swatch {
     color: white; 
 }
 
-.profile-bio {
-    font-size: 13px; 
-    color: var(--text-muted); 
-    margin-top: 5px; 
-    font-style: italic;
-}
-
 .profile-stats-grid { 
     display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); 
     gap: 15px; 
 }
 
@@ -1033,46 +1025,48 @@ input[type="color"]::-webkit-color-swatch {
     margin-top: 5px; 
 }
 
-/* AVATAR GRID & EDIT BUTTON */
-.edit-profile-btn { 
-    background: transparent; 
-    border: 1px solid var(--border-color); 
-    color: var(--text-main); 
-    padding: 5px 15px; 
-    border-radius: 20px; 
-    font-size: 12px; 
-    cursor: pointer; 
-    transition: 0.2s; 
-}
-
-.edit-profile-btn:hover { 
-    border-color: var(--accent-blue); 
-    color: var(--accent-blue); 
-}
-
-.avatar-grid { 
-    display: flex; 
-    gap: 10px; 
-    flex-wrap: wrap; 
-    margin-bottom: 15px; 
-}
-
+/* AVATAR SELECTOR */
 .avatar-option { 
-    width: 45px; 
-    height: 45px; 
-    font-size: 24px; 
-    background: var(--bg-dark); 
-    border: 2px solid var(--border-color); 
-    border-radius: 50%; 
+    font-size: 30px; 
+    width: 50px; 
+    height: 50px; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
+    background: var(--bg-dark); 
+    border: 2px solid var(--border-color); 
+    border-radius: 50%; 
     cursor: pointer; 
     transition: all 0.2s; 
 }
 
 .avatar-option.selected { 
-    border-color: var(--accent-blue); 
-    background: rgba(56, 189, 248, 0.2); 
+    border-color: var(--accent-green); 
+    background: rgba(16, 185, 129, 0.2); 
     transform: scale(1.1); 
+}
+
+/* COMING SOON CARDS (NEW) */
+.coming-soon-card { 
+    background: rgba(30, 41, 59, 0.5); 
+    border: 1px dashed var(--border-color); 
+    border-radius: 12px; 
+    padding: 20px; 
+    text-align: center; 
+    position: relative; 
+    overflow: hidden; 
+    margin-top: 15px; 
+}
+
+.coming-soon-badge { 
+    position: absolute; 
+    top: 15px; 
+    right: -30px; 
+    background: #ef4444; 
+    color: white; 
+    font-size: 11px; 
+    font-weight: bold; 
+    padding: 5px 35px; 
+    transform: rotate(45deg); 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
