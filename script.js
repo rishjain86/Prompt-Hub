@@ -89,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
             authBtn.textContent = "Logout";
             authBtn.classList.add('logout-state');
             document.getElementById('coinWallet').style.display = 'flex';
+            document.getElementById('headerProfileBtn').style.display = 'block'; // Show Profile Icon
 
             const userRef = db.collection('users').doc(user.uid);
             const doc = await userRef.get();
@@ -128,6 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
             authBtn.textContent = "Login";
             authBtn.classList.remove('logout-state');
             document.getElementById('coinWallet').style.display = 'none';
+            document.getElementById('headerProfileBtn').style.display = 'none'; // Hide Profile Icon
+            
             // If logged out while on profile, reset to official tab
             if (currentTab === 'profile') {
                 document.getElementById('tabOfficial').click();
@@ -294,13 +297,21 @@ document.addEventListener('DOMContentLoaded', () => {
         filterAndRender();
     }
 
+    // HEADER PROFILE BUTTON LISTENER
+    document.getElementById('headerProfileBtn').addEventListener('click', () => {
+        if (!currentUser) return showCustomAlert("Please Login to view your Profile! 👤");
+        
+        // Remove active state from main tabs
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        
+        currentTab = 'profile';
+        updateTabsUI();
+        fetchCommunityPrompts(); // Refresh stats before rendering
+    });
+
+    // MAIN TABS LISTENER
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            // Check auth for Profile Tab
-            if (e.target.id === 'tabProfile' && !currentUser) {
-                return showCustomAlert("Please Login to view your Profile! 👤");
-            }
-
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
             
@@ -308,11 +319,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target.id === 'tabCommunity') currentTab = 'community';
             if (e.target.id === 'tabSaved') currentTab = 'saved';
             if (e.target.id === 'tabLeaderboard') currentTab = 'leaderboard';
-            if (e.target.id === 'tabProfile') currentTab = 'profile';
             
             updateTabsUI();
             
-            if(currentTab === 'community' || currentTab === 'leaderboard' || currentTab === 'profile') {
+            if(currentTab === 'community' || currentTab === 'leaderboard') {
                 fetchCommunityPrompts(); 
             } else {
                 filterAndRender();
@@ -349,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // NEW: RENDER CREATOR DASHBOARD
+    // RENDER CREATOR DASHBOARD
     // ==========================================
     function renderProfileDashboard() {
         const profileContainer = document.getElementById('profileContainer');
