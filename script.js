@@ -1,5 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    // --- SPLASH SCREEN FADE OUT LOGIC ---
+    setTimeout(() => { 
+        const splash = document.getElementById('splash-overlay');
+        if(splash) {
+            splash.style.opacity = '0'; 
+            setTimeout(() => splash.style.display = 'none', 800); 
+        }
+    }, 3000); // 3 seconds tak dikhegi, phir fade out ho jayegi
+
     // ==========================================
     // 1. FIREBASE CONFIGURATION
     // ==========================================
