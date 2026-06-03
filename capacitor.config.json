@@ -11,6 +11,11 @@
       "androidSplashResourceName": "splash",
       "androidScaleType": "CENTER_CROP",
       "showSpinner": false
+    },
+    "GoogleAuth": {
+      "scopes": ["profile", "email"],
+      "serverClientId": "242493810474-us5ib99pnjj9of6p3iov9hd6n8ltm975.apps.googleusercontent.com",
+      "forceCodeForRefreshToken": true
     }
   }
 }
