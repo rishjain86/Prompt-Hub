@@ -22,7 +22,7 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Initialize Project & Config (Fix for Plugin Undefined)
+    - name: Initialize Project & Config
       run: |
         npm init -y
         cat <<EOF > capacitor.config.json
@@ -66,13 +66,22 @@ jobs:
         npx cap add android || true
         npx cap sync android
 
-    - name: Setup Firebase & Inject Keys
+    - name: Setup Firebase & Inject Keys Safely
       run: |
         cp google-services.json android/app/ || true
+        
+        # Inject AdMob (Safe Method)
         MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
         sed -i 's|</application>|    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>\n    </application>|g' $MANIFEST_PATH
-        STRINGS_PATH="android/app/src/main/res/values/strings.xml"
-        sed -i 's|</resources>|    <string name="server_client_id">242493810474-us5ib99pnjj9of6p3iov9hd6n8ltm975.apps.googleusercontent.com</string>\n</resources>|g' $STRINGS_PATH
+        
+        # 100% Safe way to inject Google Auth Client ID (Nayi XML file banegi, koi crash nahi hoga)
+        mkdir -p android/app/src/main/res/values
+        cat <<EOF > android/app/src/main/res/values/custom_strings.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <resources>
+            <string name="server_client_id">242493810474-us5ib99pnjj9of6p3iov9hd6n8ltm975.apps.googleusercontent.com</string>
+        </resources>
+        EOF
 
     - name: Generate App Icons & Splash Screen
       run: |
