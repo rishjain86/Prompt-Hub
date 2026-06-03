@@ -42,7 +42,6 @@ jobs:
     - name: Inject AdMob App ID into Manifest
       run: |
         MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
-        # Google ka Test App ID inject kar rahe hain taaki crash na ho
         sed -i 's|</application>|    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>\n    </application>|g' $MANIFEST_PATH
 
     - name: Generate App Icons & Splash Screen
@@ -52,6 +51,10 @@ jobs:
     - name: Generate New Keystore
       run: |
         keytool -genkey -v -keystore prompthub.jks -keyalg RSA -keysize 2048 -validity 10000 -alias prompthub-alias -dname "CN=Prompt Hub, OU=App, O=Rishit, L=India, C=IN" -storepass "prompt123" -keypass "prompt123"
+
+    - name: Print Keystore SHA-1 and SHA-256
+      run: |
+        keytool -list -v -keystore prompthub.jks -alias prompthub-alias -storepass prompt123
 
     - name: Build Unsigned APK via Gradle
       run: |
