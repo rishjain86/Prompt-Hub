@@ -274,8 +274,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     authBtn.addEventListener('click', async () => {
         if (currentUser) {
-            await auth.signOut();
-            showCustomAlert("Logged out successfully! 👋");
+            try {
+                await auth.signOut();
+                if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+                    await window.Capacitor.Plugins.GoogleAuth.signOut();
+                }
+                showCustomAlert("Logged out successfully! 👋");
+            } catch (error) {
+                showCustomAlert("Logout Error: " + error.message);
+            }
         } else {
             document.getElementById('authModal').style.display = 'block';
         }
@@ -319,12 +326,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ==== NATIVE GOOGLE LOGIN FIX ====
     document.getElementById('googleAuthBtn').addEventListener('click', async () => {
         try {
-            await auth.signInWithPopup(googleProvider);
+            if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+                window.Capacitor.Plugins.GoogleAuth.initialize({
+                    clientId: '242493810474-us5ib99pnjj9of6p3iov9hd6n8ltm975.apps.googleusercontent.com',
+                    scopes: ['profile', 'email'],
+                    grantOfflineAccess: true,
+                });
+                const googleUser = await window.Capacitor.Plugins.GoogleAuth.signIn();
+                const credential = firebase.auth.GoogleAuthProvider.credential(googleUser.authentication.idToken);
+                await auth.signInWithCredential(credential);
+            } else {
+                await auth.signInWithPopup(googleProvider);
+            }
             document.getElementById('authModal').style.display = 'none';
         } catch (error) { 
-            showCustomAlert(error.message); 
+            showCustomAlert("Google Login Error: " + error.message); 
         }
     });
 
