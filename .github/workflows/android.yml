@@ -22,10 +22,37 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Initialize Project & Config (Fix for Plugin Undefined)
+      run: |
+        npm init -y
+        cat <<EOF > capacitor.config.json
+        {
+          "appId": "com.prompthub.app",
+          "appName": "Prompt Hub",
+          "webDir": "www",
+          "bundledWebRuntime": false,
+          "plugins": {
+            "SplashScreen": {
+              "launchShowDuration": 3000,
+              "launchAutoHide": true,
+              "backgroundColor": "#0f172a",
+              "androidSplashResourceName": "splash",
+              "androidScaleType": "CENTER_CROP",
+              "showSpinner": false
+            },
+            "GoogleAuth": {
+              "scopes": ["profile", "email"],
+              "serverClientId": "242493810474-us5ib99pnjj9of6p3iov9hd6n8ltm975.apps.googleusercontent.com",
+              "forceCodeForRefreshToken": true
+            }
+          }
+        }
+        EOF
+
     - name: Install NPM & Capacitor Dependencies
       run: |
-        npm install
         npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/splash-screen
+        npm install @codetrix-studio/capacitor-google-auth
         npm install -D @capacitor/assets
 
     - name: Prepare Web Directory (www)
@@ -39,10 +66,13 @@ jobs:
         npx cap add android || true
         npx cap sync android
 
-    - name: Inject AdMob App ID into Manifest
+    - name: Setup Firebase & Inject Keys
       run: |
+        cp google-services.json android/app/ || true
         MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
         sed -i 's|</application>|    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>\n    </application>|g' $MANIFEST_PATH
+        STRINGS_PATH="android/app/src/main/res/values/strings.xml"
+        sed -i 's|</resources>|    <string name="server_client_id">242493810474-us5ib99pnjj9of6p3iov9hd6n8ltm975.apps.googleusercontent.com</string>\n</resources>|g' $STRINGS_PATH
 
     - name: Generate App Icons & Splash Screen
       run: |
