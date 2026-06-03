@@ -1,29 +1,73 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // ==========================================
-    // 0. SPLASH SCREEN & NATIVE ENGINE INIT
+    // 0. NATIVE INITIALIZATION (Splash & Ads)
     // ==========================================
     
-    // Splash Screen Fade Out Logic
+    // Web/CSS Splash Screen Fade Out Logic
     setTimeout(() => { 
         const splash = document.getElementById('splash');
-        if(splash) {
+        if (splash) { 
             splash.style.opacity = '0'; 
-            setTimeout(() => splash.style.display = 'none', 800); 
+            setTimeout(() => {
+                splash.style.display = 'none';
+            }, 800); 
         }
     }, 3000);
 
-    // Google Auth Engine Pre-load (To prevent Native Crash)
+    // Native Pre-loads for Capacitor (Google Auth & AdMob)
     if (window.Capacitor && window.Capacitor.isNativePlatform()) {
         try {
+            // Google Auth Engine Initialization
             window.Capacitor.Plugins.GoogleAuth.initialize({
                 clientId: '242493810474-us5ib99pnjj9of6p3iov9hd6n8ltm975.apps.googleusercontent.com',
                 serverClientId: '242493810474-us5ib99pnjj9of6p3iov9hd6n8ltm975.apps.googleusercontent.com',
                 scopes: ['profile', 'email'],
                 grantOfflineAccess: true,
             });
-        } catch (e) {
-            console.error("Auth Pre-load error:", e);
+
+            // AdMob Native Init & Load
+            const initAds = async () => {
+                const { AdMob } = window.Capacitor.Plugins;
+                await AdMob.initialize({
+                    requestTrackingAuthorization: true,
+                    initializeForTesting: false
+                });
+
+                // 1. Show Banner at Bottom
+                await AdMob.showBanner({
+                    adId: 'ca-app-pub-3940256099942544/6300978111', // Test Banner ID, replace with real later
+                    adSize: "BANNER",
+                    position: "BOTTOM_CENTER",
+                    margin: 0
+                });
+
+                // 2. Prepare Interstitial (For Prompts AI)
+                await AdMob.prepareInterstitial({ 
+                    adId: 'ca-app-pub-3940256099942544/1033173712' 
+                }); // Test Interstitial ID
+                
+                AdMob.addListener('interstitialAdDismissed', () => { 
+                    AdMob.prepareInterstitial({ 
+                        adId: 'ca-app-pub-3940256099942544/1033173712' 
+                    }); 
+                });
+
+                // 3. Prepare Rewarded Video (For Coins)
+                await AdMob.prepareRewardVideoAd({ 
+                    adId: 'ca-app-pub-3940256099942544/5224354917' 
+                }); // Test Rewarded ID
+                
+                AdMob.addListener('rewardedVideoAdDismissed', () => { 
+                    AdMob.prepareRewardVideoAd({ 
+                        adId: 'ca-app-pub-3940256099942544/5224354917' 
+                    }); 
+                });
+            };
+            initAds().catch(e => console.log("AdMob Init Error:", e));
+
+        } catch (e) { 
+            console.error("Native Init error:", e); 
         }
     }
 
@@ -78,14 +122,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setInterval(() => {
         currentPromoIdx = (currentPromoIdx + 1) % promoApps.length;
-        promoSlider.innerHTML = `Try our other app: <span>${promoApps[currentPromoIdx].name}</span>`;
+        if (promoSlider) {
+            promoSlider.innerHTML = `Try our other app: <span>${promoApps[currentPromoIdx].name}</span>`;
+        }
     }, 4000);
     
-    promoSlider.innerHTML = `Try our other app: <span>${promoApps[0].name}</span>`;
-    
-    promoSlider.addEventListener('click', () => {
-        window.open(promoApps[currentPromoIdx].link, '_blank');
-    });
+    if (promoSlider) {
+        promoSlider.innerHTML = `Try our other app: <span>${promoApps[0].name}</span>`;
+        promoSlider.addEventListener('click', () => {
+            window.open(promoApps[currentPromoIdx].link, '_blank');
+        });
+    }
 
     // ==========================================
     // 3. GLOBALS & DOM ELEMENTS
@@ -117,18 +164,100 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('themeAlertModal').style.display = 'block';
     };
 
-    document.getElementById('hamburgerBtn').addEventListener('click', () => {
-        document.getElementById('sideMenu').classList.add('open');
-        document.getElementById('sideMenuOverlay').style.display = 'block';
+    // ==========================================
+    // 4. NAVIGATION LOGIC (Home & Menu)
+    // ==========================================
+    
+    // Go To Home Logic (Resets everything)
+    window.goToHome = function() {
+        currentTab = 'official';
+        currentCategory = 'All';
+        currentSearch = '';
+        
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            b.classList.remove('active');
+        });
+        
+        const tabOfficial = document.getElementById('tabOfficial');
+        if (tabOfficial) {
+            tabOfficial.classList.add('active');
+        }
+        
+        document.querySelectorAll('.filter-btn').forEach(b => {
+            b.classList.remove('active');
+        });
+        
+        const allFilterBtn = document.querySelector('.filter-btn[data-category="All"]');
+        if (allFilterBtn) {
+            allFilterBtn.classList.add('active');
+        }
+        
+        updateTabsUI();
+        filterAndRender();
+        window.scrollTo(0, 0);
+    };
+
+    // Hamburger Menu Logic
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    if (hamburgerBtn) {
+        hamburgerBtn.addEventListener('click', () => {
+            document.getElementById('sideMenu').classList.add('open');
+            document.getElementById('sideMenuOverlay').style.display = 'block';
+        });
+    }
+
+    const sideMenuOverlay = document.getElementById('sideMenuOverlay');
+    if (sideMenuOverlay) {
+        sideMenuOverlay.addEventListener('click', () => {
+            document.getElementById('sideMenu').classList.remove('open');
+            document.getElementById('sideMenuOverlay').style.display = 'none';
+        });
+    }
+
+    // Category Click inside Hamburger Menu
+    document.querySelectorAll('#menuCategories li[data-category]').forEach(li => {
+        li.addEventListener('click', (e) => {
+            currentCategory = e.target.getAttribute('data-category');
+            currentTab = 'official'; 
+            
+            // Close Menu
+            document.getElementById('sideMenu').classList.remove('open');
+            document.getElementById('sideMenuOverlay').style.display = 'none';
+            
+            // Activate correct Tab
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('active');
+            });
+            
+            const tabOfficial = document.getElementById('tabOfficial');
+            if (tabOfficial) {
+                tabOfficial.classList.add('active');
+            }
+            
+            // Activate correct Filter (Horizontal Scroll Bar)
+            document.querySelectorAll('.filter-btn').forEach(b => {
+                b.classList.remove('active');
+            });
+            
+            let matchingBtn = document.querySelector(`.filter-btn[data-category="${currentCategory}"]`);
+            if (matchingBtn) {
+                matchingBtn.classList.add('active');
+            }
+            
+            updateTabsUI();
+            filterAndRender();
+            window.scrollTo(0, 0);
+        });
     });
 
-    document.getElementById('sideMenuOverlay').addEventListener('click', () => {
-        document.getElementById('sideMenu').classList.remove('open');
-        document.getElementById('sideMenuOverlay').style.display = 'none';
-    });
 
     // ==========================================
-    // 4. AUTHENTICATION, WALLET, STREAK & PROFILE
+    // 5. AUTHENTICATION, WALLET, STREAK & PROFILE
     // ==========================================
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -203,7 +332,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         streak: streak, 
                         lastLoginDate: todayStr, 
                         coins: newCoins 
-                    }, { merge: true });
+                    }, { 
+                        merge: true 
+                    });
                     
                     document.getElementById('coinCount').innerText = newCoins;
                     
@@ -273,32 +404,49 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('coinModal').style.display = 'block';
     };
 
-    document.getElementById('watchAdForCoinsBtn').addEventListener('click', () => {
+
+    // ==========================================
+    // 6. AUTH MODALS, LISTENERS & ADS CLICKS
+    // ==========================================
+    
+    // Rewarded Video For Coins
+    document.getElementById('watchAdForCoinsBtn').addEventListener('click', async () => {
         document.getElementById('coinModal').style.display = 'none';
         
-        const adModal = document.getElementById('simulatedAdModal');
-        adModal.style.display = 'block';
-        
-        let time = 3; 
-        document.getElementById('adTimer').innerText = time;
-        
-        const interval = setInterval(async () => {
-            time--; 
-            document.getElementById('adTimer').innerText = time;
-            
-            if (time <= 0) {
-                clearInterval(interval);
-                adModal.style.display = 'none';
+        if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+            try {
+                const { AdMob } = window.Capacitor.Plugins;
+                await AdMob.showRewardVideoAd();
                 
                 await updateCoins(15); 
                 showCustomAlert("💰 15 Coins added successfully!");
+            } catch (error) {
+                console.error(error);
+                showCustomAlert("Ad failed to load. Please try again later.");
             }
-        }, 1000);
+        } else {
+            // Web Simulator Fallback
+            const adModal = document.getElementById('simulatedAdModal');
+            adModal.style.display = 'block';
+            
+            let time = 3; 
+            document.getElementById('adTimer').innerText = time;
+            
+            const interval = setInterval(async () => {
+                time--; 
+                document.getElementById('adTimer').innerText = time;
+                
+                if (time <= 0) {
+                    clearInterval(interval);
+                    adModal.style.display = 'none';
+                    
+                    await updateCoins(15); 
+                    showCustomAlert("💰 15 Coins added successfully!");
+                }
+            }, 1000);
+        }
     });
 
-    // ==========================================
-    // 5. AUTH MODALS & LISTENERS
-    // ==========================================
     authBtn.addEventListener('click', async () => {
         if (currentUser) {
             try {
@@ -306,7 +454,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (window.Capacitor && window.Capacitor.isNativePlatform()) {
                     await window.Capacitor.Plugins.GoogleAuth.signOut();
                 }
-                showCustomAlert("Logged out successfully! 👋");
             } catch (error) {
                 showCustomAlert("Logout Error: " + error.message);
             }
@@ -316,7 +463,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const toggleAuthMode = document.getElementById('toggleAuthMode');
-    
     toggleAuthMode.addEventListener('click', () => {
         isLoginMode = !isLoginMode;
         
@@ -345,39 +491,33 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 await auth.createUserWithEmailAndPassword(email, pwd);
             }
-            
             document.getElementById('authModal').style.display = 'none';
-            
         } catch (error) { 
             showCustomAlert(error.message); 
         }
     });
 
-    // ==== GOOGLE LOGIN BUTTON ====
-    const googleAuthBtn = document.getElementById('googleAuthBtn');
-    if (googleAuthBtn) {
-        googleAuthBtn.addEventListener('click', async () => {
-            try {
-                if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-                    // Ab sirf signIn() call karna hai kyunki engine upar start ho chuka hai
-                    const googleUser = await window.Capacitor.Plugins.GoogleAuth.signIn();
-                    const credential = firebase.auth.GoogleAuthProvider.credential(googleUser.authentication.idToken);
-                    await auth.signInWithCredential(credential);
-                } else {
-                    await auth.signInWithPopup(googleProvider);
-                }
-                document.getElementById('authModal').style.display = 'none';
-                showCustomAlert("Google se successfully login ho gaya! 🎉");
-            } catch (error) { 
-                console.error("Google Login Error:", error);
-                showCustomAlert("Google Login Error: " + error.message); 
+    // Native Google Login Fix
+    document.getElementById('googleAuthBtn').addEventListener('click', async () => {
+        try {
+            if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+                const googleUser = await window.Capacitor.Plugins.GoogleAuth.signIn();
+                const credential = firebase.auth.GoogleAuthProvider.credential(googleUser.authentication.idToken);
+                await auth.signInWithCredential(credential);
+            } else {
+                await auth.signInWithPopup(googleProvider);
             }
-        });
-    }
+            document.getElementById('authModal').style.display = 'none';
+            // Alert removed here so only 'Welcome Aboard' modal shows!
+            
+        } catch (error) { 
+            console.error("Google Login Error:", error);
+            showCustomAlert("Google Login Error: " + error.message); 
+        }
+    });
 
     document.getElementById('forgotPasswordBtn').addEventListener('click', async () => {
         const email = document.getElementById('emailInput').value.trim();
-        
         if (!email) {
             return showCustomAlert("Please enter your email address first.");
         }
@@ -391,8 +531,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+
     // ==========================================
-    // 6. DATA FETCHING
+    // 7. DATA FETCHING
     // ==========================================
     async function fetchOfficialPrompts() {
         try {
@@ -400,14 +541,13 @@ document.addEventListener('DOMContentLoaded', () => {
             allOfficialPrompts = await res.json();
             filterAndRender();
         } catch (e) { 
-            console.log(e); 
+            console.log("Error fetching prompts.json", e); 
         }
     }
 
     async function fetchCommunityPrompts() {
         try {
             const snap = await db.collection('community_prompts').orderBy('timestamp', 'desc').get();
-            
             allCommunityPrompts = snap.docs.map(doc => {
                 return { 
                     id: doc.id, 
@@ -418,7 +558,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentTab === 'community' || currentTab === 'leaderboard' || currentTab === 'profile') {
                 filterAndRender();
             }
-            
         } catch(e) { 
             console.log(e); 
         }
@@ -451,8 +590,9 @@ document.addEventListener('DOMContentLoaded', () => {
         filterAndRender();
     };
 
+
     // ==========================================
-    // 7. HEADER & TAB LISTENERS
+    // 8. TABS, SEARCH & FILTER LISTENERS
     // ==========================================
     document.getElementById('headerProfileBtn').addEventListener('click', () => {
         if (!currentUser) {
@@ -470,6 +610,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            if(e.target.title === "Home") {
+                return; // Ignore home btn here, handled by inline onclick
+            }
+            
             document.querySelectorAll('.tab-btn').forEach(b => {
                 b.classList.remove('active');
             });
@@ -530,15 +674,13 @@ document.addEventListener('DOMContentLoaded', () => {
         filterAndRender(); 
     });
 
+
     // ==========================================
-    // 8. PROFILE DASHBOARD RENDERING
+    // 9. PROFILE DASHBOARD RENDERING
     // ==========================================
     function renderProfileDashboard() {
         const profileContainer = document.getElementById('profileContainer');
-        
-        if (!currentUser) {
-            return;
-        }
+        if (!currentUser) return;
 
         let myPrompts = allCommunityPrompts.filter(p => p.authorEmail === currentUser.email);
         
@@ -576,19 +718,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 <div class="profile-stats-grid">
                     <div class="stat-box">
-                        <div class="stat-value" style="color:#fbbf24;">${currentCoins}</div>
+                        <div class="stat-value" style="color:#fbbf24;">
+                            ${currentCoins}
+                        </div>
                         <div class="stat-label">Coins 🪙</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-value" style="color:#10b981;">${totalUpvotes}</div>
+                        <div class="stat-value" style="color:#10b981;">
+                            ${totalUpvotes}
+                        </div>
                         <div class="stat-label">Total Likes ❤️</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-value">${approvedCount}</div>
+                        <div class="stat-value">
+                            ${approvedCount}
+                        </div>
                         <div class="stat-label">Approved ✅</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-value" style="color:#f59e0b;">${pendingCount}</div>
+                        <div class="stat-value" style="color:#f59e0b;">
+                            ${pendingCount}
+                        </div>
                         <div class="stat-label">Pending ⏳</div>
                     </div>
                 </div>
@@ -664,14 +814,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p>Unlock unlimited access & pro features.</p>
             </div>
         `;
+        
         profileContainer.innerHTML = html;
     }
 
+
     // ==========================================
-    // 9. FILTER & RENDER PROMPTS + LEADERBOARD
+    // 10. FILTER & RENDER PROMPTS + LEADERBOARD
     // ==========================================
     function filterAndRender() {
-        
         if (currentTab === 'profile') {
             document.getElementById('promptContainer').style.display = 'none';
             document.getElementById('profileContainer').style.display = 'block';
@@ -692,9 +843,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             const sortedUsers = Object.keys(userScores).map(email => {
-                return {
+                return { 
                     email: email.split('@')[0], 
-                    score: userScores[email]
+                    score: userScores[email] 
                 };
             }).sort((a,b) => {
                 return b.score - a.score;
@@ -718,9 +869,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             sortedUsers.forEach((u, idx) => {
                 let rank = '';
-                if (idx === 0) rank = '🥇';
-                else if (idx === 1) rank = '🥈';
-                else if (idx === 2) rank = '🥉';
+                if (idx === 0) rank = '🥇'; 
+                else if (idx === 1) rank = '🥈'; 
+                else if (idx === 2) rank = '🥉'; 
                 else rank = `#${idx+1}`;
                 
                 html += `
@@ -755,14 +906,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (currentCategory === 'Trending' && currentTab !== 'saved') {
-            dataset.sort((a, b) => { 
-                return (parseInt(localStorage.getItem(`views_${b.id}`)) || 0) - (parseInt(localStorage.getItem(`views_${a.id}`)) || 0); 
+            dataset.sort((a, b) => {
+                return (parseInt(localStorage.getItem(`views_${b.id}`)) || 0) - (parseInt(localStorage.getItem(`views_${a.id}`)) || 0);
             });
             dataset = dataset.slice(0, 5); 
         } else if (currentCategory !== 'All' && currentCategory !== 'Trending') {
-            dataset = dataset.filter(p => {
-                return p.category === currentCategory;
-            });
+            dataset = dataset.filter(p => p.category === currentCategory);
         }
         
         if (currentSearch) {
@@ -792,7 +941,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const isSaved = getBookmarks().includes(pId);
             
             let badgesHtml = `<span class="category-badge">${prompt.category || 'General'}</span>`;
-            
             if (prompt.status === 'pending') {
                 badgesHtml += `<span class="pending-badge">Pending</span>`;
             }
@@ -822,19 +970,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
                 
-                <h3 onclick="trackAndView('${pId}', '${encTitle}', '${encText}')" style="cursor:pointer;">
+                <h3 style="cursor:pointer;" onclick="window.initiateAiRun('${encTitle}', '${encText}')">
                     ${prompt.title || 'Untitled'}
                 </h3>
                 
-                <p class="preview-text" onclick="trackAndView('${pId}', '${encTitle}', '${encText}')">
+                <p class="preview-text" onclick="window.initiateAiRun('${encTitle}', '${encText}')">
                     "${(prompt.prompt_text||'').substring(0, 60)}..."
                 </p>
                 
                 <div class="action-row">
-                    <button class="action-btn run-ai-btn" onclick="initiateAiRun('${encTitle}', '${encText}')">
+                    <button class="action-btn run-ai-btn" onclick="window.initiateAiRun('${encTitle}', '${encText}')">
                         ✨ Run AI
                     </button>
-                    <button class="action-btn copy-card-btn" onclick="window.copyPrompt('${encText}')">
+                    <button class="action-btn copy-card-btn" onclick="navigator.clipboard.writeText(decodeURIComponent('${encText}')); showCustomAlert('Copied! 🚀');">
                         📋 Copy
                     </button>
                     <button class="action-btn share-btn" onclick="window.sharePrompt('${encTitle}', '${encText}')">
@@ -847,15 +995,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+
     // ==========================================
-    // 10. CARD ACTIONS (VIEW, COPY, SHARE)
+    // 11. CARD ACTIONS (VIEW, COPY, SHARE)
     // ==========================================
     window.trackAndView = function(pId, encTitle, encText) {
         let currentViews = parseInt(localStorage.getItem(`views_${pId}`)) || 0;
         localStorage.setItem(`views_${pId}`, currentViews + 1);
         
         document.getElementById('viewModalTitle').textContent = decodeURIComponent(encTitle);
-        
         textToCopy = decodeURIComponent(encText);
         document.getElementById('viewModalText').textContent = textToCopy;
         
@@ -881,7 +1029,6 @@ document.addEventListener('DOMContentLoaded', () => {
             text: `*${decodeURIComponent(encTitle)}*\n"${decodeURIComponent(encText)}"\n`, 
             url: window.location.href.split('?')[0] 
         };
-        
         if (navigator.share) {
             navigator.share(shareData).catch(() => {});
         } else {
@@ -889,8 +1036,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+
     // ==========================================
-    // 11. AI RUN FLOW & MODALS
+    // 12. AI RUN FLOW (Interstitial Ad & Modals)
     // ==========================================
     window.initiateAiRun = function(encTitle, encText) {
         pendingAiRunData = { 
@@ -900,62 +1048,76 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('adPromptModal').style.display = 'block';
     };
 
-    document.getElementById('watchAdBtn').addEventListener('click', () => {
+    // Watch Ad Button to Unlock AI logic
+    document.getElementById('watchAdBtn').addEventListener('click', async () => {
         document.getElementById('adPromptModal').style.display = 'none';
-        document.getElementById('simulatedAdModal').style.display = 'block';
-        
-        let time = 3;
-        document.getElementById('adTimer').innerText = time;
-        
-        const interval = setInterval(() => {
-            time--; 
+
+        if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+            try {
+                const { AdMob } = window.Capacitor.Plugins;
+                await AdMob.showInterstitial();
+                openAiRunModal();
+            } catch (e) {
+                // Fallback to open modal even if Ad fails
+                openAiRunModal();
+            }
+        } else {
+            // Simulator for web
+            document.getElementById('simulatedAdModal').style.display = 'block';
+            let time = 3; 
             document.getElementById('adTimer').innerText = time;
             
-            if (time <= 0) {
-                clearInterval(interval);
-                document.getElementById('simulatedAdModal').style.display = 'none';
-                
-                if (pendingAiRunData) {
-                    currentGeneratedOutputTitle = decodeURIComponent(pendingAiRunData.title);
-                    document.getElementById('aiPromptTitle').textContent = currentGeneratedOutputTitle;
-                    
-                    const container = document.getElementById('dynamicInputsContainer');
-                    container.innerHTML = ''; 
-                    document.getElementById('aiOutputContainer').style.display = 'none';
-                    
-                    const matches = [...decodeURIComponent(pendingAiRunData.text).matchAll(/\[(.*?)\]/g)];
-                    const uniqueVars = [...new Set(matches.map(m => m[1]))]; 
-                    
-                    if (uniqueVars.length === 0) {
-                        container.innerHTML = `
-                            <p style="color:var(--accent-green); margin-bottom:15px;">
-                                No variables detected. Run directly!
-                            </p>
-                        `;
-                    } else {
-                        uniqueVars.forEach(vName => { 
-                            container.insertAdjacentHTML('beforeend', `
-                                <div>
-                                    <label style="font-size:13px; color:var(--text-muted); display:block; text-transform:capitalize; margin-bottom:5px;">
-                                        ${vName}:
-                                    </label>
-                                    <input type="text" class="ai-var-input" data-var="${vName}" placeholder="Enter ${vName}...">
-                                </div>
-                            `); 
-                        });
-                    }
-                    document.getElementById('aiRunModal').style.display = 'block';
+            const interval = setInterval(() => {
+                time--; 
+                document.getElementById('adTimer').innerText = time;
+                if (time <= 0) {
+                    clearInterval(interval); 
+                    document.getElementById('simulatedAdModal').style.display = 'none';
+                    openAiRunModal();
                 }
-            }
-        }, 1000);
+            }, 1000);
+        }
     });
 
+    function openAiRunModal() {
+        if (pendingAiRunData) {
+            currentGeneratedOutputTitle = decodeURIComponent(pendingAiRunData.title);
+            document.getElementById('aiPromptTitle').textContent = currentGeneratedOutputTitle;
+            
+            const container = document.getElementById('dynamicInputsContainer');
+            container.innerHTML = ''; 
+            document.getElementById('aiOutputContainer').style.display = 'none';
+            
+            const matches = [...decodeURIComponent(pendingAiRunData.text).matchAll(/\[(.*?)\]/g)];
+            const uniqueVars = [...new Set(matches.map(m => m[1]))]; 
+            
+            if (uniqueVars.length === 0) {
+                container.innerHTML = `
+                    <p style="color:var(--accent-green); margin-bottom:15px;">
+                        No variables detected. Run directly!
+                    </p>
+                `;
+            } else {
+                uniqueVars.forEach(vName => { 
+                    container.insertAdjacentHTML('beforeend', `
+                        <div>
+                            <label style="font-size:13px; color:var(--text-muted); display:block; text-transform:capitalize; margin-bottom:5px;">
+                                ${vName}:
+                            </label>
+                            <input type="text" class="ai-var-input" data-var="${vName}" placeholder="Enter ${vName}...">
+                        </div>
+                    `); 
+                });
+            }
+            document.getElementById('aiRunModal').style.display = 'block';
+        }
+    }
+
     // ==========================================
-    // 12. AI ENHANCER LOGIC
+    // 13. AI ENHANCER LOGIC
     // ==========================================
     document.getElementById('enhancePromptBtn').addEventListener('click', async () => {
         const promptArea = document.getElementById('promptText');
-        
         if (!promptArea.value.trim()) {
             return showCustomAlert("Please enter a basic idea first!");
         }
@@ -969,7 +1131,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.innerHTML = "🪄 Enhancing...";
         btn.disabled = true;
         
-        // Simulate AI enhancement delay
         setTimeout(() => {
             promptArea.value = "Enhanced Prompt: " + promptArea.value.trim() + " [Make this highly professional and structured for better AI results]";
             btn.innerHTML = "🪄 Enhance with AI (-2 🪙)";
@@ -979,7 +1140,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 13. TEST MODE AI GENERATOR
+    // 14. TEST MODE AI GENERATOR
     // ==========================================
     document.getElementById('generateAiBtn').addEventListener('click', async (e) => {
         if (!currentUser) {
@@ -1018,7 +1179,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 14. EXPORT & WATERMARK LOGIC
+    // 15. EXPORT & WATERMARK LOGIC
     // ==========================================
     document.getElementById('exportAiOutputBtn').addEventListener('click', () => {
         document.getElementById('aiRunModal').style.display = 'none';
@@ -1076,7 +1237,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const interval = setInterval(() => {
             time--; 
             document.getElementById('adTimer').innerText = time;
-            
             if (time <= 0) { 
                 clearInterval(interval); 
                 document.getElementById('simulatedAdModal').style.display = 'none'; 
@@ -1086,21 +1246,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 15. HTML2CANVAS EXECUTION
+    // 16. HTML2CANVAS EXECUTION
     // ==========================================
     async function executeExport(mode, customConfig = null) {
         showCustomAlert("Generating Image... 📸");
         const container = document.getElementById('exportCanvasContainer');
-        
         const exportFormat = document.getElementById('exportCanvasFormat').value;
-        let formatClass = '';
         
+        let formatClass = '';
         if (exportFormat === 'story') {
             formatClass = 'export-poster story-mode';
         } else {
             formatClass = 'export-poster';
         }
-
+        
         let watermarkHtml = '';
 
         if (mode === 'free') {
@@ -1145,9 +1304,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             setTimeout(async () => {
-                const canvas = await html2canvas(document.getElementById('posterTarget'), {
+                const canvas = await html2canvas(document.getElementById('posterTarget'), { 
                     scale: 2, 
-                    backgroundColor: '#0f172a'
+                    backgroundColor: '#0f172a' 
                 });
                 
                 const link = document.createElement('a');
@@ -1156,7 +1315,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.click();
                 
                 container.innerHTML = ''; 
-                
             }, 500);
         } catch(e) { 
             showCustomAlert("Error generating image."); 
@@ -1164,7 +1322,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 16. ADD PROMPT SUBMISSION & ADMIN
+    // 17. ADD PROMPT SUBMISSION & ADMIN
     // ==========================================
     document.getElementById('openAddPromptBtn').addEventListener('click', () => {
         document.getElementById('promptTitle').value = ''; 
@@ -1198,7 +1356,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showCustomAlert('Submitted Successfully for Admin Approval! 🚀');
             document.getElementById('addPromptModal').style.display = 'none'; 
             fetchCommunityPrompts();
-            
         } catch(err) { 
             showCustomAlert(err.message); 
         }
@@ -1212,9 +1369,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         try {
             if (action === 'approve') {
-                await db.collection('community_prompts').doc(docId).update({ 
-                    status: 'approved' 
-                });
+                await db.collection('community_prompts').doc(docId).update({ status: 'approved' });
             } else if (action === 'reject') {
                 await db.collection('community_prompts').doc(docId).delete();
             }
@@ -1225,7 +1380,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // 17. EDIT PROFILE & AVATAR SELECTION
+    // 18. EDIT PROFILE & AVATAR SELECTION
     // ==========================================
     document.getElementById('profileContainer').addEventListener('click', (e) => {
         if (e.target.id === 'openEditProfileBtn') {
@@ -1239,7 +1394,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     opt.classList.remove('selected');
                 }
             });
-            
             document.getElementById('editProfileModal').style.display = 'block';
         }
     });
@@ -1257,46 +1411,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('saveProfileBtn').addEventListener('click', async () => {
         const newName = document.getElementById('editProfileName').value.trim();
-        
         if (!newName) {
             return showCustomAlert("Please enter a valid name!");
         }
-        
         if (!currentUser) {
             return;
         }
 
         const btn = document.getElementById('saveProfileBtn');
-        btn.innerHTML = "Saving... ⏳";
+        btn.innerHTML = "Saving... ⏳"; 
         btn.disabled = true;
 
         try {
-            await db.collection('users').doc(currentUser.uid).set({
-                name: newName,
-                avatar: selectedAvatar
+            await db.collection('users').doc(currentUser.uid).set({ 
+                name: newName, 
+                avatar: selectedAvatar 
             }, { 
                 merge: true 
             });
-
-            userProfileData.name = newName;
+            
+            userProfileData.name = newName; 
             userProfileData.avatar = selectedAvatar;
-
+            
             showCustomAlert("Profile Updated Successfully! ✅");
             document.getElementById('editProfileModal').style.display = 'none';
-            
             renderProfileDashboard(); 
             
-        } catch (e) {
+        } catch (e) { 
             showCustomAlert("Error updating profile: " + e.message);
-        } finally {
-            btn.innerHTML = "Save Changes";
-            btn.disabled = false;
+        } finally { 
+            btn.innerHTML = "Save Changes"; 
+            btn.disabled = false; 
         }
     });
 
     // ==========================================
-    // 18. INITIAL FETCH
+    // 19. INITIAL FETCH
     // ==========================================
+    // Demo prompts array initialized above, actual fetch call below
     fetchOfficialPrompts();
 
 });
