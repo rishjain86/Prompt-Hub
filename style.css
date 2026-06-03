@@ -25,7 +25,7 @@ body {
     overscroll-behavior-y: none; 
     -webkit-font-smoothing: antialiased; 
     line-height: 1.5; 
-    padding-bottom: 80px; /* Adjusted bottom space */
+    padding-bottom: 70px; 
     overflow-x: hidden; 
 }
 
@@ -65,12 +65,6 @@ body {
     cursor: pointer; 
     padding: 5px; 
     outline: none; 
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
 .brand h1 { 
@@ -275,26 +269,16 @@ body {
     box-shadow: 0 0 15px var(--hover-glow); 
 }
 
-/* FIX: TABS WILL NEVER GO TO SECOND LINE NOW */
 .app-tabs { 
     display: flex; 
-    justify-content: flex-start; /* Aligns left so it scrolls naturally */
+    justify-content: center; 
     gap: 15px; 
     margin: 15px 0; 
     border-bottom: 1px solid var(--border-color); 
-    flex-wrap: nowrap; /* Stop second line wrapping forever */
-    overflow-x: auto; 
-    -ms-overflow-style: none; 
-    scrollbar-width: none; 
-    padding: 0 15px;
-}
-
-.app-tabs::-webkit-scrollbar { 
-    display: none; 
+    flex-wrap: wrap; 
 }
 
 .tab-btn { 
-    flex-shrink: 0; /* Important: stops buttons from squeezing */
     background: none; 
     border: none; 
     color: var(--text-muted); 
@@ -344,7 +328,6 @@ body {
     font-size: 14px; 
     cursor: pointer; 
     outline: none; 
-    flex-shrink: 0;
 }
 
 .filter-btn.active { 
@@ -1074,7 +1057,7 @@ input[type="color"]::-webkit-color-swatch {
 #splash {
     position: fixed;
     inset: 0;
-    background-color: #0F172A; 
+    background-color: #0F172A; /* Prompt Hub Theme Background */
     background-image: url('splash.png'); 
     background-size: cover;
     background-position: center;
