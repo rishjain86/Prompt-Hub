@@ -33,7 +33,7 @@ jobs:
           "bundledWebRuntime": false,
           "plugins": {
             "SplashScreen": {
-              "launchShowDuration": 3000,
+              "launchShowDuration": 0,
               "launchAutoHide": true,
               "backgroundColor": "#0f172a",
               "androidSplashResourceName": "splash",
@@ -60,6 +60,10 @@ jobs:
         mkdir -p www
         cp index.html style.css script.js prompts.json www/
         cp -r assets www/assets || true
+        # Jap Counter Trick - Splash image ko root mein copy karna
+        cp assets/splash.png www/splash.png || true
+        cp assets/Splash.png www/splash.png || true
+        cp assets/splash.jpg www/splash.jpg || true
 
     - name: Add Android Platform & Sync
       run: |
@@ -118,3 +122,4 @@ jobs:
       with:
         name: PromptHub-Keystore
         path: prompthub.jks
+        
