@@ -1,13 +1,31 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- SPLASH SCREEN FADE OUT LOGIC ---
+    // ==========================================
+    // 0. SPLASH SCREEN & NATIVE ENGINE INIT
+    // ==========================================
+    
+    // Splash Screen Fade Out Logic
     setTimeout(() => { 
-        const splash = document.getElementById('splash-overlay');
+        const splash = document.getElementById('splash');
         if(splash) {
             splash.style.opacity = '0'; 
             setTimeout(() => splash.style.display = 'none', 800); 
         }
-    }, 3000); // 3 seconds tak dikhegi, phir fade out ho jayegi
+    }, 3000);
+
+    // Google Auth Engine Pre-load (To prevent Native Crash)
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+        try {
+            window.Capacitor.Plugins.GoogleAuth.initialize({
+                clientId: '242493810474-us5ib99pnjj9of6p3iov9hd6n8ltm975.apps.googleusercontent.com',
+                serverClientId: '242493810474-us5ib99pnjj9of6p3iov9hd6n8ltm975.apps.googleusercontent.com',
+                scopes: ['profile', 'email'],
+                grantOfflineAccess: true,
+            });
+        } catch (e) {
+            console.error("Auth Pre-load error:", e);
+        }
+    }
 
     // ==========================================
     // 1. FIREBASE CONFIGURATION
@@ -335,44 +353,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ==========================================
-// 3. GOOGLE SIGN-IN (NATIVE ANDROID + WEB)
-// ==========================================
-const googleAuthBtn = document.getElementById('googleAuthBtn');
-if (googleAuthBtn) {
-    googleAuthBtn.addEventListener('click', async () => {
-        try {
-            // Check agar app Android (Capacitor) mein chal rahi hai
-            if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-                
-                const GoogleAuth = window.Capacitor.Plugins.GoogleAuth;
-                
-                if (!GoogleAuth) {
-                    throw new Error("Google Plugin load nahi hua! Nayi APK ka wait karein.");
+    // ==== GOOGLE LOGIN BUTTON ====
+    const googleAuthBtn = document.getElementById('googleAuthBtn');
+    if (googleAuthBtn) {
+        googleAuthBtn.addEventListener('click', async () => {
+            try {
+                if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+                    // Ab sirf signIn() call karna hai kyunki engine upar start ho chuka hai
+                    const googleUser = await window.Capacitor.Plugins.GoogleAuth.signIn();
+                    const credential = firebase.auth.GoogleAuthProvider.credential(googleUser.authentication.idToken);
+                    await auth.signInWithCredential(credential);
+                } else {
+                    await auth.signInWithPopup(googleProvider);
                 }
-
-                // Sign in aur Token lena (Android mein initialize() ki zaroorat nahi hoti)
-                const googleUser = await GoogleAuth.signIn();
-                const credential = firebase.auth.GoogleAuthProvider.credential(googleUser.authentication.idToken);
-                
-                // Firebase mein login karna
-                await auth.signInWithCredential(credential);
-                
-            } else {
-                // Agar Vercel (Website) par chal rahi hai toh purana popup method
-                const googleProvider = new firebase.auth.GoogleAuthProvider();
-                await auth.signInWithPopup(googleProvider);
+                document.getElementById('authModal').style.display = 'none';
+                showCustomAlert("Google se successfully login ho gaya! 🎉");
+            } catch (error) { 
+                console.error("Google Login Error:", error);
+                showCustomAlert("Google Login Error: " + error.message); 
             }
-            
-            hideAuthModal();
-            showCustomAlert("Google se successfully login ho gaya! 🎉");
+        });
+    }
 
-        } catch (error) {
-            console.error("Google Login Error:", error);
-            showCustomAlert("Login Error: " + error.message);
+    document.getElementById('forgotPasswordBtn').addEventListener('click', async () => {
+        const email = document.getElementById('emailInput').value.trim();
+        
+        if (!email) {
+            return showCustomAlert("Please enter your email address first.");
+        }
+        
+        try {
+            await auth.sendPasswordResetEmail(email);
+            showCustomAlert("Password reset link sent to your email!");
+            document.getElementById('authModal').style.display = 'none';
+        } catch (error) { 
+            showCustomAlert(error.message); 
         }
     });
-}
+
     // ==========================================
     // 6. DATA FETCHING
     // ==========================================
