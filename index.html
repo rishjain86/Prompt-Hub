@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Prompt Hub | Professional AI Suite</title>
-    <link rel="stylesheet" href="style.css?v=27">
+    <link rel="stylesheet" href="style.css?v=28">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -13,8 +13,10 @@
 <body>
     <div id="splash"></div>
 
+    <!-- HEADER SECTION -->
     <header class="header">
         <button id="hamburgerBtn" class="icon-btn">☰</button>
+        <!-- Logo click goes to Home -->
         <div class="brand" onclick="window.goToHome()" style="cursor: pointer;">
             <h1>Prompt Hub</h1>
         </div>
@@ -27,10 +29,12 @@
         </div>
     </header>
 
+    <!-- CROSS PROMOTION BANNER -->
     <div class="promo-banner-container">
         <div id="promoSlider" class="promo-slider"></div>
     </div>
 
+    <!-- SIDE MENU -->
     <div id="sideMenuOverlay" class="menu-overlay"></div>
     <nav id="sideMenu" class="side-menu">
         <div class="menu-header">
@@ -38,7 +42,6 @@
             <span class="close-menu" onclick="document.getElementById('sideMenu').classList.remove('open'); document.getElementById('sideMenuOverlay').style.display='none';">&times;</span>
         </div>
         <ul id="menuCategories" class="menu-list">
-            <li onclick="window.goToHome()" style="color: var(--accent-blue); font-weight: bold;">🏠 Back to Home</li>
             <li data-category="Coding & Tech">Coding & Tech</li>
             <li data-category="Marketing & Social Media">Marketing & Social Media</li>
             <li data-category="Copywriting & Content">Copywriting & Content</li>
@@ -68,13 +71,16 @@
         </ul>
     </nav>
 
+    <!-- SEARCH BAR -->
     <div class="search-section-wrapper">
         <div class="search-container">
             <input type="search" id="searchInput" name="searchQuery" placeholder="Search prompts (e.g. Gaming)..." autocomplete="nope" autocorrect="off" spellcheck="false">
         </div>
     </div>
 
+    <!-- APP TABS WITH HOME BUTTON -->
     <div class="app-tabs">
+        <button onclick="window.goToHome()" class="tab-btn" style="font-size:18px;" title="Home">🏠</button>
         <button id="tabOfficial" class="tab-btn active">Official</button>
         <button id="tabCommunity" class="tab-btn">Community</button>
         <button id="tabSaved" class="tab-btn">Saved</button>
@@ -83,6 +89,7 @@
 
     <button id="openAddPromptBtn" class="add-prompt-btn" style="display:none;">+ Add Expert Prompt</button>
 
+    <!-- CATEGORY FILTERS -->
     <nav class="category-filter" id="categoryFilter">
         <button class="filter-btn active" data-category="All">All</button>
         <button class="filter-btn trending-btn" data-category="Trending">🔥 Trending</button>
@@ -91,11 +98,18 @@
         <button class="filter-btn" data-category="Gaming & World Building">Gaming</button>
     </nav>
 
+    <!-- MAIN CONTAINERS -->
     <main class="prompt-container" id="promptContainer"></main>
 
+    <!-- CREATOR PROFILE DASHBOARD CONTAINER -->
     <main id="profileContainer" style="display: none; padding: 20px; max-width: 1200px; margin: 0 auto;"></main>
 
+    <!-- AD BANNER SPACER (Keeps content above bottom banner) -->
+    <div style="height: 70px; width: 100%;"></div>
+
     <div id="exportCanvasContainer" style="position: absolute; top: -9999px; left: -9999px;"></div>
+
+    <!-- ================= MODALS ================= -->
 
     <div id="welcomeModal" class="modal">
         <div class="modal-content" style="text-align: center;">
@@ -146,11 +160,11 @@
         </div>
     </div>
 
+    <!-- Simulated Ad Modal (For Web Browser Fallback) -->
     <div id="simulatedAdModal" class="modal" style="background: black;">
         <div class="modal-content" style="text-align: center; background: #000; margin-top: 50%; border:none;">
-            <h2 style="color: #fff;">Test Video Ad Playing...</h2>
+            <h2 style="color: #fff;">Video Ad Playing...</h2>
             <p id="adTimer" style="color: #f59e0b; font-size: 24px; font-weight: bold; margin: 20px 0;">3</p>
-            <p style="color: #666; font-size: 12px;">(In production, real Rewarded Video will play here)</p>
         </div>
     </div>
 
@@ -306,15 +320,6 @@
         </div>
     </div>
 
-    <div id="coinHistoryModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="document.getElementById('coinHistoryModal').style.display='none'">&times;</span>
-            <h2 style="color:#fbbf24; margin-bottom: 15px;">Coin History 🪙</h2>
-            <div id="coinHistoryList" style="max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
-            </div>
-        </div>
-    </div>
-
     <div id="termsModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('termsModal').style.display='none'">&times;</span>
@@ -322,10 +327,7 @@
             <div style="color:var(--text-muted); font-size: 14px; line-height: 1.6; max-height: 60vh; overflow-y: auto;">
                 <p><strong>1. Acceptance of Terms:</strong> By accessing and using Prompt Hub, you accept and agree to be bound by the terms and provision of this agreement.</p><br>
                 <p><strong>2. User Content:</strong> You retain ownership of the prompts you submit, but grant Prompt Hub a worldwide, royalty-free license to display and share them within the community.</p><br>
-                <p><strong>3. Virtual Currency (Coins):</strong> The coins provided in this app are strictly for accessing in-app AI features (like AI enhancements and watermarks). They hold no real-world monetary value, cannot be cashed out, and cannot be exchanged for real money.</p><br>
-                <p><strong>4. Prohibited Conduct:</strong> Users must not submit malicious, NSFW, hateful, or illegal prompts. Admins reserve the right to ban accounts and remove content violating these rules without prior notice.</p><br>
-                <p><strong>5. Limitation of Liability:</strong> Prompt Hub provides AI-generated content "as is" and is not responsible for any inaccuracies, damages, or issues arising from the use of generated outputs.</p><br>
-                <p><strong>6. Contact:</strong> If you have any questions regarding these Terms, you may contact us at <strong>maincryptowala@gmail.com</strong>.</p>
+                <p><strong>3. Virtual Currency (Coins):</strong> The coins provided in this app are strictly for accessing in-app AI features. They hold no real-world monetary value.</p><br>
             </div>
         </div>
     </div>
@@ -335,11 +337,9 @@
             <span class="close-modal" onclick="document.getElementById('privacyModal').style.display='none'">&times;</span>
             <h2 style="color:var(--accent-green); margin-bottom: 15px;">Privacy Policy 🔒</h2>
             <div style="color:var(--text-muted); font-size: 14px; line-height: 1.6; max-height: 60vh; overflow-y: auto;">
-                <p><strong>1. Information Collection:</strong> We collect your email address and basic profile information (like Display Name) when you register via Email/Password or Google Sign-In.</p><br>
-                <p><strong>2. Use of Information:</strong> Your email is used solely for authentication, leaderboard display (masked username), and to associate your submitted prompts with your creator account.</p><br>
-                <p><strong>3. Data Storage and Security:</strong> We securely store your data using Google Firebase infrastructure. We do not sell, rent, or share your personal data with third-party data brokers or advertisers.</p><br>
-                <p><strong>4. AI Processing:</strong> Prompts submitted for AI enhancement or generation are sent to secure third-party AI API providers (such as Groq and OpenRouter). Please do not include highly sensitive personal information (like passwords or government IDs) in your prompt text.</p><br>
-                <p><strong>5. Data Deletion & Contact:</strong> You have the right to request the deletion of your account and associated data. For data deletion requests or privacy concerns, please email us directly at <strong>maincryptowala@gmail.com</strong>.</p>
+                <p><strong>1. Information Collection:</strong> We collect your email address and basic profile information when you register.</p><br>
+                <p><strong>2. Data Storage and Security:</strong> We securely store your data using Google Firebase infrastructure.</p><br>
+                <p><strong>3. Data Deletion:</strong> For data deletion requests, please email us directly at <strong>maincryptowala@gmail.com</strong>.</p>
             </div>
         </div>
     </div>
@@ -351,6 +351,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=27"></script>
+    <script src="script.js?v=28"></script>
 </body>
 </html>
