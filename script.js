@@ -22,6 +22,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 scopes: ['profile', 'email'],
                 grantOfflineAccess: true,
             });
+
+            // AdMob Native Init & Load
+            const initAds = async () => {
+                const { AdMob } = window.Capacitor.Plugins;
+                
+                await AdMob.initialize({
+                    requestTrackingAuthorization: true,
+                    initializeForTesting: false
+                });
+
+                // 1. Show Banner at Bottom
+                await AdMob.showBanner({
+                    adId: 'ca-app-pub-3940256099942544/6300978111', 
+                    adSize: "BANNER",
+                    position: "BOTTOM_CENTER",
+                    margin: 0
+                });
+
+                // 2. Prepare Interstitial (For Prompts AI)
+                await AdMob.prepareInterstitial({ 
+                    adId: 'ca-app-pub-3940256099942544/1033173712' 
+                }); 
+                
+                AdMob.addListener('interstitialAdDismissed', () => { 
+                    AdMob.prepareInterstitial({ 
+                        adId: 'ca-app-pub-3940256099942544/1033173712' 
+                    }); 
+                });
+
+                // 3. Prepare Rewarded Video (For Coins)
+                await AdMob.prepareRewardVideoAd({ 
+                    adId: 'ca-app-pub-3940256099942544/5224354917' 
+                }); 
+                
+                AdMob.addListener('rewardedVideoAdDismissed', () => { 
+                    AdMob.prepareRewardVideoAd({ 
+                        adId: 'ca-app-pub-3940256099942544/5224354917' 
+                    }); 
+                });
+            };
+            
+            initAds().catch((e) => {
+                console.log("AdMob Init Error:", e);
+            });
+
         } catch (e) {
             console.error("Auth Pre-load error:", e);
         }
@@ -125,6 +170,38 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('sideMenuOverlay').addEventListener('click', () => {
         document.getElementById('sideMenu').classList.remove('open');
         document.getElementById('sideMenuOverlay').style.display = 'none';
+    });
+
+    document.querySelectorAll('#menuCategories li[data-category]').forEach((li) => {
+        li.addEventListener('click', (e) => {
+            currentCategory = e.currentTarget.getAttribute('data-category'); 
+            currentTab = 'official'; 
+            
+            document.getElementById('sideMenu').classList.remove('open');
+            document.getElementById('sideMenuOverlay').style.display = 'none';
+            
+            document.querySelectorAll('.tab-btn').forEach((b) => {
+                b.classList.remove('active');
+            });
+            
+            const tabOfficial = document.getElementById('tabOfficial');
+            if (tabOfficial) {
+                tabOfficial.classList.add('active');
+            }
+            
+            document.querySelectorAll('.filter-btn').forEach((b) => {
+                b.classList.remove('active');
+            });
+            
+            let matchingBtn = document.querySelector(`.filter-btn[data-category="${currentCategory}"]`);
+            if (matchingBtn) {
+                matchingBtn.classList.add('active');
+            }
+            
+            updateTabsUI();
+            filterAndRender();
+            window.scrollTo(0, 0);
+        });
     });
 
     // ==========================================
@@ -273,27 +350,39 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('coinModal').style.display = 'block';
     };
 
-    document.getElementById('watchAdForCoinsBtn').addEventListener('click', () => {
+    document.getElementById('watchAdForCoinsBtn').addEventListener('click', async () => {
         document.getElementById('coinModal').style.display = 'none';
         
-        const adModal = document.getElementById('simulatedAdModal');
-        adModal.style.display = 'block';
-        
-        let time = 3; 
-        document.getElementById('adTimer').innerText = time;
-        
-        const interval = setInterval(async () => {
-            time--; 
-            document.getElementById('adTimer').innerText = time;
-            
-            if (time <= 0) {
-                clearInterval(interval);
-                adModal.style.display = 'none';
-                
+        if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+            try {
+                const { AdMob } = window.Capacitor.Plugins;
+                await AdMob.showRewardVideoAd();
                 await updateCoins(15); 
                 showCustomAlert("💰 15 Coins added successfully!");
+            } catch (error) {
+                console.error(error);
+                showCustomAlert("Ad failed to load. Please try again later.");
             }
-        }, 1000);
+        } else {
+            const adModal = document.getElementById('simulatedAdModal');
+            adModal.style.display = 'block';
+            
+            let time = 3; 
+            document.getElementById('adTimer').innerText = time;
+            
+            const interval = setInterval(async () => {
+                time--; 
+                document.getElementById('adTimer').innerText = time;
+                
+                if (time <= 0) {
+                    clearInterval(interval);
+                    adModal.style.display = 'none';
+                    
+                    await updateCoins(15); 
+                    showCustomAlert("💰 15 Coins added successfully!");
+                }
+            }, 1000);
+        }
     });
 
     // ==========================================
@@ -359,7 +448,6 @@ document.addEventListener('DOMContentLoaded', () => {
         googleAuthBtn.addEventListener('click', async () => {
             try {
                 if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-                    // Ab sirf signIn() call karna hai kyunki engine upar start ho chuka hai
                     const googleUser = await window.Capacitor.Plugins.GoogleAuth.signIn();
                     const credential = firebase.auth.GoogleAuthProvider.credential(googleUser.authentication.idToken);
                     await auth.signInWithCredential(credential);
@@ -367,7 +455,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     await auth.signInWithPopup(googleProvider);
                 }
                 document.getElementById('authModal').style.display = 'none';
-                showCustomAlert("Google se successfully login ho gaya! 🎉");
             } catch (error) { 
                 console.error("Google Login Error:", error);
                 showCustomAlert("Google Login Error: " + error.message); 
@@ -397,11 +484,28 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchOfficialPrompts() {
         try {
             const res = await fetch('prompts.json?t=' + Date.now());
-            allOfficialPrompts = await res.json();
-            filterAndRender();
+            if (res.ok) {
+                allOfficialPrompts = await res.json();
+            }
         } catch (e) { 
-            console.log(e); 
+            console.log("Error fetching prompts.json", e); 
         }
+
+        if (!allOfficialPrompts || allOfficialPrompts.length === 0) {
+            allOfficialPrompts = [
+                { 
+                    title: "HTML Bug Fixer", 
+                    category: "Coding & Tech", 
+                    prompt_text: "Analyze this HTML code and fix any syntax errors: [Paste Code]" 
+                },
+                { 
+                    title: "Viral Social Media Plan", 
+                    category: "Marketing & Social Media", 
+                    prompt_text: "Create a 30-day viral social media marketing plan for [Product/Service]" 
+                }
+            ];
+        }
+        filterAndRender();
     }
 
     async function fetchCommunityPrompts() {
@@ -470,22 +574,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            const targetBtn = e.currentTarget;
+            if(targetBtn.title === "Home") return;
+            
             document.querySelectorAll('.tab-btn').forEach(b => {
                 b.classList.remove('active');
             });
             
-            e.target.classList.add('active');
+            targetBtn.classList.add('active');
             
-            if (e.target.id === 'tabOfficial') {
+            if (targetBtn.id === 'tabOfficial') {
                 currentTab = 'official';
             }
-            if (e.target.id === 'tabCommunity') {
+            if (targetBtn.id === 'tabCommunity') {
                 currentTab = 'community';
             }
-            if (e.target.id === 'tabSaved') {
+            if (targetBtn.id === 'tabSaved') {
                 currentTab = 'saved';
             }
-            if (e.target.id === 'tabLeaderboard') {
+            if (targetBtn.id === 'tabLeaderboard') {
                 currentTab = 'leaderboard';
             }
             
@@ -515,12 +622,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            const targetBtn = e.currentTarget;
             document.querySelectorAll('.filter-btn').forEach(b => {
                 b.classList.remove('active');
             });
             
-            e.target.classList.add('active');
-            currentCategory = e.target.getAttribute('data-category');
+            targetBtn.classList.add('active');
+            currentCategory = targetBtn.getAttribute('data-category');
             filterAndRender();
         });
     });
@@ -900,55 +1008,69 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('adPromptModal').style.display = 'block';
     };
 
-    document.getElementById('watchAdBtn').addEventListener('click', () => {
+    document.getElementById('watchAdBtn').addEventListener('click', async () => {
         document.getElementById('adPromptModal').style.display = 'none';
-        document.getElementById('simulatedAdModal').style.display = 'block';
-        
-        let time = 3;
-        document.getElementById('adTimer').innerText = time;
-        
-        const interval = setInterval(() => {
-            time--; 
+
+        if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+            try {
+                const { AdMob } = window.Capacitor.Plugins;
+                await AdMob.showInterstitial();
+                openAiRunModal();
+            } catch (e) {
+                openAiRunModal();
+            }
+        } else {
+            document.getElementById('simulatedAdModal').style.display = 'block';
+            
+            let time = 3;
             document.getElementById('adTimer').innerText = time;
             
-            if (time <= 0) {
-                clearInterval(interval);
-                document.getElementById('simulatedAdModal').style.display = 'none';
+            const interval = setInterval(() => {
+                time--; 
+                document.getElementById('adTimer').innerText = time;
                 
-                if (pendingAiRunData) {
-                    currentGeneratedOutputTitle = decodeURIComponent(pendingAiRunData.title);
-                    document.getElementById('aiPromptTitle').textContent = currentGeneratedOutputTitle;
-                    
-                    const container = document.getElementById('dynamicInputsContainer');
-                    container.innerHTML = ''; 
-                    document.getElementById('aiOutputContainer').style.display = 'none';
-                    
-                    const matches = [...decodeURIComponent(pendingAiRunData.text).matchAll(/\[(.*?)\]/g)];
-                    const uniqueVars = [...new Set(matches.map(m => m[1]))]; 
-                    
-                    if (uniqueVars.length === 0) {
-                        container.innerHTML = `
-                            <p style="color:var(--accent-green); margin-bottom:15px;">
-                                No variables detected. Run directly!
-                            </p>
-                        `;
-                    } else {
-                        uniqueVars.forEach(vName => { 
-                            container.insertAdjacentHTML('beforeend', `
-                                <div>
-                                    <label style="font-size:13px; color:var(--text-muted); display:block; text-transform:capitalize; margin-bottom:5px;">
-                                        ${vName}:
-                                    </label>
-                                    <input type="text" class="ai-var-input" data-var="${vName}" placeholder="Enter ${vName}...">
-                                </div>
-                            `); 
-                        });
-                    }
-                    document.getElementById('aiRunModal').style.display = 'block';
+                if (time <= 0) {
+                    clearInterval(interval);
+                    document.getElementById('simulatedAdModal').style.display = 'none';
+                    openAiRunModal();
                 }
-            }
-        }, 1000);
+            }, 1000);
+        }
     });
+
+    function openAiRunModal() {
+        if (pendingAiRunData) {
+            currentGeneratedOutputTitle = decodeURIComponent(pendingAiRunData.title);
+            document.getElementById('aiPromptTitle').textContent = currentGeneratedOutputTitle;
+            
+            const container = document.getElementById('dynamicInputsContainer');
+            container.innerHTML = ''; 
+            document.getElementById('aiOutputContainer').style.display = 'none';
+            
+            const matches = [...decodeURIComponent(pendingAiRunData.text).matchAll(/\[(.*?)\]/g)];
+            const uniqueVars = [...new Set(matches.map(m => m[1]))]; 
+            
+            if (uniqueVars.length === 0) {
+                container.innerHTML = `
+                    <p style="color:var(--accent-green); margin-bottom:15px;">
+                        No variables detected. Run directly!
+                    </p>
+                `;
+            } else {
+                uniqueVars.forEach(vName => { 
+                    container.insertAdjacentHTML('beforeend', `
+                        <div>
+                            <label style="font-size:13px; color:var(--text-muted); display:block; text-transform:capitalize; margin-bottom:5px;">
+                                ${vName}:
+                            </label>
+                            <input type="text" class="ai-var-input" data-var="${vName}" placeholder="Enter ${vName}...">
+                        </div>
+                    `); 
+                });
+            }
+            document.getElementById('aiRunModal').style.display = 'block';
+        }
+    }
 
     // ==========================================
     // 12. AI ENHANCER LOGIC
@@ -969,7 +1091,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.innerHTML = "🪄 Enhancing...";
         btn.disabled = true;
         
-        // Simulate AI enhancement delay
         setTimeout(() => {
             promptArea.value = "Enhanced Prompt: " + promptArea.value.trim() + " [Make this highly professional and structured for better AI results]";
             btn.innerHTML = "🪄 Enhance with AI (-2 🪙)";
@@ -1250,8 +1371,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 o.classList.remove('selected');
             });
             
-            e.target.classList.add('selected');
-            selectedAvatar = e.target.getAttribute('data-avatar');
+            e.currentTarget.classList.add('selected');
+            selectedAvatar = e.currentTarget.getAttribute('data-avatar');
         });
     });
 
