@@ -1041,7 +1041,7 @@ input[type="color"]::-webkit-color-swatch {
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
-/* COIN HISTORY LIST SCROLLBAR (Optional enhancement for clean UI) */
+/* COIN HISTORY LIST SCROLLBAR */
 #coinHistoryList::-webkit-scrollbar {
     width: 4px;
 }
@@ -1051,4 +1051,21 @@ input[type="color"]::-webkit-color-swatch {
 #coinHistoryList::-webkit-scrollbar-thumb {
     background: var(--border-color); 
     border-radius: 10px;
+}
+
+/* --- FULL SCREEN SPLASH SCREEN --- */
+#splash {
+    position: fixed;
+    inset: 0;
+    background-color: #0F172A; /* Prompt Hub Theme Background */
+    background-image: url('splash.png'); 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.8s ease;
 }
