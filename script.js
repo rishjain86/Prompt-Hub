@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // AdMob Native Init & Load
             const initAds = async () => {
                 const { AdMob } = window.Capacitor.Plugins;
+                
                 await AdMob.initialize({
                     requestTrackingAuthorization: true,
                     initializeForTesting: false
@@ -36,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // 1. Show Banner at Bottom
                 await AdMob.showBanner({
-                    adId: 'ca-app-pub-3940256099942544/6300978111', // Test Banner ID, replace with real later
+                    adId: 'ca-app-pub-3940256099942544/6300978111', 
                     adSize: "BANNER",
                     position: "BOTTOM_CENTER",
                     margin: 0
@@ -45,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 2. Prepare Interstitial (For Prompts AI)
                 await AdMob.prepareInterstitial({ 
                     adId: 'ca-app-pub-3940256099942544/1033173712' 
-                }); // Test Interstitial ID
+                }); 
                 
                 AdMob.addListener('interstitialAdDismissed', () => { 
                     AdMob.prepareInterstitial({ 
@@ -56,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 3. Prepare Rewarded Video (For Coins)
                 await AdMob.prepareRewardVideoAd({ 
                     adId: 'ca-app-pub-3940256099942544/5224354917' 
-                }); // Test Rewarded ID
+                }); 
                 
                 AdMob.addListener('rewardedVideoAdDismissed', () => { 
                     AdMob.prepareRewardVideoAd({ 
@@ -64,7 +65,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     }); 
                 });
             };
-            initAds().catch(e => console.log("AdMob Init Error:", e));
+            
+            initAds().catch((e) => {
+                console.log("AdMob Init Error:", e);
+            });
 
         } catch (e) { 
             console.error("Native Init error:", e); 
@@ -129,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (promoSlider) {
         promoSlider.innerHTML = `Try our other app: <span>${promoApps[0].name}</span>`;
+        
         promoSlider.addEventListener('click', () => {
             window.open(promoApps[currentPromoIdx].link, '_blank');
         });
@@ -168,7 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. NAVIGATION LOGIC (Home & Menu)
     // ==========================================
     
-    // Go To Home Logic (Resets everything)
     window.goToHome = function() {
         currentTab = 'official';
         currentCategory = 'All';
@@ -179,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
             searchInput.value = '';
         }
         
-        document.querySelectorAll('.tab-btn').forEach(b => {
+        document.querySelectorAll('.tab-btn').forEach((b) => {
             b.classList.remove('active');
         });
         
@@ -188,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tabOfficial.classList.add('active');
         }
         
-        document.querySelectorAll('.filter-btn').forEach(b => {
+        document.querySelectorAll('.filter-btn').forEach((b) => {
             b.classList.remove('active');
         });
         
@@ -202,7 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
         window.scrollTo(0, 0);
     };
 
-    // Hamburger Menu Logic
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     if (hamburgerBtn) {
         hamburgerBtn.addEventListener('click', () => {
@@ -219,18 +222,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Category Click inside Hamburger Menu
-    document.querySelectorAll('#menuCategories li[data-category]').forEach(li => {
+    document.querySelectorAll('#menuCategories li[data-category]').forEach((li) => {
         li.addEventListener('click', (e) => {
-            currentCategory = e.target.getAttribute('data-category');
+            currentCategory = e.currentTarget.getAttribute('data-category'); 
             currentTab = 'official'; 
             
-            // Close Menu
             document.getElementById('sideMenu').classList.remove('open');
             document.getElementById('sideMenuOverlay').style.display = 'none';
             
-            // Activate correct Tab
-            document.querySelectorAll('.tab-btn').forEach(b => {
+            document.querySelectorAll('.tab-btn').forEach((b) => {
                 b.classList.remove('active');
             });
             
@@ -239,8 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tabOfficial.classList.add('active');
             }
             
-            // Activate correct Filter (Horizontal Scroll Bar)
-            document.querySelectorAll('.filter-btn').forEach(b => {
+            document.querySelectorAll('.filter-btn').forEach((b) => {
                 b.classList.remove('active');
             });
             
@@ -303,7 +302,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!userProfileData.name) {
                     userProfileData.name = defaultName;
                 }
-                
                 if (!userProfileData.avatar) {
                     userProfileData.avatar = '👨‍💻';
                 }
@@ -357,7 +355,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('headerProfileBtn').style.display = 'none';
             
             if (currentTab === 'profile') {
-                document.getElementById('tabOfficial').click();
+                const tabOfficial = document.getElementById('tabOfficial');
+                if (tabOfficial) {
+                    tabOfficial.click();
+                }
             }
         }
         
@@ -374,7 +375,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const doc = await userRef.get();
-            let currentCoins = doc.exists ? (doc.data().coins || 0) : 0;
+            let currentCoins = 0;
+            
+            if (doc.exists) {
+                currentCoins = doc.data().coins || 0;
+            }
             
             if (currentCoins + amount < 0) {
                 return false; 
@@ -394,6 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             return true;
+            
         } catch (e) { 
             console.error(e);
             return false; 
@@ -409,146 +415,213 @@ document.addEventListener('DOMContentLoaded', () => {
     // 6. AUTH MODALS, LISTENERS & ADS CLICKS
     // ==========================================
     
-    // Rewarded Video For Coins
-    document.getElementById('watchAdForCoinsBtn').addEventListener('click', async () => {
-        document.getElementById('coinModal').style.display = 'none';
-        
-        if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-            try {
-                const { AdMob } = window.Capacitor.Plugins;
-                await AdMob.showRewardVideoAd();
-                
-                await updateCoins(15); 
-                showCustomAlert("💰 15 Coins added successfully!");
-            } catch (error) {
-                console.error(error);
-                showCustomAlert("Ad failed to load. Please try again later.");
-            }
-        } else {
-            // Web Simulator Fallback
-            const adModal = document.getElementById('simulatedAdModal');
-            adModal.style.display = 'block';
+    const watchAdForCoinsBtn = document.getElementById('watchAdForCoinsBtn');
+    if (watchAdForCoinsBtn) {
+        watchAdForCoinsBtn.addEventListener('click', async () => {
+            document.getElementById('coinModal').style.display = 'none';
             
-            let time = 3; 
-            document.getElementById('adTimer').innerText = time;
-            
-            const interval = setInterval(async () => {
-                time--; 
-                document.getElementById('adTimer').innerText = time;
-                
-                if (time <= 0) {
-                    clearInterval(interval);
-                    adModal.style.display = 'none';
+            if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+                try {
+                    const { AdMob } = window.Capacitor.Plugins;
+                    await AdMob.showRewardVideoAd();
                     
                     await updateCoins(15); 
                     showCustomAlert("💰 15 Coins added successfully!");
+                } catch (error) {
+                    console.error(error);
+                    showCustomAlert("Ad failed to load. Please try again later.");
                 }
-            }, 1000);
-        }
-    });
-
-    authBtn.addEventListener('click', async () => {
-        if (currentUser) {
-            try {
-                await auth.signOut();
-                if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-                    await window.Capacitor.Plugins.GoogleAuth.signOut();
+            } else {
+                const adModal = document.getElementById('simulatedAdModal');
+                if (adModal) {
+                    adModal.style.display = 'block';
                 }
-            } catch (error) {
-                showCustomAlert("Logout Error: " + error.message);
+                
+                let time = 3; 
+                const adTimer = document.getElementById('adTimer');
+                if (adTimer) {
+                    adTimer.innerText = time;
+                }
+                
+                const interval = setInterval(async () => {
+                    time--; 
+                    if (adTimer) {
+                        adTimer.innerText = time;
+                    }
+                    
+                    if (time <= 0) {
+                        clearInterval(interval);
+                        if (adModal) {
+                            adModal.style.display = 'none';
+                        }
+                        
+                        await updateCoins(15); 
+                        showCustomAlert("💰 15 Coins added successfully!");
+                    }
+                }, 1000);
             }
-        } else {
-            document.getElementById('authModal').style.display = 'block';
-        }
-    });
+        });
+    }
+
+    if (authBtn) {
+        authBtn.addEventListener('click', async () => {
+            if (currentUser) {
+                try {
+                    await auth.signOut();
+                    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+                        await window.Capacitor.Plugins.GoogleAuth.signOut();
+                    }
+                } catch (error) {
+                    showCustomAlert("Logout Error: " + error.message);
+                }
+            } else {
+                document.getElementById('authModal').style.display = 'block';
+            }
+        });
+    }
 
     const toggleAuthMode = document.getElementById('toggleAuthMode');
-    toggleAuthMode.addEventListener('click', () => {
-        isLoginMode = !isLoginMode;
-        
-        if (isLoginMode) {
-            document.getElementById('modalTitle').textContent = "Login";
-            document.getElementById('submitAuthBtn').textContent = "Login";
-            toggleAuthMode.innerHTML = "Don't have an account? <span>Sign Up</span>";
-        } else {
-            document.getElementById('modalTitle').textContent = "Create Account";
-            document.getElementById('submitAuthBtn').textContent = "Sign Up";
-            toggleAuthMode.innerHTML = "Already have an account? <span>Login</span>";
-        }
-    });
-
-    document.getElementById('submitAuthBtn').addEventListener('click', async () => {
-        const email = document.getElementById('emailInput').value.trim();
-        const pwd = document.getElementById('passwordInput').value.trim();
-        
-        if (!email || !pwd) {
-            return showCustomAlert("Please fill all fields.");
-        }
-        
-        try {
-            if (isLoginMode) {
-                await auth.signInWithEmailAndPassword(email, pwd);
-            } else {
-                await auth.createUserWithEmailAndPassword(email, pwd);
-            }
-            document.getElementById('authModal').style.display = 'none';
-        } catch (error) { 
-            showCustomAlert(error.message); 
-        }
-    });
-
-    // Native Google Login Fix
-    document.getElementById('googleAuthBtn').addEventListener('click', async () => {
-        try {
-            if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-                const googleUser = await window.Capacitor.Plugins.GoogleAuth.signIn();
-                const credential = firebase.auth.GoogleAuthProvider.credential(googleUser.authentication.idToken);
-                await auth.signInWithCredential(credential);
-            } else {
-                await auth.signInWithPopup(googleProvider);
-            }
-            document.getElementById('authModal').style.display = 'none';
-            // Alert removed here so only 'Welcome Aboard' modal shows!
+    if (toggleAuthMode) {
+        toggleAuthMode.addEventListener('click', () => {
+            isLoginMode = !isLoginMode;
             
-        } catch (error) { 
-            console.error("Google Login Error:", error);
-            showCustomAlert("Google Login Error: " + error.message); 
-        }
-    });
+            const modalTitle = document.getElementById('modalTitle');
+            const submitAuthBtn = document.getElementById('submitAuthBtn');
+            
+            if (isLoginMode) {
+                if (modalTitle) modalTitle.textContent = "Login";
+                if (submitAuthBtn) submitAuthBtn.textContent = "Login";
+                toggleAuthMode.innerHTML = "Don't have an account? <span>Sign Up</span>";
+            } else {
+                if (modalTitle) modalTitle.textContent = "Create Account";
+                if (submitAuthBtn) submitAuthBtn.textContent = "Sign Up";
+                toggleAuthMode.innerHTML = "Already have an account? <span>Login</span>";
+            }
+        });
+    }
 
-    document.getElementById('forgotPasswordBtn').addEventListener('click', async () => {
-        const email = document.getElementById('emailInput').value.trim();
-        if (!email) {
-            return showCustomAlert("Please enter your email address first.");
-        }
-        
-        try {
-            await auth.sendPasswordResetEmail(email);
-            showCustomAlert("Password reset link sent to your email!");
-            document.getElementById('authModal').style.display = 'none';
-        } catch (error) { 
-            showCustomAlert(error.message); 
-        }
-    });
+    const submitAuthBtn = document.getElementById('submitAuthBtn');
+    if (submitAuthBtn) {
+        submitAuthBtn.addEventListener('click', async () => {
+            const emailInput = document.getElementById('emailInput');
+            const passwordInput = document.getElementById('passwordInput');
+            
+            const email = emailInput ? emailInput.value.trim() : '';
+            const pwd = passwordInput ? passwordInput.value.trim() : '';
+            
+            if (!email || !pwd) {
+                return showCustomAlert("Please fill all fields.");
+            }
+            
+            try {
+                if (isLoginMode) {
+                    await auth.signInWithEmailAndPassword(email, pwd);
+                } else {
+                    await auth.createUserWithEmailAndPassword(email, pwd);
+                }
+                
+                document.getElementById('authModal').style.display = 'none';
+                
+            } catch (error) { 
+                showCustomAlert(error.message); 
+            }
+        });
+    }
+
+    const googleAuthBtn = document.getElementById('googleAuthBtn');
+    if (googleAuthBtn) {
+        googleAuthBtn.addEventListener('click', async () => {
+            try {
+                if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+                    const googleUser = await window.Capacitor.Plugins.GoogleAuth.signIn();
+                    const credential = firebase.auth.GoogleAuthProvider.credential(googleUser.authentication.idToken);
+                    await auth.signInWithCredential(credential);
+                } else {
+                    await auth.signInWithPopup(googleProvider);
+                }
+                
+                document.getElementById('authModal').style.display = 'none';
+                
+            } catch (error) { 
+                console.error("Google Login Error:", error);
+                showCustomAlert("Google Login Error: " + error.message); 
+            }
+        });
+    }
+
+    const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+    if (forgotPasswordBtn) {
+        forgotPasswordBtn.addEventListener('click', async () => {
+            const emailInput = document.getElementById('emailInput');
+            const email = emailInput ? emailInput.value.trim() : '';
+            
+            if (!email) {
+                return showCustomAlert("Please enter your email address first.");
+            }
+            
+            try {
+                await auth.sendPasswordResetEmail(email);
+                showCustomAlert("Password reset link sent to your email!");
+                document.getElementById('authModal').style.display = 'none';
+                
+            } catch (error) { 
+                showCustomAlert(error.message); 
+            }
+        });
+    }
 
 
     // ==========================================
-    // 7. DATA FETCHING
+    // 7. DATA FETCHING & FALLBACK
     // ==========================================
     async function fetchOfficialPrompts() {
         try {
             const res = await fetch('prompts.json?t=' + Date.now());
-            allOfficialPrompts = await res.json();
-            filterAndRender();
+            if (res.ok) {
+                allOfficialPrompts = await res.json();
+            }
         } catch (e) { 
             console.log("Error fetching prompts.json", e); 
         }
+
+        if (!allOfficialPrompts || allOfficialPrompts.length === 0) {
+            allOfficialPrompts = [
+                { 
+                    title: "HTML Bug Fixer", 
+                    category: "Coding & Tech", 
+                    prompt_text: "Analyze this HTML code and fix any syntax errors: [Paste Code]" 
+                },
+                { 
+                    title: "Viral Social Media Plan", 
+                    category: "Marketing & Social Media", 
+                    prompt_text: "Create a 30-day viral social media marketing plan for [Product/Service]" 
+                },
+                { 
+                    title: "SEO Blog Writer", 
+                    category: "SEO & Website Ranking", 
+                    prompt_text: "Write an SEO-optimized blog post about [Topic] targeting the keyword [Keyword]" 
+                },
+                { 
+                    title: "Game Lore Generator", 
+                    category: "Gaming & World Building", 
+                    prompt_text: "Generate a deep lore background for an RPG game set in [Fantasy/Sci-Fi Setting]" 
+                },
+                { 
+                    title: "Cold Outreach Email", 
+                    category: "Sales & Cold Outreach", 
+                    prompt_text: "Write a high-converting cold email for [Target Audience] offering [Service]" 
+                }
+            ];
+        }
+        
+        filterAndRender();
     }
 
     async function fetchCommunityPrompts() {
         try {
             const snap = await db.collection('community_prompts').orderBy('timestamp', 'desc').get();
-            allCommunityPrompts = snap.docs.map(doc => {
+            
+            allCommunityPrompts = snap.docs.map((doc) => {
                 return { 
                     id: doc.id, 
                     ...doc.data() 
@@ -558,6 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentTab === 'community' || currentTab === 'leaderboard' || currentTab === 'profile') {
                 filterAndRender();
             }
+            
         } catch(e) { 
             console.log(e); 
         }
@@ -572,21 +646,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function getBookmarks() { 
-        return JSON.parse(localStorage.getItem(getBookmarksKey())) || []; 
+        const key = getBookmarksKey();
+        const item = localStorage.getItem(key);
+        if (item) {
+            return JSON.parse(item);
+        } else {
+            return [];
+        }
     }
 
     window.toggleBookmark = function(pId) {
         let bookmarks = getBookmarks();
         
         if (bookmarks.includes(pId)) {
-            bookmarks = bookmarks.filter(id => id !== pId);
+            bookmarks = bookmarks.filter((id) => {
+                return id !== pId;
+            });
             showCustomAlert("Removed from Saved ⭐");
         } else {
             bookmarks.push(pId);
             showCustomAlert("Saved to My Prompts ⭐");
         }
         
-        localStorage.setItem(getBookmarksKey(), JSON.stringify(bookmarks));
+        const key = getBookmarksKey();
+        localStorage.setItem(key, JSON.stringify(bookmarks));
         filterAndRender();
     };
 
@@ -594,42 +677,47 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 8. TABS, SEARCH & FILTER LISTENERS
     // ==========================================
-    document.getElementById('headerProfileBtn').addEventListener('click', () => {
-        if (!currentUser) {
-            return showCustomAlert("Please Login to view your Profile! 👤");
-        }
-        
-        document.querySelectorAll('.tab-btn').forEach(b => {
-            b.classList.remove('active');
-        });
-        
-        currentTab = 'profile';
-        updateTabsUI();
-        fetchCommunityPrompts();
-    });
-
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            if(e.target.title === "Home") {
-                return; // Ignore home btn here, handled by inline onclick
+    const headerProfileBtn = document.getElementById('headerProfileBtn');
+    if (headerProfileBtn) {
+        headerProfileBtn.addEventListener('click', () => {
+            if (!currentUser) {
+                return showCustomAlert("Please Login to view your Profile! 👤");
             }
             
-            document.querySelectorAll('.tab-btn').forEach(b => {
+            document.querySelectorAll('.tab-btn').forEach((b) => {
                 b.classList.remove('active');
             });
             
-            e.target.classList.add('active');
+            currentTab = 'profile';
+            updateTabsUI();
+            fetchCommunityPrompts();
+        });
+    }
+
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+            const targetBtn = e.currentTarget;
             
-            if (e.target.id === 'tabOfficial') {
+            if (targetBtn.title === "Home") {
+                return;
+            }
+            
+            document.querySelectorAll('.tab-btn').forEach((b) => {
+                b.classList.remove('active');
+            });
+            
+            targetBtn.classList.add('active');
+            
+            if (targetBtn.id === 'tabOfficial') {
                 currentTab = 'official';
             }
-            if (e.target.id === 'tabCommunity') {
+            if (targetBtn.id === 'tabCommunity') {
                 currentTab = 'community';
             }
-            if (e.target.id === 'tabSaved') {
+            if (targetBtn.id === 'tabSaved') {
                 currentTab = 'saved';
             }
-            if (e.target.id === 'tabLeaderboard') {
+            if (targetBtn.id === 'tabLeaderboard') {
                 currentTab = 'leaderboard';
             }
             
@@ -644,35 +732,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function updateTabsUI() {
+        const categoryFilter = document.getElementById('categoryFilter');
+        
         if (currentTab === 'leaderboard' || currentTab === 'saved' || currentTab === 'profile') {
-            document.getElementById('categoryFilter').style.display = 'none';
+            if (categoryFilter) categoryFilter.style.display = 'none';
         } else {
-            document.getElementById('categoryFilter').style.display = 'flex';
+            if (categoryFilter) categoryFilter.style.display = 'flex';
         }
         
+        const openAddPromptBtn = document.getElementById('openAddPromptBtn');
         if ((currentTab === 'community' || currentTab === 'profile') && currentUser) {
-            document.getElementById('openAddPromptBtn').style.display = 'block';
+            if (openAddPromptBtn) openAddPromptBtn.style.display = 'block';
         } else {
-            document.getElementById('openAddPromptBtn').style.display = 'none';
+            if (openAddPromptBtn) openAddPromptBtn.style.display = 'none';
         }
     }
 
-    document.querySelectorAll('.filter-btn').forEach(btn => {
+    document.querySelectorAll('.filter-btn').forEach((btn) => {
         btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.filter-btn').forEach(b => {
+            const targetBtn = e.currentTarget;
+            
+            document.querySelectorAll('.filter-btn').forEach((b) => {
                 b.classList.remove('active');
             });
             
-            e.target.classList.add('active');
-            currentCategory = e.target.getAttribute('data-category');
+            targetBtn.classList.add('active');
+            currentCategory = targetBtn.getAttribute('data-category');
             filterAndRender();
         });
     });
 
-    document.getElementById('searchInput').addEventListener('input', (e) => { 
-        currentSearch = e.target.value; 
-        filterAndRender(); 
-    });
+    const searchInputElem = document.getElementById('searchInput');
+    if (searchInputElem) {
+        searchInputElem.addEventListener('input', (e) => { 
+            currentSearch = e.target.value; 
+            filterAndRender(); 
+        });
+    }
 
 
     // ==========================================
@@ -680,17 +776,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     function renderProfileDashboard() {
         const profileContainer = document.getElementById('profileContainer');
+        if (!profileContainer) return;
         if (!currentUser) return;
 
-        let myPrompts = allCommunityPrompts.filter(p => p.authorEmail === currentUser.email);
+        let myPrompts = allCommunityPrompts.filter((p) => {
+            return p.authorEmail === currentUser.email;
+        });
         
         let totalUpvotes = myPrompts.reduce((sum, p) => {
             return sum + (p.upvotes || 0);
         }, 0);
         
-        let approvedCount = myPrompts.filter(p => p.status === 'approved').length;
-        let pendingCount = myPrompts.filter(p => p.status === 'pending').length;
-        let currentCoins = document.getElementById('coinCount').innerText;
+        let approvedCount = myPrompts.filter((p) => {
+            return p.status === 'approved';
+        }).length;
+        
+        let pendingCount = myPrompts.filter((p) => {
+            return p.status === 'pending';
+        }).length;
+        
+        const coinCountElem = document.getElementById('coinCount');
+        let currentCoins = 0;
+        if (coinCountElem) {
+            currentCoins = coinCountElem.innerText;
+        }
         
         let displayName = userProfileData.name || currentUser.displayName || currentUser.email.split('@')[0];
         let avatarEmoji = userProfileData.avatar || '👨‍💻';
@@ -703,42 +812,28 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${avatarEmoji}
                         </div>
                         <div>
-                            <h2 style="color: var(--text-main); margin:0;">
-                                ${displayName}
-                            </h2>
-                            <p style="color: var(--text-muted); font-size: 14px; margin:0;">
-                                ${currentUser.email}
-                            </p>
+                            <h2 style="color: var(--text-main); margin:0;">${displayName}</h2>
+                            <p style="color: var(--text-muted); font-size: 14px; margin:0;">${currentUser.email}</p>
                         </div>
                     </div>
-                    <button id="openEditProfileBtn" class="secondary-action-btn" style="width:auto; padding:8px 15px; font-size:13px; border-color:var(--accent-blue); color:var(--accent-blue);">
-                        ✏️ Edit
-                    </button>
+                    <button id="openEditProfileBtn" class="secondary-action-btn" style="width:auto; padding:8px 15px; font-size:13px; border-color:var(--accent-blue); color:var(--accent-blue);">✏️ Edit</button>
                 </div>
                 
                 <div class="profile-stats-grid">
                     <div class="stat-box">
-                        <div class="stat-value" style="color:#fbbf24;">
-                            ${currentCoins}
-                        </div>
+                        <div class="stat-value" style="color:#fbbf24;">${currentCoins}</div>
                         <div class="stat-label">Coins 🪙</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-value" style="color:#10b981;">
-                            ${totalUpvotes}
-                        </div>
+                        <div class="stat-value" style="color:#10b981;">${totalUpvotes}</div>
                         <div class="stat-label">Total Likes ❤️</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-value">
-                            ${approvedCount}
-                        </div>
+                        <div class="stat-value">${approvedCount}</div>
                         <div class="stat-label">Approved ✅</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-value" style="color:#f59e0b;">
-                            ${pendingCount}
-                        </div>
+                        <div class="stat-value" style="color:#f59e0b;">${pendingCount}</div>
                         <div class="stat-label">Pending ⏳</div>
                     </div>
                 </div>
@@ -755,7 +850,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </p>
             `;
         } else {
-            myPrompts.forEach(prompt => {
+            myPrompts.forEach((prompt) => {
                 const encTitle = encodeURIComponent(prompt.title || 'Untitled');
                 const encText = encodeURIComponent(prompt.prompt_text || '');
                 const pId = prompt.id;
@@ -775,27 +870,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${badgesHtml}
                         </div>
                         <div class="icon-group">
-                            <span style="color:var(--text-muted); font-size:12px; font-weight:bold;">
-                                ❤️ ${prompt.upvotes || 0}
-                            </span>
+                            <span style="color:var(--text-muted); font-size:12px; font-weight:bold;">❤️ ${prompt.upvotes || 0}</span>
                         </div>
                     </div>
-                    
-                    <h3 onclick="trackAndView('${pId}', '${encTitle}', '${encText}')" style="cursor:pointer;">
-                        ${prompt.title || 'Untitled'}
-                    </h3>
-                    
-                    <p class="preview-text" onclick="trackAndView('${pId}', '${encTitle}', '${encText}')">
-                        "${(prompt.prompt_text||'').substring(0, 60)}..."
-                    </p>
-                    
+                    <h3 onclick="trackAndView('${pId}', '${encTitle}', '${encText}')" style="cursor:pointer;">${prompt.title || 'Untitled'}</h3>
+                    <p class="preview-text" onclick="trackAndView('${pId}', '${encTitle}', '${encText}')">"${(prompt.prompt_text||'').substring(0, 60)}..."</p>
                     <div class="action-row">
-                        <button class="action-btn run-ai-btn" onclick="initiateAiRun('${encTitle}', '${encText}')">
-                            ✨ Run AI
-                        </button>
-                        <button class="action-btn copy-card-btn" onclick="window.copyPrompt('${encText}')">
-                            📋 Copy
-                        </button>
+                        <button class="action-btn run-ai-btn" onclick="initiateAiRun('${encTitle}', '${encText}')">✨ Run AI</button>
+                        <button class="action-btn copy-card-btn" onclick="window.copyPrompt('${encText}')">📋 Copy</button>
                     </div>
                 </div>`;
             });
@@ -823,40 +905,46 @@ document.addEventListener('DOMContentLoaded', () => {
     // 10. FILTER & RENDER PROMPTS + LEADERBOARD
     // ==========================================
     function filterAndRender() {
+        const promptContainerElem = document.getElementById('promptContainer');
+        const profileContainerElem = document.getElementById('profileContainer');
+        
         if (currentTab === 'profile') {
-            document.getElementById('promptContainer').style.display = 'none';
-            document.getElementById('profileContainer').style.display = 'block';
+            if (promptContainerElem) promptContainerElem.style.display = 'none';
+            if (profileContainerElem) profileContainerElem.style.display = 'block';
             renderProfileDashboard();
             return;
         } else {
-            document.getElementById('promptContainer').style.display = 'grid';
-            document.getElementById('profileContainer').style.display = 'none';
+            if (promptContainerElem) promptContainerElem.style.display = 'grid';
+            if (profileContainerElem) profileContainerElem.style.display = 'none';
         }
 
         if (currentTab === 'leaderboard') {
             const userScores = {};
             
-            allCommunityPrompts.forEach(p => {
-                if(p.status === 'approved' && p.authorEmail) {
-                    userScores[p.authorEmail] = (userScores[p.authorEmail] || 0) + (p.upvotes || 0);
+            allCommunityPrompts.forEach((p) => {
+                if (p.status === 'approved' && p.authorEmail) {
+                    let currentScore = userScores[p.authorEmail] || 0;
+                    userScores[p.authorEmail] = currentScore + (p.upvotes || 0);
                 }
             });
             
-            const sortedUsers = Object.keys(userScores).map(email => {
+            const sortedUsers = Object.keys(userScores).map((email) => {
                 return { 
                     email: email.split('@')[0], 
                     score: userScores[email] 
                 };
-            }).sort((a,b) => {
+            }).sort((a, b) => {
                 return b.score - a.score;
-            }).slice(0,10);
+            }).slice(0, 10);
             
-            if(sortedUsers.length === 0) {
-                promptContainer.innerHTML = `
-                    <p style="text-align:center; color:var(--text-muted); margin-top:20px;">
-                        No data available yet.
-                    </p>
-                `;
+            if (sortedUsers.length === 0) {
+                if (promptContainerElem) {
+                    promptContainerElem.innerHTML = `
+                        <p style="text-align:center; color:var(--text-muted); margin-top:20px; font-size:16px;">
+                            No data available yet.
+                        </p>
+                    `;
+                }
                 return;
             }
             
@@ -869,10 +957,15 @@ document.addEventListener('DOMContentLoaded', () => {
             
             sortedUsers.forEach((u, idx) => {
                 let rank = '';
-                if (idx === 0) rank = '🥇'; 
-                else if (idx === 1) rank = '🥈'; 
-                else if (idx === 2) rank = '🥉'; 
-                else rank = `#${idx+1}`;
+                if (idx === 0) {
+                    rank = '🥇'; 
+                } else if (idx === 1) {
+                    rank = '🥈'; 
+                } else if (idx === 2) {
+                    rank = '🥉'; 
+                } else {
+                    rank = `#${idx + 1}`;
+                }
                 
                 html += `
                     <div class="lb-item">
@@ -883,12 +976,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             });
             
-            promptContainer.innerHTML = html + `</div>`;
-            document.getElementById('promptContainer').style.display = 'block'; 
+            if (promptContainerElem) {
+                promptContainerElem.innerHTML = html + `</div>`;
+            }
             return;
         }
 
         let dataset = [];
+        
         if (currentTab === 'official') {
             dataset = [...allOfficialPrompts];
         } else {
@@ -896,45 +991,53 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (currentTab === 'community') {
-            dataset = dataset.filter(p => {
+            dataset = dataset.filter((p) => {
                 return p.status === 'approved' || isAdmin || (currentUser && p.authorEmail === currentUser.email);
             });
         } else if (currentTab === 'saved') {
-            dataset = [...allOfficialPrompts, ...allCommunityPrompts].filter(p => {
+            dataset = [...allOfficialPrompts, ...allCommunityPrompts].filter((p) => {
                 return getBookmarks().includes(p.id);
             });
         }
 
         if (currentCategory === 'Trending' && currentTab !== 'saved') {
             dataset.sort((a, b) => {
-                return (parseInt(localStorage.getItem(`views_${b.id}`)) || 0) - (parseInt(localStorage.getItem(`views_${a.id}`)) || 0);
+                let viewsB = parseInt(localStorage.getItem(`views_${b.id}`)) || 0;
+                let viewsA = parseInt(localStorage.getItem(`views_${a.id}`)) || 0;
+                return viewsB - viewsA;
             });
             dataset = dataset.slice(0, 5); 
+            
         } else if (currentCategory !== 'All' && currentCategory !== 'Trending') {
-            dataset = dataset.filter(p => p.category === currentCategory);
+            dataset = dataset.filter((p) => {
+                return p.category === currentCategory;
+            });
         }
         
         if (currentSearch) {
             const query = currentSearch.toLowerCase();
-            dataset = dataset.filter(p => {
-                return (p.title && p.title.toLowerCase().includes(query)) || 
-                       (p.category && p.category.toLowerCase().includes(query)) || 
-                       (p.prompt_text && p.prompt_text.toLowerCase().includes(query));
+            dataset = dataset.filter((p) => {
+                let matchTitle = p.title && p.title.toLowerCase().includes(query);
+                let matchCategory = p.category && p.category.toLowerCase().includes(query);
+                let matchText = p.prompt_text && p.prompt_text.toLowerCase().includes(query);
+                return matchTitle || matchCategory || matchText;
             });
         }
 
-        promptContainer.innerHTML = '';
-        
-        if(dataset.length === 0) {
-            promptContainer.innerHTML = `
-                <p style="text-align:center; color:var(--text-muted); margin-top:20px;">
-                    No prompts found.
-                </p>
-            `;
-            return;
+        if (promptContainerElem) {
+            promptContainerElem.innerHTML = '';
+            
+            if (dataset.length === 0) {
+                promptContainerElem.innerHTML = `
+                    <p style="text-align:center; color:var(--text-main); margin-top:50px; font-size:16px; grid-column: 1 / -1;">
+                        No prompts found for this category or search.
+                    </p>
+                `;
+                return;
+            }
         }
 
-        dataset.forEach(prompt => {
+        dataset.forEach((prompt) => {
             const encTitle = encodeURIComponent(prompt.title || 'Untitled');
             const encText = encodeURIComponent(prompt.prompt_text || '');
             const pId = prompt.id || 'custom_' + Math.random().toString(36).substr(2, 9);
@@ -982,16 +1085,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="action-btn run-ai-btn" onclick="window.initiateAiRun('${encTitle}', '${encText}')">
                         ✨ Run AI
                     </button>
+                    
                     <button class="action-btn copy-card-btn" onclick="navigator.clipboard.writeText(decodeURIComponent('${encText}')); showCustomAlert('Copied! 🚀');">
                         📋 Copy
                     </button>
+                    
                     <button class="action-btn share-btn" onclick="window.sharePrompt('${encTitle}', '${encText}')">
                         📲 Share
                     </button>
+                    
                     ${adminControls}
                 </div>
             `;
-            promptContainer.appendChild(card);
+            
+            if (promptContainerElem) {
+                promptContainerElem.appendChild(card);
+            }
         });
     }
 
@@ -1003,17 +1112,31 @@ document.addEventListener('DOMContentLoaded', () => {
         let currentViews = parseInt(localStorage.getItem(`views_${pId}`)) || 0;
         localStorage.setItem(`views_${pId}`, currentViews + 1);
         
-        document.getElementById('viewModalTitle').textContent = decodeURIComponent(encTitle);
-        textToCopy = decodeURIComponent(encText);
-        document.getElementById('viewModalText').textContent = textToCopy;
+        const titleElem = document.getElementById('viewModalTitle');
+        if (titleElem) {
+            titleElem.textContent = decodeURIComponent(encTitle);
+        }
         
-        document.getElementById('viewPromptModal').style.display = 'block';
+        textToCopy = decodeURIComponent(encText);
+        
+        const textElem = document.getElementById('viewModalText');
+        if (textElem) {
+            textElem.textContent = textToCopy;
+        }
+        
+        const modalElem = document.getElementById('viewPromptModal');
+        if (modalElem) {
+            modalElem.style.display = 'block';
+        }
     };
 
     window.copyFromView = function() { 
         navigator.clipboard.writeText(textToCopy).then(() => { 
             showCustomAlert("Prompt Copied to Clipboard! 🚀"); 
-            document.getElementById('viewPromptModal').style.display = 'none'; 
+            const modalElem = document.getElementById('viewPromptModal');
+            if (modalElem) {
+                modalElem.style.display = 'none'; 
+            }
         }); 
     };
     
@@ -1029,10 +1152,14 @@ document.addEventListener('DOMContentLoaded', () => {
             text: `*${decodeURIComponent(encTitle)}*\n"${decodeURIComponent(encText)}"\n`, 
             url: window.location.href.split('?')[0] 
         };
+        
         if (navigator.share) {
-            navigator.share(shareData).catch(() => {});
+            navigator.share(shareData).catch((err) => {
+                console.log(err);
+            });
         } else {
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareData.text + shareData.url)}`, '_blank');
+            const encodedText = encodeURIComponent(shareData.text + shareData.url);
+            window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
         }
     };
 
@@ -1045,201 +1172,330 @@ document.addEventListener('DOMContentLoaded', () => {
             title: encTitle, 
             text: encText 
         };
-        document.getElementById('adPromptModal').style.display = 'block';
+        
+        const modalElem = document.getElementById('adPromptModal');
+        if (modalElem) {
+            modalElem.style.display = 'block';
+        }
     };
 
-    // Watch Ad Button to Unlock AI logic
-    document.getElementById('watchAdBtn').addEventListener('click', async () => {
-        document.getElementById('adPromptModal').style.display = 'none';
-
-        if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-            try {
-                const { AdMob } = window.Capacitor.Plugins;
-                await AdMob.showInterstitial();
-                openAiRunModal();
-            } catch (e) {
-                // Fallback to open modal even if Ad fails
-                openAiRunModal();
+    const watchAdBtn = document.getElementById('watchAdBtn');
+    if (watchAdBtn) {
+        watchAdBtn.addEventListener('click', async () => {
+            const adPromptModal = document.getElementById('adPromptModal');
+            if (adPromptModal) {
+                adPromptModal.style.display = 'none';
             }
-        } else {
-            // Simulator for web
-            document.getElementById('simulatedAdModal').style.display = 'block';
-            let time = 3; 
-            document.getElementById('adTimer').innerText = time;
-            
-            const interval = setInterval(() => {
-                time--; 
-                document.getElementById('adTimer').innerText = time;
-                if (time <= 0) {
-                    clearInterval(interval); 
-                    document.getElementById('simulatedAdModal').style.display = 'none';
+
+            if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+                try {
+                    const { AdMob } = window.Capacitor.Plugins;
+                    await AdMob.showInterstitial();
+                    openAiRunModal();
+                } catch (e) {
                     openAiRunModal();
                 }
-            }, 1000);
-        }
-    });
+            } else {
+                const simulatedAdModal = document.getElementById('simulatedAdModal');
+                if (simulatedAdModal) {
+                    simulatedAdModal.style.display = 'block';
+                }
+                
+                let time = 3; 
+                const adTimer = document.getElementById('adTimer');
+                if (adTimer) {
+                    adTimer.innerText = time;
+                }
+                
+                const interval = setInterval(() => {
+                    time--; 
+                    if (adTimer) {
+                        adTimer.innerText = time;
+                    }
+                    
+                    if (time <= 0) {
+                        clearInterval(interval); 
+                        if (simulatedAdModal) {
+                            simulatedAdModal.style.display = 'none';
+                        }
+                        openAiRunModal();
+                    }
+                }, 1000);
+            }
+        });
+    }
 
     function openAiRunModal() {
         if (pendingAiRunData) {
             currentGeneratedOutputTitle = decodeURIComponent(pendingAiRunData.title);
-            document.getElementById('aiPromptTitle').textContent = currentGeneratedOutputTitle;
+            
+            const titleElem = document.getElementById('aiPromptTitle');
+            if (titleElem) {
+                titleElem.textContent = currentGeneratedOutputTitle;
+            }
             
             const container = document.getElementById('dynamicInputsContainer');
-            container.innerHTML = ''; 
-            document.getElementById('aiOutputContainer').style.display = 'none';
+            if (container) {
+                container.innerHTML = ''; 
+            }
+            
+            const outputContainer = document.getElementById('aiOutputContainer');
+            if (outputContainer) {
+                outputContainer.style.display = 'none';
+            }
             
             const matches = [...decodeURIComponent(pendingAiRunData.text).matchAll(/\[(.*?)\]/g)];
-            const uniqueVars = [...new Set(matches.map(m => m[1]))]; 
+            const uniqueVars = [...new Set(matches.map((m) => m[1]))]; 
             
             if (uniqueVars.length === 0) {
-                container.innerHTML = `
-                    <p style="color:var(--accent-green); margin-bottom:15px;">
-                        No variables detected. Run directly!
-                    </p>
-                `;
+                if (container) {
+                    container.innerHTML = `
+                        <p style="color:var(--accent-green); margin-bottom:15px;">
+                            No variables detected. Run directly!
+                        </p>
+                    `;
+                }
             } else {
-                uniqueVars.forEach(vName => { 
-                    container.insertAdjacentHTML('beforeend', `
-                        <div>
-                            <label style="font-size:13px; color:var(--text-muted); display:block; text-transform:capitalize; margin-bottom:5px;">
-                                ${vName}:
-                            </label>
-                            <input type="text" class="ai-var-input" data-var="${vName}" placeholder="Enter ${vName}...">
-                        </div>
-                    `); 
+                uniqueVars.forEach((vName) => { 
+                    if (container) {
+                        container.insertAdjacentHTML('beforeend', `
+                            <div>
+                                <label style="font-size:13px; color:var(--text-muted); display:block; text-transform:capitalize; margin-bottom:5px;">
+                                    ${vName}:
+                                </label>
+                                <input type="text" class="ai-var-input" data-var="${vName}" placeholder="Enter ${vName}...">
+                            </div>
+                        `); 
+                    }
                 });
             }
-            document.getElementById('aiRunModal').style.display = 'block';
+            
+            const runModal = document.getElementById('aiRunModal');
+            if (runModal) {
+                runModal.style.display = 'block';
+            }
         }
     }
 
     // ==========================================
     // 13. AI ENHANCER LOGIC
     // ==========================================
-    document.getElementById('enhancePromptBtn').addEventListener('click', async () => {
-        const promptArea = document.getElementById('promptText');
-        if (!promptArea.value.trim()) {
-            return showCustomAlert("Please enter a basic idea first!");
-        }
-        
-        let hasCoins = await updateCoins(-2);
-        if (!hasCoins) {
-            return showCoinModal();
-        }
-        
-        const btn = document.getElementById('enhancePromptBtn');
-        btn.innerHTML = "🪄 Enhancing...";
-        btn.disabled = true;
-        
-        setTimeout(() => {
-            promptArea.value = "Enhanced Prompt: " + promptArea.value.trim() + " [Make this highly professional and structured for better AI results]";
-            btn.innerHTML = "🪄 Enhance with AI (-2 🪙)";
-            btn.disabled = false;
-            showCustomAlert("Prompt Enhanced successfully! 🪄");
-        }, 1500);
-    });
+    const enhancePromptBtn = document.getElementById('enhancePromptBtn');
+    if (enhancePromptBtn) {
+        enhancePromptBtn.addEventListener('click', async () => {
+            const promptArea = document.getElementById('promptText');
+            
+            if (!promptArea || !promptArea.value.trim()) {
+                return showCustomAlert("Please enter a basic idea first!");
+            }
+            
+            let hasCoins = await updateCoins(-2);
+            if (!hasCoins) {
+                return showCoinModal();
+            }
+            
+            const btn = document.getElementById('enhancePromptBtn');
+            if (btn) {
+                btn.innerHTML = "🪄 Enhancing...";
+                btn.disabled = true;
+            }
+            
+            setTimeout(() => {
+                if (promptArea) {
+                    promptArea.value = "Enhanced Prompt: " + promptArea.value.trim() + " [Make this highly professional and structured for better AI results]";
+                }
+                if (btn) {
+                    btn.innerHTML = "🪄 Enhance with AI (-2 🪙)";
+                    btn.disabled = false;
+                }
+                showCustomAlert("Prompt Enhanced successfully! 🪄");
+            }, 1500);
+        });
+    }
 
     // ==========================================
     // 14. TEST MODE AI GENERATOR
     // ==========================================
-    document.getElementById('generateAiBtn').addEventListener('click', async (e) => {
-        if (!currentUser) {
-            return showCustomAlert("Please Login to generate AI Content!");
-        }
-        
-        let hasCoins = await updateCoins(-5);
-        if (!hasCoins) {
-            document.getElementById('aiRunModal').style.display = 'none';
-            return showCoinModal();
-        }
-
-        const btn = e.target;
-        btn.innerHTML = "✨ Generating...";
-        btn.disabled = true;
-
-        setTimeout(() => {
-            currentGeneratedOutputHtml = `
-                <h3>🚀 Test Mode Active!</h3>
-                <p>Bhai, aapke <b>5 Coins deduct ho gaye hain!</b> API bypass kar di gayi hai taaki aap aage ka flow test kar sako.</p>
-                <p>Abhi niche <b>🖼️ Export</b> button dabao aur Custom Brand watermark test karo.</p>
-            `;
+    const generateAiBtn = document.getElementById('generateAiBtn');
+    if (generateAiBtn) {
+        generateAiBtn.addEventListener('click', async (e) => {
+            if (!currentUser) {
+                return showCustomAlert("Please Login to generate AI Content!");
+            }
             
-            document.getElementById('aiOutputText').innerHTML = currentGeneratedOutputHtml;
-            document.getElementById('aiOutputContainer').style.display = 'block';
+            let hasCoins = await updateCoins(-5);
+            if (!hasCoins) {
+                const runModal = document.getElementById('aiRunModal');
+                if (runModal) {
+                    runModal.style.display = 'none';
+                }
+                return showCoinModal();
+            }
 
-            document.getElementById('copyAiOutputBtn').onclick = () => {
-                navigator.clipboard.writeText("Test Output Copied!").then(() => {
-                    showCustomAlert("Output Copied! 🚀");
-                });
-            };
+            const btn = e.target;
+            if (btn) {
+                btn.innerHTML = "✨ Generating...";
+                btn.disabled = true;
+            }
 
-            btn.innerHTML = "Generate Output (Cost: 5 🪙)";
-            btn.disabled = false;
-        }, 2000);
-    });
+            setTimeout(() => {
+                currentGeneratedOutputHtml = `
+                    <h3>🚀 Test Mode Active!</h3>
+                    <p>Bhai, aapke <b>5 Coins deduct ho gaye hain!</b> API bypass kar di gayi hai taaki aap aage ka flow test kar sako.</p>
+                    <p>Abhi niche <b>🖼️ Export</b> button dabao aur Custom Brand watermark test karo.</p>
+                `;
+                
+                const aiOutputText = document.getElementById('aiOutputText');
+                if (aiOutputText) {
+                    aiOutputText.innerHTML = currentGeneratedOutputHtml;
+                }
+                
+                const aiOutputContainer = document.getElementById('aiOutputContainer');
+                if (aiOutputContainer) {
+                    aiOutputContainer.style.display = 'block';
+                }
+
+                const copyAiOutputBtn = document.getElementById('copyAiOutputBtn');
+                if (copyAiOutputBtn) {
+                    copyAiOutputBtn.onclick = () => {
+                        navigator.clipboard.writeText("Test Output Copied!").then(() => {
+                            showCustomAlert("Output Copied! 🚀");
+                        });
+                    };
+                }
+
+                if (btn) {
+                    btn.innerHTML = "Generate Output (Cost: 5 🪙)";
+                    btn.disabled = false;
+                }
+            }, 2000);
+        });
+    }
 
     // ==========================================
     // 15. EXPORT & WATERMARK LOGIC
     // ==========================================
-    document.getElementById('exportAiOutputBtn').addEventListener('click', () => {
-        document.getElementById('aiRunModal').style.display = 'none';
-        document.getElementById('watermarkModal').style.display = 'block';
-    });
+    const exportAiOutputBtn = document.getElementById('exportAiOutputBtn');
+    if (exportAiOutputBtn) {
+        exportAiOutputBtn.addEventListener('click', () => {
+            const aiRunModal = document.getElementById('aiRunModal');
+            if (aiRunModal) {
+                aiRunModal.style.display = 'none';
+            }
+            
+            const watermarkModal = document.getElementById('watermarkModal');
+            if (watermarkModal) {
+                watermarkModal.style.display = 'block';
+            }
+        });
+    }
 
-    document.getElementById('downloadFreeBtn').addEventListener('click', () => { 
-        document.getElementById('watermarkModal').style.display = 'none'; 
-        executeExport('free'); 
-    });
+    const downloadFreeBtn = document.getElementById('downloadFreeBtn');
+    if (downloadFreeBtn) {
+        downloadFreeBtn.addEventListener('click', () => { 
+            const watermarkModal = document.getElementById('watermarkModal');
+            if (watermarkModal) {
+                watermarkModal.style.display = 'none';
+            }
+            executeExport('free'); 
+        });
+    }
     
-    document.getElementById('downloadAdBtn').addEventListener('click', () => { 
-        document.getElementById('watermarkModal').style.display = 'none'; 
-        runSimulatedAdAndExport('ad'); 
-    });
+    const downloadAdBtn = document.getElementById('downloadAdBtn');
+    if (downloadAdBtn) {
+        downloadAdBtn.addEventListener('click', () => { 
+            const watermarkModal = document.getElementById('watermarkModal');
+            if (watermarkModal) {
+                watermarkModal.style.display = 'none'; 
+            }
+            runSimulatedAdAndExport('ad'); 
+        });
+    }
 
-    document.getElementById('openCustomWatermarkBtn').addEventListener('click', () => {
-        document.getElementById('watermarkModal').style.display = 'none';
-        
-        if (userProfileData && userProfileData.name) {
-            document.getElementById('customBrandText').value = '@' + userProfileData.name.replace(/\s+/g, '');
-        }
-        
-        document.getElementById('customWatermarkModal').style.display = 'block';
-    });
+    const openCustomWatermarkBtn = document.getElementById('openCustomWatermarkBtn');
+    if (openCustomWatermarkBtn) {
+        openCustomWatermarkBtn.addEventListener('click', () => {
+            const watermarkModal = document.getElementById('watermarkModal');
+            if (watermarkModal) {
+                watermarkModal.style.display = 'none';
+            }
+            
+            if (userProfileData && userProfileData.name) {
+                const brandText = document.getElementById('customBrandText');
+                if (brandText) {
+                    brandText.value = '@' + userProfileData.name.replace(/\s+/g, '');
+                }
+            }
+            
+            const customModal = document.getElementById('customWatermarkModal');
+            if (customModal) {
+                customModal.style.display = 'block';
+            }
+        });
+    }
 
-    document.getElementById('downloadCustomBrandBtn').addEventListener('click', async () => {
-        if (!currentUser) {
-            return showCustomAlert("Please Login first!");
-        }
+    const downloadCustomBrandBtn = document.getElementById('downloadCustomBrandBtn');
+    if (downloadCustomBrandBtn) {
+        downloadCustomBrandBtn.addEventListener('click', async () => {
+            if (!currentUser) {
+                return showCustomAlert("Please Login first!");
+            }
 
-        let hasCoins = await updateCoins(-10);
-        if (!hasCoins) {
-            document.getElementById('customWatermarkModal').style.display = 'none';
-            return showCoinModal();
-        }
+            let hasCoins = await updateCoins(-10);
+            if (!hasCoins) {
+                const customModal = document.getElementById('customWatermarkModal');
+                if (customModal) {
+                    customModal.style.display = 'none';
+                }
+                return showCoinModal();
+            }
 
-        const customConfig = { 
-            text: document.getElementById('customBrandText').value.trim() || 'Your Brand',
-            position: document.getElementById('customBrandPosition').value,
-            size: document.getElementById('customBrandSize').value + 'px',
-            opacity: document.getElementById('customBrandOpacity').value / 100,
-            color: document.getElementById('customBrandColor').value 
-        };
-        
-        document.getElementById('customWatermarkModal').style.display = 'none';
-        runSimulatedAdAndExport('custom', customConfig);
-    });
+            const textElem = document.getElementById('customBrandText');
+            const posElem = document.getElementById('customBrandPosition');
+            const sizeElem = document.getElementById('customBrandSize');
+            const opacityElem = document.getElementById('customBrandOpacity');
+            const colorElem = document.getElementById('customBrandColor');
+
+            const customConfig = { 
+                text: textElem ? textElem.value.trim() || 'Your Brand' : 'Your Brand',
+                position: posElem ? posElem.value : 'center',
+                size: sizeElem ? sizeElem.value + 'px' : '60px',
+                opacity: opacityElem ? opacityElem.value / 100 : 0.4,
+                color: colorElem ? colorElem.value : '#ffffff'
+            };
+            
+            const customModal = document.getElementById('customWatermarkModal');
+            if (customModal) {
+                customModal.style.display = 'none';
+            }
+            
+            runSimulatedAdAndExport('custom', customConfig);
+        });
+    }
 
     function runSimulatedAdAndExport(mode, config = null) {
-        document.getElementById('simulatedAdModal').style.display = 'block';
+        const adModal = document.getElementById('simulatedAdModal');
+        if (adModal) {
+            adModal.style.display = 'block';
+        }
+        
         let time = 3; 
-        document.getElementById('adTimer').innerText = time;
+        const timerElem = document.getElementById('adTimer');
+        if (timerElem) {
+            timerElem.innerText = time;
+        }
         
         const interval = setInterval(() => {
             time--; 
-            document.getElementById('adTimer').innerText = time;
+            if (timerElem) {
+                timerElem.innerText = time;
+            }
+            
             if (time <= 0) { 
                 clearInterval(interval); 
-                document.getElementById('simulatedAdModal').style.display = 'none'; 
+                if (adModal) {
+                    adModal.style.display = 'none'; 
+                }
                 executeExport(mode, config); 
             }
         }, 1000);
@@ -1250,8 +1506,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     async function executeExport(mode, customConfig = null) {
         showCustomAlert("Generating Image... 📸");
+        
         const container = document.getElementById('exportCanvasContainer');
-        const exportFormat = document.getElementById('exportCanvasFormat').value;
+        const formatElem = document.getElementById('exportCanvasFormat');
+        
+        let exportFormat = 'standard';
+        if (formatElem) {
+            exportFormat = formatElem.value;
+        }
         
         let formatClass = '';
         if (exportFormat === 'story') {
@@ -1292,30 +1554,38 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }
 
-        container.innerHTML = `
-            <div id="posterTarget" class="${formatClass}">
-                ${watermarkHtml}
-                <div class="export-brand">Prompt Hub 🚀</div>
-                <div class="export-title">${currentGeneratedOutputTitle}</div>
-                <div class="export-text">${currentGeneratedOutputHtml}</div>
-                <div class="export-footer">Generated via raashanmart.in/prompthub</div>
-            </div>
-        `;
+        if (container) {
+            container.innerHTML = `
+                <div id="posterTarget" class="${formatClass}">
+                    ${watermarkHtml}
+                    <div class="export-brand">Prompt Hub 🚀</div>
+                    <div class="export-title">${currentGeneratedOutputTitle}</div>
+                    <div class="export-text">${currentGeneratedOutputHtml}</div>
+                    <div class="export-footer">Generated via raashanmart.in/prompthub</div>
+                </div>
+            `;
+        }
         
         try {
             setTimeout(async () => {
-                const canvas = await html2canvas(document.getElementById('posterTarget'), { 
-                    scale: 2, 
-                    backgroundColor: '#0f172a' 
-                });
+                const target = document.getElementById('posterTarget');
+                if (target) {
+                    const canvas = await html2canvas(target, { 
+                        scale: 2, 
+                        backgroundColor: '#0f172a' 
+                    });
+                    
+                    const link = document.createElement('a');
+                    link.download = `Output_${currentGeneratedOutputTitle.replace(/\s+/g, '_')}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                }
                 
-                const link = document.createElement('a');
-                link.download = `Output_${currentGeneratedOutputTitle.replace(/\s+/g, '_')}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                
-                container.innerHTML = ''; 
+                if (container) {
+                    container.innerHTML = ''; 
+                }
             }, 500);
+            
         } catch(e) { 
             showCustomAlert("Error generating image."); 
         }
@@ -1324,56 +1594,90 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 17. ADD PROMPT SUBMISSION & ADMIN
     // ==========================================
-    document.getElementById('openAddPromptBtn').addEventListener('click', () => {
-        document.getElementById('promptTitle').value = ''; 
-        document.getElementById('promptDesc').value = ''; 
-        document.getElementById('promptText').value = '';
-        document.getElementById('addPromptModal').style.display = 'block';
-    });
-
-    document.getElementById('submitPromptBtn').addEventListener('click', async () => {
-        const title = document.getElementById('promptTitle').value.trim();
-        const category = document.getElementById('promptCategory').value;
-        const text = document.getElementById('promptText').value.trim();
-        
-        if (!title || !text) {
-            return showCustomAlert('Please fill Title and Prompt Text!');
-        }
-        
-        document.getElementById('submitPromptBtn').disabled = true;
-        
-        try {
-            await db.collection('community_prompts').add({ 
-                title: title, 
-                category: category, 
-                prompt_text: text, 
-                authorEmail: currentUser.email, 
-                upvotes: 0, 
-                status: 'pending', 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-            });
+    const openAddPromptBtn = document.getElementById('openAddPromptBtn');
+    if (openAddPromptBtn) {
+        openAddPromptBtn.addEventListener('click', () => {
+            const titleElem = document.getElementById('promptTitle');
+            const descElem = document.getElementById('promptDesc');
+            const textElem = document.getElementById('promptText');
             
-            showCustomAlert('Submitted Successfully for Admin Approval! 🚀');
-            document.getElementById('addPromptModal').style.display = 'none'; 
-            fetchCommunityPrompts();
-        } catch(err) { 
-            showCustomAlert(err.message); 
-        }
-        
-        document.getElementById('submitPromptBtn').disabled = false;
-    });
+            if (titleElem) titleElem.value = ''; 
+            if (descElem) descElem.value = ''; 
+            if (textElem) textElem.value = '';
+            
+            const addModal = document.getElementById('addPromptModal');
+            if (addModal) {
+                addModal.style.display = 'block';
+            }
+        });
+    }
+
+    const submitPromptBtn = document.getElementById('submitPromptBtn');
+    if (submitPromptBtn) {
+        submitPromptBtn.addEventListener('click', async () => {
+            const titleElem = document.getElementById('promptTitle');
+            const catElem = document.getElementById('promptCategory');
+            const textElem = document.getElementById('promptText');
+            
+            const title = titleElem ? titleElem.value.trim() : '';
+            const category = catElem ? catElem.value : '';
+            const text = textElem ? textElem.value.trim() : '';
+            
+            if (!title || !text) {
+                return showCustomAlert('Please fill Title and Prompt Text!');
+            }
+            
+            const btn = document.getElementById('submitPromptBtn');
+            if (btn) {
+                btn.disabled = true;
+            }
+            
+            try {
+                await db.collection('community_prompts').add({ 
+                    title: title, 
+                    category: category, 
+                    prompt_text: text, 
+                    authorEmail: currentUser.email, 
+                    upvotes: 0, 
+                    status: 'pending', 
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+                });
+                
+                showCustomAlert('Submitted Successfully for Admin Approval! 🚀');
+                
+                const addModal = document.getElementById('addPromptModal');
+                if (addModal) {
+                    addModal.style.display = 'none'; 
+                }
+                
+                fetchCommunityPrompts();
+                
+            } catch(err) { 
+                showCustomAlert(err.message); 
+            }
+            
+            if (btn) {
+                btn.disabled = false;
+            }
+        });
+    }
 
     window.adminAction = async function(docId, action) {
         if (!isAdmin) {
             return;
         }
+        
         try {
             if (action === 'approve') {
-                await db.collection('community_prompts').doc(docId).update({ status: 'approved' });
+                await db.collection('community_prompts').doc(docId).update({ 
+                    status: 'approved' 
+                });
             } else if (action === 'reject') {
                 await db.collection('community_prompts').doc(docId).delete();
             }
+            
             fetchCommunityPrompts();
+            
         } catch(e) { 
             showCustomAlert(e.message); 
         }
@@ -1382,73 +1686,98 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 18. EDIT PROFILE & AVATAR SELECTION
     // ==========================================
-    document.getElementById('profileContainer').addEventListener('click', (e) => {
-        if (e.target.id === 'openEditProfileBtn') {
-            document.getElementById('editProfileName').value = userProfileData.name || '';
-            selectedAvatar = userProfileData.avatar || '👨‍💻';
-            
-            document.querySelectorAll('.avatar-option').forEach(opt => {
-                if (opt.getAttribute('data-avatar') === selectedAvatar) {
-                    opt.classList.add('selected');
-                } else {
-                    opt.classList.remove('selected');
+    const profileContainer = document.getElementById('profileContainer');
+    if (profileContainer) {
+        profileContainer.addEventListener('click', (e) => {
+            if (e.target.id === 'openEditProfileBtn') {
+                const nameElem = document.getElementById('editProfileName');
+                if (nameElem) {
+                    nameElem.value = userProfileData.name || '';
                 }
-            });
-            document.getElementById('editProfileModal').style.display = 'block';
-        }
-    });
+                
+                selectedAvatar = userProfileData.avatar || '👨‍💻';
+                
+                document.querySelectorAll('.avatar-option').forEach((opt) => {
+                    if (opt.getAttribute('data-avatar') === selectedAvatar) {
+                        opt.classList.add('selected');
+                    } else {
+                        opt.classList.remove('selected');
+                    }
+                });
+                
+                const editModal = document.getElementById('editProfileModal');
+                if (editModal) {
+                    editModal.style.display = 'block';
+                }
+            }
+        });
+    }
 
-    document.querySelectorAll('.avatar-option').forEach(opt => {
+    document.querySelectorAll('.avatar-option').forEach((opt) => {
         opt.addEventListener('click', (e) => {
-            document.querySelectorAll('.avatar-option').forEach(o => {
+            document.querySelectorAll('.avatar-option').forEach((o) => {
                 o.classList.remove('selected');
             });
             
-            e.target.classList.add('selected');
-            selectedAvatar = e.target.getAttribute('data-avatar');
+            e.currentTarget.classList.add('selected');
+            selectedAvatar = e.currentTarget.getAttribute('data-avatar');
         });
     });
 
-    document.getElementById('saveProfileBtn').addEventListener('click', async () => {
-        const newName = document.getElementById('editProfileName').value.trim();
-        if (!newName) {
-            return showCustomAlert("Please enter a valid name!");
-        }
-        if (!currentUser) {
-            return;
-        }
+    const saveProfileBtn = document.getElementById('saveProfileBtn');
+    if (saveProfileBtn) {
+        saveProfileBtn.addEventListener('click', async () => {
+            const nameElem = document.getElementById('editProfileName');
+            const newName = nameElem ? nameElem.value.trim() : '';
+            
+            if (!newName) {
+                return showCustomAlert("Please enter a valid name!");
+            }
+            
+            if (!currentUser) {
+                return;
+            }
 
-        const btn = document.getElementById('saveProfileBtn');
-        btn.innerHTML = "Saving... ⏳"; 
-        btn.disabled = true;
+            const btn = document.getElementById('saveProfileBtn');
+            if (btn) {
+                btn.innerHTML = "Saving... ⏳"; 
+                btn.disabled = true;
+            }
 
-        try {
-            await db.collection('users').doc(currentUser.uid).set({ 
-                name: newName, 
-                avatar: selectedAvatar 
-            }, { 
-                merge: true 
-            });
-            
-            userProfileData.name = newName; 
-            userProfileData.avatar = selectedAvatar;
-            
-            showCustomAlert("Profile Updated Successfully! ✅");
-            document.getElementById('editProfileModal').style.display = 'none';
-            renderProfileDashboard(); 
-            
-        } catch (e) { 
-            showCustomAlert("Error updating profile: " + e.message);
-        } finally { 
-            btn.innerHTML = "Save Changes"; 
-            btn.disabled = false; 
-        }
-    });
+            try {
+                await db.collection('users').doc(currentUser.uid).set({ 
+                    name: newName, 
+                    avatar: selectedAvatar 
+                }, { 
+                    merge: true 
+                });
+                
+                userProfileData.name = newName; 
+                userProfileData.avatar = selectedAvatar;
+                
+                showCustomAlert("Profile Updated Successfully! ✅");
+                
+                const editModal = document.getElementById('editProfileModal');
+                if (editModal) {
+                    editModal.style.display = 'none';
+                }
+                
+                renderProfileDashboard(); 
+                
+            } catch (e) { 
+                showCustomAlert("Error updating profile: " + e.message);
+            } finally { 
+                if (btn) {
+                    btn.innerHTML = "Save Changes"; 
+                    btn.disabled = false; 
+                }
+            }
+        });
+    }
 
     // ==========================================
     // 19. INITIAL FETCH
     // ==========================================
-    // Demo prompts array initialized above, actual fetch call below
     fetchOfficialPrompts();
 
 });
