@@ -326,43 +326,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ==== NATIVE GOOGLE LOGIN FIX ====
-    document.getElementById('googleAuthBtn').addEventListener('click', async () => {
+    // ==========================================
+// 3. GOOGLE SIGN-IN (NATIVE ANDROID + WEB)
+// ==========================================
+const googleAuthBtn = document.getElementById('googleAuthBtn');
+if (googleAuthBtn) {
+    googleAuthBtn.addEventListener('click', async () => {
         try {
+            // Check agar app Android (Capacitor) mein chal rahi hai
             if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-                window.Capacitor.Plugins.GoogleAuth.initialize({
-                    clientId: '242493810474-us5ib99pnjj9of6p3iov9hd6n8ltm975.apps.googleusercontent.com',
-                    scopes: ['profile', 'email'],
-                    grantOfflineAccess: true,
-                });
-                const googleUser = await window.Capacitor.Plugins.GoogleAuth.signIn();
+                
+                const GoogleAuth = window.Capacitor.Plugins.GoogleAuth;
+                
+                if (!GoogleAuth) {
+                    throw new Error("Google Plugin load nahi hua! Nayi APK ka wait karein.");
+                }
+
+                // Sign in aur Token lena (Android mein initialize() ki zaroorat nahi hoti)
+                const googleUser = await GoogleAuth.signIn();
                 const credential = firebase.auth.GoogleAuthProvider.credential(googleUser.authentication.idToken);
+                
+                // Firebase mein login karna
                 await auth.signInWithCredential(credential);
+                
             } else {
+                // Agar Vercel (Website) par chal rahi hai toh purana popup method
+                const googleProvider = new firebase.auth.GoogleAuthProvider();
                 await auth.signInWithPopup(googleProvider);
             }
-            document.getElementById('authModal').style.display = 'none';
-        } catch (error) { 
-            showCustomAlert("Google Login Error: " + error.message); 
+            
+            hideAuthModal();
+            showCustomAlert("Google se successfully login ho gaya! 🎉");
+
+        } catch (error) {
+            console.error("Google Login Error:", error);
+            showCustomAlert("Login Error: " + error.message);
         }
     });
-
-    document.getElementById('forgotPasswordBtn').addEventListener('click', async () => {
-        const email = document.getElementById('emailInput').value.trim();
-        
-        if (!email) {
-            return showCustomAlert("Please enter your email address first.");
-        }
-        
-        try {
-            await auth.sendPasswordResetEmail(email);
-            showCustomAlert("Password reset link sent to your email!");
-            document.getElementById('authModal').style.display = 'none';
-        } catch (error) { 
-            showCustomAlert(error.message); 
-        }
-    });
-
+}
     // ==========================================
     // 6. DATA FETCHING
     // ==========================================
