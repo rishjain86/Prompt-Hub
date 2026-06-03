@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "242493810474",
+    "project_id": "prompt-hub-app-2fe0f",
+    "storage_bucket": "prompt-hub-app-2fe0f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:242493810474:android:de5e1fc023bcb1b27b2053",
+        "android_client_info": {
+          "package_name": "com.prompthub.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "242493810474-uqj2okc4akls45csj8loj0bp60j6o2ba.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.prompthub.app",
+            "certificate_hash": "332d4288f8f476f92b4436cb691857104db4ed1c"
+          }
+        },
+        {
+          "client_id": "242493810474-us5ib99pnjj9of6p3iov9hd6n8ltm975.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZpiMsfUCkDs35WNTrAwwuDM69G23VIJM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "242493810474-us5ib99pnjj9of6p3iov9hd6n8ltm975.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
