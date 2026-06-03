@@ -4,20 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Prompt Hub | Professional AI Suite</title>
-    <link rel="stylesheet" href="style.css?v=28">
-    <script src="[https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js](https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js)"></script>
-    <script src="[https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js](https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js)"></script>
-    <script src="[https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js](https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js)"></script>
-    <script src="[https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js](https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js)"></script>
+    <link rel="stylesheet" href="style.css?v=27">
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <div id="splash"></div>
 
-    <!-- HEADER SECTION -->
     <header class="header">
         <button id="hamburgerBtn" class="icon-btn">☰</button>
-        <div class="brand" onclick="window.goToHome()" style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 22px;">🏠</span>
+        <div class="brand" onclick="window.goToHome()" style="cursor: pointer;">
             <h1>Prompt Hub</h1>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -29,12 +27,10 @@
         </div>
     </header>
 
-    <!-- CROSS PROMOTION BANNER -->
     <div class="promo-banner-container">
         <div id="promoSlider" class="promo-slider"></div>
     </div>
 
-    <!-- SIDE MENU -->
     <div id="sideMenuOverlay" class="menu-overlay"></div>
     <nav id="sideMenu" class="side-menu">
         <div class="menu-header">
@@ -42,6 +38,7 @@
             <span class="close-menu" onclick="document.getElementById('sideMenu').classList.remove('open'); document.getElementById('sideMenuOverlay').style.display='none';">&times;</span>
         </div>
         <ul id="menuCategories" class="menu-list">
+            <li onclick="window.goToHome()" style="color: var(--accent-blue); font-weight: bold;">🏠 Back to Home</li>
             <li data-category="Coding & Tech">Coding & Tech</li>
             <li data-category="Marketing & Social Media">Marketing & Social Media</li>
             <li data-category="Copywriting & Content">Copywriting & Content</li>
@@ -71,14 +68,12 @@
         </ul>
     </nav>
 
-    <!-- SEARCH BAR -->
     <div class="search-section-wrapper">
         <div class="search-container">
-            <input type="search" id="searchInput" name="searchQuery" placeholder="Search prompts..." autocomplete="nope" autocorrect="off" spellcheck="false">
+            <input type="search" id="searchInput" name="searchQuery" placeholder="Search prompts (e.g. Gaming)..." autocomplete="nope" autocorrect="off" spellcheck="false">
         </div>
     </div>
 
-    <!-- APP TABS -->
     <div class="app-tabs">
         <button id="tabOfficial" class="tab-btn active">Official</button>
         <button id="tabCommunity" class="tab-btn">Community</button>
@@ -88,7 +83,6 @@
 
     <button id="openAddPromptBtn" class="add-prompt-btn" style="display:none;">+ Add Expert Prompt</button>
 
-    <!-- CATEGORY FILTERS -->
     <nav class="category-filter" id="categoryFilter">
         <button class="filter-btn active" data-category="All">All</button>
         <button class="filter-btn trending-btn" data-category="Trending">🔥 Trending</button>
@@ -97,16 +91,16 @@
         <button class="filter-btn" data-category="Gaming & World Building">Gaming</button>
     </nav>
 
-    <!-- MAIN CONTAINERS -->
     <main class="prompt-container" id="promptContainer"></main>
+
     <main id="profileContainer" style="display: none; padding: 20px; max-width: 1200px; margin: 0 auto;"></main>
+
     <div id="exportCanvasContainer" style="position: absolute; top: -9999px; left: -9999px;"></div>
 
-    <!-- MODALS -->
     <div id="welcomeModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('welcomeModal').style.display='none'">&times;</span>
-            <h2 id="welcomeTitle" style="color:var(--accent-blue);">Welcome Aboard! 🚀</h2>
+            <h2 id="welcomeTitle" style="color:var(--accent-blue);">Welcome! 🚀</h2>
             <p id="welcomeMessage" style="color: var(--text-muted); margin: 15px 0; line-height: 1.6;"></p>
             <button id="welcomeOkBtn" class="primary-btn" onclick="document.getElementById('welcomeModal').style.display='none'">Let's Go!</button>
         </div>
@@ -116,12 +110,12 @@
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('authModal').style.display='none'">&times;</span>
             <h2 id="modalTitle">Login</h2>
-            <input type="email" id="emailInput" placeholder="Email Address">
-            <input type="password" id="passwordInput" placeholder="Password">
+            <input type="email" id="emailInput" placeholder="Email Address" autocomplete="email">
+            <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password">
             <p id="forgotPasswordBtn" class="forgot-pwd">Forgot Password?</p>
             <button id="submitAuthBtn" class="primary-btn">Login</button>
             <button id="googleAuthBtn" class="google-btn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -137,7 +131,7 @@
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('coinModal').style.display='none'">&times;</span>
             <h2 style="color:#fbbf24;">Out of Coins! 🪙</h2>
-            <p style="color: var(--text-muted); margin: 15px 0;">Watch a short ad to get 15 free coins!</p>
+            <p style="color: var(--text-muted); margin: 15px 0;">You need coins to generate AI outputs and custom watermarks. Watch a short ad to get 15 free coins!</p>
             <button id="watchAdForCoinsBtn" class="primary-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🎬 Watch Ad (+15 Coins)</button>
         </div>
     </div>
@@ -146,7 +140,7 @@
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('adPromptModal').style.display='none'">&times;</span>
             <h2 style="color:var(--accent-blue);">Unlock AI Power ⚡</h2>
-            <p style="color: var(--text-muted); margin: 15px 0;">To use the AI generator, watch a short ad!</p>
+            <p style="color: var(--text-muted); margin: 15px 0;">To use the AI generator for this prompt, please watch a short video ad to support us!</p>
             <button id="watchAdBtn" class="primary-btn" style="background-color: #f59e0b;">🎬 Watch Ad to Unlock</button>
             <button class="maybe-later-btn" onclick="document.getElementById('adPromptModal').style.display='none'">Maybe Later</button>
         </div>
@@ -156,6 +150,7 @@
         <div class="modal-content" style="text-align: center; background: #000; margin-top: 50%; border:none;">
             <h2 style="color: #fff;">Test Video Ad Playing...</h2>
             <p id="adTimer" style="color: #f59e0b; font-size: 24px; font-weight: bold; margin: 20px 0;">3</p>
+            <p style="color: #666; font-size: 12px;">(In production, real Rewarded Video will play here)</p>
         </div>
     </div>
 
@@ -164,11 +159,19 @@
             <span class="close-modal" onclick="document.getElementById('aiRunModal').style.display='none'">&times;</span>
             <h3>✨ Run with AI</h3>
             <p id="aiPromptTitle" style="color: var(--accent-blue); margin-bottom: 15px; font-weight: bold;"></p>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">
+                Fill in the variables below to customize the prompt before generating. 
+                <span style="color:#fbbf24; font-weight:bold;">(-5 Coins)</span>
+            </p>
+            
             <div id="dynamicInputsContainer"></div>
+            
             <button id="generateAiBtn" class="primary-btn" style="background: linear-gradient(to right, #38bdf8, #8b5cf6);">Generate Output (Cost: 5 🪙)</button>
+            
             <div id="aiOutputContainer" style="display:none; margin-top: 20px;">
                 <h4 style="margin-bottom: 10px;">AI Result:</h4>
                 <div id="aiOutputText" class="ai-output-box"></div>
+                
                 <div style="display: flex; gap: 10px; margin-top: 15px;">
                     <button id="copyAiOutputBtn" class="primary-btn" style="flex: 1; font-size: 14px;">📋 Copy Text</button>
                     <button id="exportAiOutputBtn" class="primary-btn" style="flex: 1; background-color: #f59e0b; font-size: 14px;">🖼️ Export Image</button>
@@ -181,13 +184,19 @@
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('watermarkModal').style.display='none'">&times;</span>
             <h2 style="color:var(--accent-blue);">Export Result 📸</h2>
-            <select id="exportCanvasFormat" class="ai-var-input">
-                <option value="standard">Standard Post</option>
-                <option value="story">Status / Story (9:16)</option>
-            </select>
-            <button id="downloadFreeBtn" class="secondary-action-btn" style="margin-bottom: 10px;">⬇️ Free (Watermark)</button>
+            <p style="color: var(--text-muted); margin: 15px 0;">Choose your layout and watermark option.</p>
+            
+            <div style="margin-bottom: 20px; text-align: left; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;">
+                <label style="font-size:13px; color:var(--accent-blue); display:block; margin-bottom:5px; font-weight:bold;">🖼️ Canvas Size / Layout:</label>
+                <select id="exportCanvasFormat" class="ai-var-input" style="margin-bottom: 0;">
+                    <option value="standard">Standard Post (Auto Height)</option>
+                    <option value="story">WhatsApp Status / Story (9:16)</option>
+                </select>
+            </div>
+            
+            <button id="downloadFreeBtn" class="secondary-action-btn" style="margin-bottom: 10px;">⬇️ Free (Prompt Hub Watermark)</button>
             <button id="downloadAdBtn" class="primary-btn" style="background-color: #f59e0b; margin-bottom: 10px;">🎬 Watch Ad (No Watermark)</button>
-            <button id="openCustomWatermarkBtn" class="primary-btn" style="background: linear-gradient(to right, #10b981, #3b82f6);">👑 Custom Brand (-10 🪙)</button>
+            <button id="openCustomWatermarkBtn" class="primary-btn" style="background: linear-gradient(to right, #10b981, #3b82f6);">👑 Add Your Own Brand (-10 🪙)</button>
         </div>
     </div>
 
@@ -195,15 +204,43 @@
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('customWatermarkModal').style.display='none'">&times;</span>
             <h2 style="color:var(--accent-green); margin-bottom: 5px; text-align: center;">👑 Brand Editor</h2>
-            <input type="text" id="customBrandText" placeholder="@YourBrand" class="ai-var-input">
-            <select id="customBrandPosition" class="ai-var-input">
-                <option value="center">Center</option>
-                <option value="bottom-right">Bottom Right</option>
-                <option value="bottom-left">Bottom Left</option>
-            </select>
-            <input type="range" id="customBrandSize" min="20" max="150" value="60" style="width: 100%; margin-bottom: 15px;">
-            <input type="range" id="customBrandOpacity" min="5" max="100" value="40" style="width: 100%; margin-bottom: 15px;">
-            <input type="color" id="customBrandColor" value="#ffffff" style="width: 100%; height: 45px; margin-bottom: 15px;">
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">
+                This premium feature costs <span style="color:#fbbf24; font-weight:bold;">10 Coins</span>.
+            </p>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Your Brand / Handle Name:</label>
+                <input type="text" id="customBrandText" placeholder="e.g. @YourName or Your Brand" class="ai-var-input" style="margin-bottom: 0;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Watermark Position:</label>
+                <select id="customBrandPosition" class="ai-var-input" style="margin-bottom: 0;">
+                    <option value="center">Center</option>
+                    <option value="bottom-right">Bottom Right</option>
+                    <option value="bottom-left">Bottom Left</option>
+                    <option value="top-right">Top Right</option>
+                    <option value="top-left">Top Left</option>
+                    <option value="bottom-center">Bottom Center</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <div style="flex: 1;">
+                    <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Text Size:</label>
+                    <input type="range" id="customBrandSize" min="20" max="150" value="60" style="width: 100%;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Opacity (Transparency):</label>
+                    <input type="range" id="customBrandOpacity" min="5" max="100" value="40" style="width: 100%;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Text Color:</label>
+                <input type="color" id="customBrandColor" value="#ffffff" style="width: 100%; height: 45px; border: none; border-radius: 8px; background: transparent; cursor: pointer; outline: none;">
+            </div>
+
             <button id="downloadCustomBrandBtn" class="primary-btn" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">⬇️ Export Poster (Cost: 10 🪙)</button>
         </div>
     </div>
@@ -220,15 +257,27 @@
     <div id="addPromptModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('addPromptModal').style.display='none'">&times;</span>
-            <h2 id="addModalTitle">Submit Prompt</h2>
+            <h2 id="addModalTitle">Submit for Approval</h2>
+            <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">Community prompts require admin approval.</p>
+            
             <input type="text" id="promptTitle" placeholder="Title">
             <select id="promptCategory">
                 <option value="Coding & Tech">Coding & Tech</option>
                 <option value="Marketing & Social Media">Marketing & Social Media</option>
+                <option value="AI Art & Image Gen">AI Art & Image Gen</option>
+                <option value="Copywriting & Content">Copywriting & Content</option>
+                <option value="SEO & Website Ranking">SEO & Website Ranking</option>
+                <option value="Business & Finance">Business & Finance</option>
+                <option value="Gaming & World Building">Gaming & World Building</option>
             </select>
-            <textarea id="promptDesc" placeholder="Description"></textarea>
-            <textarea id="promptText" placeholder="Prompt Text"></textarea>
-            <button id="enhancePromptBtn" class="secondary-action-btn" style="margin-bottom: 15px;">🪄 Enhance with AI (-2 🪙)</button>
+            <textarea id="promptDesc" placeholder="Short Description"></textarea>
+            
+            <textarea id="promptText" placeholder="Prompt Text (Type a basic idea and use AI to enhance it...)" rows="5"></textarea>
+            
+            <button id="enhancePromptBtn" class="secondary-action-btn" style="margin-bottom: 15px; border-color: var(--accent-blue); color: var(--accent-blue); font-weight:bold;">
+                🪄 Enhance with AI (-2 🪙)
+            </button>
+            
             <button id="submitPromptBtn" class="primary-btn">Submit Prompt</button>
         </div>
     </div>
@@ -237,30 +286,61 @@
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('editProfileModal').style.display='none'">&times;</span>
             <h2 style="color:var(--accent-green); margin-bottom: 15px;">Edit Profile ✏️</h2>
-            <input type="text" id="editProfileName" class="ai-var-input" placeholder="Your Name">
+            
+            <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Display Name:</label>
+            <input type="text" id="editProfileName" placeholder="Your Name" class="ai-var-input">
+            
+            <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:10px;">Select Avatar:</label>
             <div id="avatarSelector" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; justify-content: center;">
                 <div class="avatar-option" data-avatar="👨‍💻">👨‍💻</div>
                 <div class="avatar-option" data-avatar="🥷">🥷</div>
                 <div class="avatar-option" data-avatar="🦸‍♂️">🦸‍♂️</div>
                 <div class="avatar-option" data-avatar="🤖">🤖</div>
+                <div class="avatar-option" data-avatar="👽">👽</div>
+                <div class="avatar-option" data-avatar="🦁">🦁</div>
+                <div class="avatar-option" data-avatar="🚀">🚀</div>
+                <div class="avatar-option" data-avatar="👑">👑</div>
             </div>
-            <button id="saveProfileBtn" class="primary-btn">Save Changes</button>
+
+            <button id="saveProfileBtn" class="primary-btn" style="background: linear-gradient(135deg, #10b981, #3b82f6);">Save Changes</button>
+        </div>
+    </div>
+
+    <div id="coinHistoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="document.getElementById('coinHistoryModal').style.display='none'">&times;</span>
+            <h2 style="color:#fbbf24; margin-bottom: 15px;">Coin History 🪙</h2>
+            <div id="coinHistoryList" style="max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+            </div>
         </div>
     </div>
 
     <div id="termsModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('termsModal').style.display='none'">&times;</span>
-            <h2 style="color:var(--accent-blue);">Terms and Conditions</h2>
-            <p style="color:var(--text-muted); font-size:14px;">1. Standard Terms applied...</p>
+            <h2 style="color:var(--accent-blue); margin-bottom: 15px;">Terms and Conditions 📜</h2>
+            <div style="color:var(--text-muted); font-size: 14px; line-height: 1.6; max-height: 60vh; overflow-y: auto;">
+                <p><strong>1. Acceptance of Terms:</strong> By accessing and using Prompt Hub, you accept and agree to be bound by the terms and provision of this agreement.</p><br>
+                <p><strong>2. User Content:</strong> You retain ownership of the prompts you submit, but grant Prompt Hub a worldwide, royalty-free license to display and share them within the community.</p><br>
+                <p><strong>3. Virtual Currency (Coins):</strong> The coins provided in this app are strictly for accessing in-app AI features (like AI enhancements and watermarks). They hold no real-world monetary value, cannot be cashed out, and cannot be exchanged for real money.</p><br>
+                <p><strong>4. Prohibited Conduct:</strong> Users must not submit malicious, NSFW, hateful, or illegal prompts. Admins reserve the right to ban accounts and remove content violating these rules without prior notice.</p><br>
+                <p><strong>5. Limitation of Liability:</strong> Prompt Hub provides AI-generated content "as is" and is not responsible for any inaccuracies, damages, or issues arising from the use of generated outputs.</p><br>
+                <p><strong>6. Contact:</strong> If you have any questions regarding these Terms, you may contact us at <strong>maincryptowala@gmail.com</strong>.</p>
+            </div>
         </div>
     </div>
 
     <div id="privacyModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('privacyModal').style.display='none'">&times;</span>
-            <h2 style="color:var(--accent-green);">Privacy Policy</h2>
-            <p style="color:var(--text-muted); font-size:14px;">1. Privacy applied...</p>
+            <h2 style="color:var(--accent-green); margin-bottom: 15px;">Privacy Policy 🔒</h2>
+            <div style="color:var(--text-muted); font-size: 14px; line-height: 1.6; max-height: 60vh; overflow-y: auto;">
+                <p><strong>1. Information Collection:</strong> We collect your email address and basic profile information (like Display Name) when you register via Email/Password or Google Sign-In.</p><br>
+                <p><strong>2. Use of Information:</strong> Your email is used solely for authentication, leaderboard display (masked username), and to associate your submitted prompts with your creator account.</p><br>
+                <p><strong>3. Data Storage and Security:</strong> We securely store your data using Google Firebase infrastructure. We do not sell, rent, or share your personal data with third-party data brokers or advertisers.</p><br>
+                <p><strong>4. AI Processing:</strong> Prompts submitted for AI enhancement or generation are sent to secure third-party AI API providers (such as Groq and OpenRouter). Please do not include highly sensitive personal information (like passwords or government IDs) in your prompt text.</p><br>
+                <p><strong>5. Data Deletion & Contact:</strong> You have the right to request the deletion of your account and associated data. For data deletion requests or privacy concerns, please email us directly at <strong>maincryptowala@gmail.com</strong>.</p>
+            </div>
         </div>
     </div>
 
@@ -271,6 +351,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=28"></script>
+    <script src="script.js?v=27"></script>
 </body>
 </html>
