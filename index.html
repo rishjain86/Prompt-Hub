@@ -11,9 +11,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
-    <div id="splash-overlay"></div>
+    <div id="splash"></div>
 
-    <!-- HEADER SECTION -->
     <header class="header">
         <button id="hamburgerBtn" class="icon-btn">☰</button>
         <div class="brand" onclick="window.goToHome()" style="cursor: pointer;">
@@ -28,12 +27,10 @@
         </div>
     </header>
 
-    <!-- CROSS PROMOTION BANNER -->
     <div class="promo-banner-container">
         <div id="promoSlider" class="promo-slider"></div>
     </div>
 
-    <!-- SIDE MENU -->
     <div id="sideMenuOverlay" class="menu-overlay"></div>
     <nav id="sideMenu" class="side-menu">
         <div class="menu-header">
@@ -65,21 +62,18 @@
         </ul>
         <hr class="menu-divider">
         <ul class="menu-list footer-links">
-            <!-- NAYA: T&C, Privacy Policy, and Contact Us Logic -->
             <li onclick="document.getElementById('termsModal').style.display='block'; document.getElementById('sideMenu').classList.remove('open'); document.getElementById('sideMenuOverlay').style.display='none';">Terms and Conditions</li>
             <li onclick="document.getElementById('privacyModal').style.display='block'; document.getElementById('sideMenu').classList.remove('open'); document.getElementById('sideMenuOverlay').style.display='none';">Privacy Policy</li>
             <li onclick="window.location.href='mailto:maincryptowala@gmail.com'">Contact Us</li>
         </ul>
     </nav>
 
-    <!-- SEARCH BAR -->
     <div class="search-section-wrapper">
         <div class="search-container">
             <input type="search" id="searchInput" name="searchQuery" placeholder="Search prompts (e.g. Gaming)..." autocomplete="nope" autocorrect="off" spellcheck="false">
         </div>
     </div>
 
-    <!-- APP TABS -->
     <div class="app-tabs">
         <button id="tabOfficial" class="tab-btn active">Official</button>
         <button id="tabCommunity" class="tab-btn">Community</button>
@@ -89,7 +83,6 @@
 
     <button id="openAddPromptBtn" class="add-prompt-btn" style="display:none;">+ Add Expert Prompt</button>
 
-    <!-- CATEGORY FILTERS -->
     <nav class="category-filter" id="categoryFilter">
         <button class="filter-btn active" data-category="All">All</button>
         <button class="filter-btn trending-btn" data-category="Trending">🔥 Trending</button>
@@ -98,17 +91,12 @@
         <button class="filter-btn" data-category="Gaming & World Building">Gaming</button>
     </nav>
 
-    <!-- MAIN CONTAINERS -->
     <main class="prompt-container" id="promptContainer"></main>
 
-    <!-- CREATOR PROFILE DASHBOARD CONTAINER -->
     <main id="profileContainer" style="display: none; padding: 20px; max-width: 1200px; margin: 0 auto;"></main>
 
     <div id="exportCanvasContainer" style="position: absolute; top: -9999px; left: -9999px;"></div>
 
-    <!-- ================= MODALS ================= -->
-
-    <!-- Welcome / Streak Modal -->
     <div id="welcomeModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('welcomeModal').style.display='none'">&times;</span>
@@ -118,7 +106,6 @@
         </div>
     </div>
 
-    <!-- Auth Modal -->
     <div id="authModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('authModal').style.display='none'">&times;</span>
@@ -140,7 +127,6 @@
         </div>
     </div>
 
-    <!-- Out of Coins Modal -->
     <div id="coinModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('coinModal').style.display='none'">&times;</span>
@@ -150,7 +136,6 @@
         </div>
     </div>
 
-    <!-- Ad Prompt Modal -->
     <div id="adPromptModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('adPromptModal').style.display='none'">&times;</span>
@@ -161,7 +146,6 @@
         </div>
     </div>
 
-    <!-- Simulated Ad Modal -->
     <div id="simulatedAdModal" class="modal" style="background: black;">
         <div class="modal-content" style="text-align: center; background: #000; margin-top: 50%; border:none;">
             <h2 style="color: #fff;">Test Video Ad Playing...</h2>
@@ -170,7 +154,6 @@
         </div>
     </div>
 
-    <!-- AI Run Modal -->
     <div id="aiRunModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('aiRunModal').style.display='none'">&times;</span>
@@ -197,7 +180,6 @@
         </div>
     </div>
 
-    <!-- Export & Watermark Modal -->
     <div id="watermarkModal" class="modal">
         <div class="modal-content" style="text-align: center;">
             <span class="close-modal" onclick="document.getElementById('watermarkModal').style.display='none'">&times;</span>
@@ -218,7 +200,6 @@
         </div>
     </div>
 
-    <!-- Custom Brand Editor Modal -->
     <div id="customWatermarkModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('customWatermarkModal').style.display='none'">&times;</span>
@@ -264,7 +245,6 @@
         </div>
     </div>
 
-    <!-- View Prompt Modal -->
     <div id="viewPromptModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('viewPromptModal').style.display='none'">&times;</span>
@@ -274,7 +254,6 @@
         </div>
     </div>
 
-    <!-- ADD PROMPT MODAL WITH AI ENHANCER -->
     <div id="addPromptModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('addPromptModal').style.display='none'">&times;</span>
@@ -303,7 +282,6 @@
         </div>
     </div>
 
-    <!-- Edit Profile Modal -->
     <div id="editProfileModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('editProfileModal').style.display='none'">&times;</span>
@@ -328,7 +306,6 @@
         </div>
     </div>
 
-    <!-- Coin History Modal -->
     <div id="coinHistoryModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('coinHistoryModal').style.display='none'">&times;</span>
@@ -338,7 +315,6 @@
         </div>
     </div>
 
-    <!-- TERMS AND CONDITIONS MODAL -->
     <div id="termsModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('termsModal').style.display='none'">&times;</span>
@@ -354,7 +330,6 @@
         </div>
     </div>
 
-    <!-- PRIVACY POLICY MODAL -->
     <div id="privacyModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="document.getElementById('privacyModal').style.display='none'">&times;</span>
@@ -369,7 +344,6 @@
         </div>
     </div>
 
-    <!-- Custom Theme Alert Modal -->
     <div id="themeAlertModal" class="modal">
         <div class="modal-content">
             <p id="themeAlertText" style="text-align: center; font-size: 16px; margin-bottom: 20px;"></p>
