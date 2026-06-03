@@ -25,7 +25,7 @@ body {
     overscroll-behavior-y: none; 
     -webkit-font-smoothing: antialiased; 
     line-height: 1.5; 
-    padding-bottom: 70px; 
+    padding-bottom: 100px; 
     overflow-x: hidden; 
 }
 
@@ -271,14 +271,23 @@ body {
 
 .app-tabs { 
     display: flex; 
-    justify-content: center; 
+    justify-content: flex-start; 
     gap: 15px; 
     margin: 15px 0; 
     border-bottom: 1px solid var(--border-color); 
-    flex-wrap: wrap; 
+    flex-wrap: nowrap; 
+    overflow-x: auto; 
+    -ms-overflow-style: none; 
+    scrollbar-width: none; 
+    padding: 0 15px;
+}
+
+.app-tabs::-webkit-scrollbar { 
+    display: none; 
 }
 
 .tab-btn { 
+    flex-shrink: 0; 
     background: none; 
     border: none; 
     color: var(--text-muted); 
