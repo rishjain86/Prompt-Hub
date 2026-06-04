@@ -14,9 +14,11 @@
     <div id="splash"></div>
 
     <header class="header">
-        <button id="hamburgerBtn" class="icon-btn">☰</button>
-        <div class="brand" onclick="window.goToHome()" style="cursor: pointer;">
-            <h1>Prompt Hub</h1>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <button id="hamburgerBtn" class="icon-btn">☰</button>
+            <div class="brand" onclick="window.goToHome()" style="cursor: pointer;">
+                <h1>Prompt Hub</h1>
+            </div>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
             <div id="coinWallet" class="coin-wallet" style="display: none;" onclick="showCoinModal()">
@@ -38,7 +40,6 @@
             <span class="close-menu" onclick="document.getElementById('sideMenu').classList.remove('open'); document.getElementById('sideMenuOverlay').style.display='none';">&times;</span>
         </div>
         <ul id="menuCategories" class="menu-list">
-            <li onclick="window.goToHome()" style="color: var(--accent-blue); font-weight: bold;">🏠 Back to Home</li>
             <li data-category="Coding & Tech">Coding & Tech</li>
             <li data-category="Marketing & Social Media">Marketing & Social Media</li>
             <li data-category="Copywriting & Content">Copywriting & Content</li>
@@ -70,7 +71,7 @@
 
     <div class="search-section-wrapper">
         <div class="search-container">
-            <input type="search" id="searchInput" name="searchQuery" placeholder="Search prompts (e.g. Gaming)..." autocomplete="nope" autocorrect="off" spellcheck="false">
+            <input type="text" id="searchInput" placeholder="Search prompts (e.g. Gaming)..." autocomplete="off" autocorrect="off" spellcheck="false">
         </div>
     </div>
 
