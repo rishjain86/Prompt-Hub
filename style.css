@@ -582,6 +582,8 @@ body {
 .modal-content input[type="text"], 
 .modal-content input[type="email"], 
 .modal-content input[type="password"], 
+.modal-content input[type="tel"], 
+.modal-content input[type="date"], 
 .modal-content select, 
 .modal-content textarea { 
     width: 100%; 
@@ -953,6 +955,7 @@ input[type="color"]::-webkit-color-swatch {
     display: flex; 
     flex-direction: column; 
     gap: 15px; 
+    overflow: hidden; 
 }
 
 .profile-user-info { 
@@ -961,6 +964,11 @@ input[type="color"]::-webkit-color-swatch {
     gap: 15px; 
     border-bottom: 1px solid var(--border-color); 
     padding-bottom: 15px; 
+    flex-wrap: wrap; 
+}
+
+.profile-user-info h2, .profile-user-info p { 
+    word-break: break-all; 
 }
 
 .profile-avatar { 
@@ -974,6 +982,7 @@ input[type="color"]::-webkit-color-swatch {
     font-size: 24px; 
     font-weight: bold; 
     color: white; 
+    flex-shrink: 0; 
 }
 
 .profile-stats-grid { 
@@ -1066,7 +1075,7 @@ input[type="color"]::-webkit-color-swatch {
 #splash {
     position: fixed;
     inset: 0;
-    background-color: #0F172A; /* Prompt Hub Theme Background */
+    background-color: #0F172A; 
     background-image: url('splash.png'); 
     background-size: cover;
     background-position: center;
@@ -1077,4 +1086,13 @@ input[type="color"]::-webkit-color-swatch {
     justify-content: center;
     align-items: center;
     transition: opacity 0.8s ease;
+}
+
+/* PROFILE BUTTONS RESPONSIVE FIX */
+@media (max-width: 400px) {
+    .profile-header-card .secondary-action-btn {
+        font-size: 12px !important;
+        padding: 8px 4px !important;
+        white-space: nowrap;
+    }
 }
