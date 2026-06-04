@@ -123,14 +123,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setInterval(() => {
         currentPromoIdx = (currentPromoIdx + 1) % promoApps.length;
-        promoSlider.innerHTML = `Try our other app: <span>${promoApps[currentPromoIdx].name}</span>`;
+        if (promoSlider) {
+            promoSlider.innerHTML = `Try our other app: <span>${promoApps[currentPromoIdx].name}</span>`;
+        }
     }, 4000);
     
-    promoSlider.innerHTML = `Try our other app: <span>${promoApps[0].name}</span>`;
-    
-    promoSlider.addEventListener('click', () => {
-        window.open(promoApps[currentPromoIdx].link, '_blank');
-    });
+    if (promoSlider) {
+        promoSlider.innerHTML = `Try our other app: <span>${promoApps[0].name}</span>`;
+        
+        promoSlider.addEventListener('click', () => {
+            window.open(promoApps[currentPromoIdx].link, '_blank');
+        });
+    }
 
     // ==========================================
     // 3. GLOBALS & DOM ELEMENTS
@@ -205,15 +209,57 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 4. AUTHENTICATION, WALLET, STREAK & PROFILE
+    // 4. NAVIGATION LOGIC (Home Fix)
+    // ==========================================
+    window.goToHome = function() {
+        currentTab = 'official';
+        currentCategory = 'All';
+        currentSearch = '';
+        
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        
+        document.querySelectorAll('.tab-btn').forEach((b) => {
+            b.classList.remove('active');
+        });
+        
+        const tabOfficial = document.getElementById('tabOfficial');
+        if (tabOfficial) {
+            tabOfficial.classList.add('active');
+        }
+        
+        document.querySelectorAll('.filter-btn').forEach((b) => {
+            b.classList.remove('active');
+        });
+        
+        const allFilterBtn = document.querySelector('.filter-btn[data-category="All"]');
+        if (allFilterBtn) {
+            allFilterBtn.classList.add('active');
+        }
+
+        const promptContainerElem = document.getElementById('promptContainer');
+        const profileContainerElem = document.getElementById('profileContainer');
+        if (promptContainerElem) promptContainerElem.style.display = 'grid';
+        if (profileContainerElem) profileContainerElem.style.display = 'none';
+        
+        updateTabsUI();
+        filterAndRender();
+        window.scrollTo(0, 0);
+    };
+
+    // ==========================================
+    // 5. AUTHENTICATION, WALLET, STREAK & PROFILE
     // ==========================================
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             currentUser = user;
             isAdmin = ADMIN_EMAILS.includes(user.email);
             
-            authBtn.textContent = "Logout";
-            authBtn.classList.add('logout-state');
+            if (authBtn) {
+                authBtn.style.display = 'none';
+            }
             
             document.getElementById('coinWallet').style.display = 'flex';
             document.getElementById('headerProfileBtn').style.display = 'block';
@@ -231,7 +277,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     name: defaultName, 
                     avatar: '👨‍💻',
                     streak: 1,
-                    lastLoginDate: todayStr
+                    lastLoginDate: todayStr,
+                    history: [{ amount: 20, reason: "Welcome Bonus", date: new Date().toISOString() }]
                 };
                 
                 await userRef.set({ 
@@ -258,6 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 let streak = userProfileData.streak || 0;
                 let lastLogin = userProfileData.lastLoginDate || "";
+                let history = userProfileData.history || [];
                 
                 if (lastLogin !== todayStr) {
                     let yesterday = new Date();
@@ -272,14 +320,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     let reward = (streak % 7 === 0) ? 50 : 5;
                     let newCoins = (userProfileData.coins || 0) + reward;
                     
+                    history.push({ amount: reward, reason: "Daily Login Streak", date: new Date().toISOString() });
+                    if (history.length > 30) history = history.slice(history.length - 30);
+                    
                     userProfileData.streak = streak;
                     userProfileData.lastLoginDate = todayStr;
                     userProfileData.coins = newCoins;
+                    userProfileData.history = history;
                     
                     await userRef.set({ 
                         streak: streak, 
                         lastLoginDate: todayStr, 
-                        coins: newCoins 
+                        coins: newCoins,
+                        history: history
                     }, { merge: true });
                     
                     document.getElementById('coinCount').innerText = newCoins;
@@ -296,14 +349,19 @@ document.addEventListener('DOMContentLoaded', () => {
             isAdmin = false;
             userProfileData = {};
             
-            authBtn.textContent = "Login";
-            authBtn.classList.remove('logout-state');
+            if (authBtn) {
+                authBtn.style.display = 'block';
+                authBtn.textContent = "Login";
+            }
             
             document.getElementById('coinWallet').style.display = 'none';
             document.getElementById('headerProfileBtn').style.display = 'none';
             
             if (currentTab === 'profile') {
-                document.getElementById('tabOfficial').click();
+                const tabOfficial = document.getElementById('tabOfficial');
+                if (tabOfficial) {
+                    tabOfficial.click();
+                }
             }
         }
         
@@ -311,7 +369,10 @@ document.addEventListener('DOMContentLoaded', () => {
         filterAndRender();
     });
 
-    window.updateCoins = async function(amount) {
+    // ==========================================
+    // 6. COIN WALLET & HISTORY LOGIC
+    // ==========================================
+    window.updateCoins = async function(amount, reason = "Update") {
         if (!currentUser) {
             return false;
         }
@@ -320,14 +381,31 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const doc = await userRef.get();
-            let currentCoins = doc.exists ? (doc.data().coins || 0) : 0;
+            let currentCoins = 0;
+            let history = [];
+            
+            if (doc.exists) {
+                currentCoins = doc.data().coins || 0;
+                history = doc.data().history || [];
+            }
             
             if (currentCoins + amount < 0) {
                 return false; 
             }
             
+            history.push({
+                amount: amount,
+                reason: reason,
+                date: new Date().toISOString()
+            });
+
+            if (history.length > 30) {
+                history = history.slice(history.length - 30);
+            }
+            
             await userRef.set({ 
-                coins: currentCoins + amount 
+                coins: currentCoins + amount,
+                history: history
             }, { 
                 merge: true 
             });
@@ -350,6 +428,53 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('coinModal').style.display = 'block';
     };
 
+    window.openCoinHistory = async function() {
+        const modal = document.getElementById('coinHistoryModal');
+        const list = document.getElementById('coinHistoryList');
+
+        if (modal) modal.style.display = 'block';
+        if (list) list.innerHTML = '<p style="text-align:center; color:var(--text-muted);">Loading...</p>';
+
+        if (!currentUser) return;
+
+        try {
+            const doc = await db.collection('users').doc(currentUser.uid).get();
+            let history = [];
+            if (doc.exists) {
+                history = doc.data().history || [];
+            }
+
+            if (history.length === 0) {
+                if (list) list.innerHTML = '<p style="text-align:center; color:var(--text-muted); margin-top:20px;">No coin history found.</p>';
+                return;
+            }
+
+            history.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            let html = '';
+            history.forEach(h => {
+                let color = h.amount > 0 ? '#10b981' : '#ef4444';
+                let sign = h.amount > 0 ? '+' : '';
+                let dateStr = new Date(h.date).toLocaleString();
+
+                html += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-dark); padding:12px; border-radius:8px; border:1px solid var(--border-color);">
+                        <div>
+                            <div style="font-size:14px; color:var(--text-main); font-weight:bold;">${h.reason}</div>
+                            <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">${dateStr}</div>
+                        </div>
+                        <div style="font-size:16px; font-weight:bold; color:${color};">${sign}${h.amount}</div>
+                    </div>
+                `;
+            });
+
+            if (list) list.innerHTML = html;
+
+        } catch (e) {
+            if (list) list.innerHTML = '<p style="color:#ef4444; text-align:center;">Error loading history.</p>';
+        }
+    };
+
     document.getElementById('watchAdForCoinsBtn').addEventListener('click', async () => {
         document.getElementById('coinModal').style.display = 'none';
         
@@ -357,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const { AdMob } = window.Capacitor.Plugins;
                 await AdMob.showRewardVideoAd();
-                await updateCoins(15); 
+                await updateCoins(15, "Watched Ad"); 
                 showCustomAlert("💰 15 Coins added successfully!");
             } catch (error) {
                 console.error(error);
@@ -378,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     clearInterval(interval);
                     adModal.style.display = 'none';
                     
-                    await updateCoins(15); 
+                    await updateCoins(15, "Watched Ad"); 
                     showCustomAlert("💰 15 Coins added successfully!");
                 }
             }, 1000);
@@ -386,23 +511,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 5. AUTH MODALS & LISTENERS
+    // 7. AUTH MODALS & LISTENERS
     // ==========================================
-    authBtn.addEventListener('click', async () => {
-        if (currentUser) {
-            try {
-                await auth.signOut();
-                if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-                    await window.Capacitor.Plugins.GoogleAuth.signOut();
-                }
-                showCustomAlert("Logged out successfully! 👋");
-            } catch (error) {
-                showCustomAlert("Logout Error: " + error.message);
-            }
-        } else {
+    if (authBtn) {
+        authBtn.addEventListener('click', () => {
             document.getElementById('authModal').style.display = 'block';
-        }
-    });
+        });
+    }
 
     const toggleAuthMode = document.getElementById('toggleAuthMode');
     
@@ -442,7 +557,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ==== GOOGLE LOGIN BUTTON ====
     const googleAuthBtn = document.getElementById('googleAuthBtn');
     if (googleAuthBtn) {
         googleAuthBtn.addEventListener('click', async () => {
@@ -479,7 +593,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 6. DATA FETCHING
+    // 8. DATA FETCHING
     // ==========================================
     async function fetchOfficialPrompts() {
         try {
@@ -556,7 +670,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // 7. HEADER & TAB LISTENERS
+    // 9. HEADER & TAB LISTENERS
     // ==========================================
     document.getElementById('headerProfileBtn').addEventListener('click', () => {
         if (!currentUser) {
@@ -639,7 +753,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 8. PROFILE DASHBOARD RENDERING
+    // 10. PROFILE DASHBOARD RENDERING
     // ==========================================
     function renderProfileDashboard() {
         const profileContainer = document.getElementById('profileContainer');
@@ -699,6 +813,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="stat-value" style="color:#f59e0b;">${pendingCount}</div>
                         <div class="stat-label">Pending ⏳</div>
                     </div>
+                </div>
+                
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button onclick="window.openCoinHistory()" class="secondary-action-btn" style="flex:1; border-color:#fbbf24; color:#fbbf24;">🪙 Coin History</button>
+                    <button id="profileLogoutBtn" class="secondary-action-btn" style="flex:1; border-color:#ef4444; color:#ef4444;">🚪 Logout</button>
                 </div>
             </div>
             
@@ -776,7 +895,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 9. FILTER & RENDER PROMPTS + LEADERBOARD
+    // 11. FILTER & RENDER PROMPTS + LEADERBOARD
     // ==========================================
     function filterAndRender() {
         
@@ -956,7 +1075,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 10. CARD ACTIONS (VIEW, COPY, SHARE)
+    // 12. CARD ACTIONS (VIEW, COPY, SHARE)
     // ==========================================
     window.trackAndView = function(pId, encTitle, encText) {
         let currentViews = parseInt(localStorage.getItem(`views_${pId}`)) || 0;
@@ -998,7 +1117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // 11. AI RUN FLOW & MODALS
+    // 13. AI RUN FLOW & MODALS
     // ==========================================
     window.initiateAiRun = function(encTitle, encText) {
         pendingAiRunData = { 
@@ -1073,7 +1192,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 12. AI ENHANCER LOGIC
+    // 14. AI ENHANCER LOGIC
     // ==========================================
     document.getElementById('enhancePromptBtn').addEventListener('click', async () => {
         const promptArea = document.getElementById('promptText');
@@ -1082,7 +1201,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return showCustomAlert("Please enter a basic idea first!");
         }
         
-        let hasCoins = await updateCoins(-2);
+        let hasCoins = await updateCoins(-2, "Enhanced Prompt");
         if (!hasCoins) {
             return showCoinModal();
         }
@@ -1100,14 +1219,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 13. TEST MODE AI GENERATOR
+    // 15. TEST MODE AI GENERATOR
     // ==========================================
     document.getElementById('generateAiBtn').addEventListener('click', async (e) => {
         if (!currentUser) {
             return showCustomAlert("Please Login to generate AI Content!");
         }
         
-        let hasCoins = await updateCoins(-5);
+        let hasCoins = await updateCoins(-5, "AI Output Generation");
         if (!hasCoins) {
             document.getElementById('aiRunModal').style.display = 'none';
             return showCoinModal();
@@ -1139,7 +1258,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 14. EXPORT & WATERMARK LOGIC
+    // 16. EXPORT & WATERMARK LOGIC
     // ==========================================
     document.getElementById('exportAiOutputBtn').addEventListener('click', () => {
         document.getElementById('aiRunModal').style.display = 'none';
@@ -1171,7 +1290,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return showCustomAlert("Please Login first!");
         }
 
-        let hasCoins = await updateCoins(-10);
+        let hasCoins = await updateCoins(-10, "Custom Poster Export");
         if (!hasCoins) {
             document.getElementById('customWatermarkModal').style.display = 'none';
             return showCoinModal();
@@ -1207,7 +1326,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 15. HTML2CANVAS EXECUTION
+    // 17. HTML2CANVAS EXECUTION
     // ==========================================
     async function executeExport(mode, customConfig = null) {
         showCustomAlert("Generating Image... 📸");
@@ -1285,7 +1404,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 16. ADD PROMPT SUBMISSION & ADMIN
+    // 18. ADD PROMPT SUBMISSION & ADMIN
     // ==========================================
     document.getElementById('openAddPromptBtn').addEventListener('click', () => {
         document.getElementById('promptTitle').value = ''; 
@@ -1346,9 +1465,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // 17. EDIT PROFILE & AVATAR SELECTION
+    // 19. EDIT PROFILE & LOGOUT
     // ==========================================
-    document.getElementById('profileContainer').addEventListener('click', (e) => {
+    document.getElementById('profileContainer').addEventListener('click', async (e) => {
+        
         if (e.target.id === 'openEditProfileBtn') {
             document.getElementById('editProfileName').value = userProfileData.name || '';
             selectedAvatar = userProfileData.avatar || '👨‍💻';
@@ -1362,6 +1482,18 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             document.getElementById('editProfileModal').style.display = 'block';
+        }
+        
+        if (e.target.id === 'profileLogoutBtn') {
+            try {
+                await auth.signOut();
+                if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+                    await window.Capacitor.Plugins.GoogleAuth.signOut();
+                }
+                showCustomAlert("Logged out successfully! 👋");
+            } catch (error) {
+                showCustomAlert("Logout Error: " + error.message);
+            }
         }
     });
 
@@ -1416,7 +1548,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 18. INITIAL FETCH
+    // 20. INITIAL FETCH
     // ==========================================
     fetchOfficialPrompts();
 
