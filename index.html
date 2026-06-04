@@ -69,9 +69,17 @@
         </ul>
     </nav>
 
+    <!-- BROWSER PASSWORD MANAGER TRAP (Prevents search bar from triggering saved passwords) -->
+    <div style="position: absolute; top: -9999px; left: -9999px;">
+        <input type="text" autocomplete="username" tabindex="-1">
+        <input type="password" autocomplete="current-password" tabindex="-1">
+    </div>
+
     <div class="search-section-wrapper">
         <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Search prompts (e.g. Gaming)..." autocomplete="off" autocorrect="off" spellcheck="false">
+            <form autocomplete="off" onsubmit="return false;" style="margin: 0; padding: 0; width: 100%;">
+                <input type="search" id="searchInput" name="searchQuery" placeholder="Search prompts (e.g. Gaming)..." autocomplete="off" autocorrect="off" spellcheck="false">
+            </form>
         </div>
     </div>
 
@@ -358,4 +366,3 @@
     <script src="script.js?v=27"></script>
 </body>
 </html>
-
