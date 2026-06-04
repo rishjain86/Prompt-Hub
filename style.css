@@ -110,7 +110,7 @@ body {
     cursor: pointer !important; 
     outline: none !important; 
     height: 34px !important; 
-    display: inline-flex !important; 
+    display: inline-flex; 
     align-items: center !important; 
     justify-content: center !important; 
 }
@@ -1078,13 +1078,3 @@ input[type="color"]::-webkit-color-swatch {
     align-items: center;
     transition: opacity 0.8s ease;
 }
-
-/* HEADER MOBILE FIX */
-.brand h1 { white-space: nowrap !important; }
-@media (max-width: 400px) {
-    .brand h1 { font-size: 18px !important; }
-    .header { padding: 12px 10px !important; gap: 5px !important; }
-    #authBtn { padding: 5px 10px !important; font-size: 12px !important; }
-    .coin-wallet { padding: 5px 8px !important; font-size: 12px !important; }
-}
-
