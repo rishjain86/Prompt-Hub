@@ -278,7 +278,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     avatar: '👨‍💻',
                     streak: 1,
                     lastLoginDate: todayStr,
-                    history: [{ amount: 20, reason: "Welcome Bonus", date: new Date().toISOString() }]
+                    history: [{ amount: 20, reason: "Welcome Bonus", date: new Date().toISOString() }],
+                    onboarded: false
                 };
                 
                 await userRef.set({ 
@@ -288,9 +289,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 document.getElementById('coinCount').innerText = "20";
                 
-                document.getElementById('welcomeTitle').textContent = "Welcome Aboard! 🚀";
-                document.getElementById('welcomeMessage').textContent = `Hi ${userProfileData.name}, you've received 20 Free Coins to start generating!`;
-                document.getElementById('welcomeModal').style.display = 'block';
+                // Show Onboarding Modal for New Users
+                document.getElementById('onboardName').value = userProfileData.name;
+                document.getElementById('onboardingModal').style.display = 'block';
                 
             } else {
                 userProfileData = doc.data();
@@ -306,8 +307,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 let streak = userProfileData.streak || 0;
                 let lastLogin = userProfileData.lastLoginDate || "";
                 let history = userProfileData.history || [];
+                let onboarded = userProfileData.onboarded !== undefined ? userProfileData.onboarded : true;
                 
-                if (lastLogin !== todayStr) {
+                // Check if user hasn't completed onboarding previously
+                if (onboarded === false) {
+                    document.getElementById('onboardName').value = userProfileData.name || '';
+                    document.getElementById('onboardingModal').style.display = 'block';
+                } 
+                else if (lastLogin !== todayStr) {
                     let yesterday = new Date();
                     yesterday.setDate(yesterday.getDate() - 1);
                     
@@ -350,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
             userProfileData = {};
             
             if (authBtn) {
-                authBtn.style.display = 'block';
+                authBtn.style.display = 'inline-flex';
                 authBtn.textContent = "Login";
             }
             
@@ -511,7 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 7. AUTH MODALS & LISTENERS
+    // 7. AUTH MODALS & ONBOARDING LISTENERS
     // ==========================================
     if (authBtn) {
         authBtn.addEventListener('click', () => {
@@ -590,6 +597,69 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) { 
             showCustomAlert(error.message); 
         }
+    });
+
+    // --- ONBOARDING ACTIONS ---
+    document.getElementById('onboardSaveBtn').addEventListener('click', async () => {
+        const name = document.getElementById('onboardName').value.trim();
+        const gender = document.getElementById('onboardGender').value;
+        const dob = document.getElementById('onboardDob').value;
+        const phone = document.getElementById('onboardPhone').value.trim();
+        const bio = document.getElementById('onboardBio').value.trim();
+
+        if (!name || !gender || !dob) {
+            return showCustomAlert("Please fill Name, Gender, and D.O.B!");
+        }
+
+        const btn = document.getElementById('onboardSaveBtn');
+        btn.innerHTML = "Saving... ⏳";
+        btn.disabled = true;
+
+        if (currentUser) {
+            try {
+                await db.collection('users').doc(currentUser.uid).set({
+                    name: name,
+                    gender: gender,
+                    dob: dob,
+                    phone: phone,
+                    bio: bio,
+                    onboarded: true
+                }, { merge: true });
+
+                userProfileData.name = name;
+                userProfileData.onboarded = true;
+
+                document.getElementById('onboardingModal').style.display = 'none';
+                
+                // Show Welcome message after saving profile
+                document.getElementById('welcomeTitle').textContent = "Welcome Aboard! 🚀";
+                document.getElementById('welcomeMessage').textContent = `Hi ${name}, your profile is set! You've received 20 Free Coins to start generating!`;
+                document.getElementById('welcomeModal').style.display = 'block';
+                
+                if (currentTab === 'profile') renderProfileDashboard();
+
+            } catch(e) {
+                showCustomAlert("Error: " + e.message);
+            }
+        }
+        btn.innerHTML = "Save & Continue";
+        btn.disabled = false;
+    });
+
+    document.getElementById('onboardSkipBtn').addEventListener('click', async () => {
+        if (currentUser) {
+            await db.collection('users').doc(currentUser.uid).set({
+                onboarded: true
+            }, { merge: true });
+            userProfileData.onboarded = true;
+        }
+        
+        document.getElementById('onboardingModal').style.display = 'none';
+        
+        let dName = userProfileData.name || "there";
+        document.getElementById('welcomeTitle').textContent = "Welcome Aboard! 🚀";
+        document.getElementById('welcomeMessage').textContent = `Hi ${dName}, you've received 20 Free Coins to start generating!`;
+        document.getElementById('welcomeModal').style.display = 'block';
     });
 
     // ==========================================
@@ -777,21 +847,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let html = `
             <div class="profile-header-card">
-                <div class="profile-user-info" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="display:flex; align-items:center; gap:15px;">
-                        <div class="profile-avatar" style="font-size:35px; background:transparent; border: 2px solid var(--accent-blue);">
-                            ${avatarEmoji}
-                        </div>
-                        <div>
-                            <h2 style="color: var(--text-main); margin:0;">
-                                ${displayName}
-                            </h2>
-                            <p style="color: var(--text-muted); font-size: 14px; margin:0;">
-                                ${currentUser.email}
-                            </p>
-                        </div>
+                <div class="profile-user-info">
+                    <div class="profile-avatar">
+                        ${avatarEmoji}
                     </div>
-                    <button id="openEditProfileBtn" class="secondary-action-btn" style="width:auto; padding:8px 15px; font-size:13px; border-color:var(--accent-blue); color:var(--accent-blue);">
+                    <div style="flex-grow: 1; overflow: hidden;">
+                        <h2 style="color: var(--text-main); margin:0;">
+                            ${displayName}
+                        </h2>
+                        <p style="color: var(--text-muted); font-size: 14px; margin:0;">
+                            ${currentUser.email}
+                        </p>
+                    </div>
+                    <button id="openEditProfileBtn" class="secondary-action-btn" style="width:auto; padding:8px 15px; font-size:13px; border-color:var(--accent-blue); color:var(--accent-blue); flex-shrink: 0;">
                         ✏️ Edit
                     </button>
                 </div>
