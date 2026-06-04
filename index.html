@@ -69,7 +69,6 @@
         </ul>
     </nav>
 
-    <!-- BROWSER PASSWORD MANAGER TRAP (Prevents search bar from triggering saved passwords) -->
     <div style="position: absolute; top: -9999px; left: -9999px;">
         <input type="text" autocomplete="username" tabindex="-1">
         <input type="password" autocomplete="current-password" tabindex="-1">
@@ -108,6 +107,49 @@
     <div style="height: 70px; width: 100%;"></div>
 
     <div id="exportCanvasContainer" style="position: absolute; top: -9999px; left: -9999px;"></div>
+
+    <div id="onboardingModal" class="modal">
+        <div class="modal-content">
+            <h2 style="color:var(--accent-blue); margin-bottom: 5px; text-align: center;">Complete Profile 👤</h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; text-align: center;">
+                Set up your creator identity to start generating!
+            </p>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Full Name *</label>
+                <input type="text" id="onboardName" placeholder="Your Name" class="ai-var-input" style="margin-bottom: 0;">
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Gender *</label>
+                    <select id="onboardGender" class="ai-var-input" style="margin-bottom: 0;">
+                        <option value="">Select...</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">D.O.B *</label>
+                    <input type="date" id="onboardDob" class="ai-var-input" style="margin-bottom: 0;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Phone Number <span style="color:#fbbf24;">(Optional)</span></label>
+                <input type="tel" id="onboardPhone" placeholder="+91..." class="ai-var-input" style="margin-bottom: 0;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:5px;">Bio <span style="color:#fbbf24;">(Optional)</span></label>
+                <textarea id="onboardBio" placeholder="Short bio about yourself..." rows="3" class="ai-var-input" style="margin-bottom: 0;"></textarea>
+            </div>
+
+            <button id="onboardSaveBtn" class="primary-btn" style="margin-bottom: 10px; background: linear-gradient(135deg, #10b981, #3b82f6);">Save & Continue</button>
+            <button id="onboardSkipBtn" class="secondary-action-btn">Skip for Now</button>
+        </div>
+    </div>
 
     <div id="welcomeModal" class="modal">
         <div class="modal-content" style="text-align: center;">
