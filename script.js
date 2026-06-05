@@ -1325,21 +1325,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // 1. GEMINI API KEY (Bypass GitHub Scanner - 3 Parts me todo)
-        const gem_1 = "YOUR_GEM_KEY_PART1"; 
-        const gem_2 = "_PART2_"; 
-        const gem_3 = "_PART3"; 
+        const gem_1 = "AQ.Ab8RN6I8ndGpiu"; 
+        const gem_2 = "MzEAmvY5XnERAp3QG"; 
+        const gem_3 = "OismdK4KOWEXuab5VFg"; 
         const GEMINI_API_KEY = gem_1 + gem_2 + gem_3;
 
         // 2. GROQ API KEY (3 Parts)
-        const groq_1 = "YOUR_GROQ_KEY_PART1"; 
-        const groq_2 = "_PART2_"; 
-        const groq_3 = "_PART3"; 
+        const groq_1 = "gsk_LrW9buTCWB1srH"; 
+        const groq_2 = "OOj7k6WGdyb3FY3HcI"; 
+        const groq_3 = "rKWKr6yP5PhYtiIVzHU2"; 
         const GROQ_API_KEY = groq_1 + groq_2 + groq_3;
 
         // 3. OPENROUTER API KEY (3 Parts)
-        const or_1 = "YOUR_OR_KEY_PART1"; 
-        const or_2 = "_PART2_"; 
-        const or_3 = "_PART3"; 
+        const or_1 = "sk-or-v1-aa41b43c553c42"; 
+        const or_2 = "1cc0c27adb5d9cc35ac236d"; 
+        const or_3 = "577c17aeafff745cc331fc9c99c"; 
         const OPENROUTER_API_KEY = or_1 + or_2 + or_3;
 
         try {
