@@ -1489,7 +1489,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 17. HTML2CANVAS EXECUTION
+    // 17. HTML2CANVAS EXECUTION (FIXED FOR MOBILE)
     // ==========================================
     async function executeExport(mode, customConfig = null) {
         showCustomAlert("Generating Image... 📸");
@@ -1546,24 +1546,38 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         
-        try {
-            setTimeout(async () => {
-                const canvas = await html2canvas(document.getElementById('posterTarget'), {
+        setTimeout(async () => {
+            try {
+                const target = document.getElementById('posterTarget');
+                if(!target) throw new Error("Target not found");
+
+                const canvas = await html2canvas(target, {
                     scale: 2, 
-                    backgroundColor: '#0f172a'
+                    backgroundColor: '#0f172a',
+                    useCORS: true,
+                    allowTaint: true
                 });
                 
+                const dataUrl = canvas.toDataURL('image/png');
                 const link = document.createElement('a');
-                link.download = `Output_${currentGeneratedOutputTitle.replace(/\s+/g, '_')}.png`;
-                link.href = canvas.toDataURL('image/png');
+                
+                // Safe filename without special characters
+                link.download = `PromptHub_${Date.now()}.png`;
+                link.href = dataUrl;
+                
+                // Append to DOM so mobile browsers don't block the download
+                document.body.appendChild(link);
                 link.click();
+                document.body.removeChild(link);
                 
-                container.innerHTML = ''; 
-                
-            }, 500);
-        } catch(e) { 
-            showCustomAlert("Error generating image."); 
-        }
+                setTimeout(() => { container.innerHTML = ''; }, 1000); 
+                showCustomAlert("Image Downloaded Successfully! 🎉");
+
+            } catch(e) { 
+                console.error("Canvas Error: ", e);
+                showCustomAlert("Error generating image: " + e.message); 
+            }
+        }, 500);
     }
 
     // ==========================================
